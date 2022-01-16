@@ -1,5 +1,5 @@
 #include "matrix.h"
-
+#include "linearequations.h"
 int main(void)
 {
     Matrix *A = matrix_alloc(3, 3);
