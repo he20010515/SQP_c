@@ -267,19 +267,27 @@ void error_zeros(Matrix *matrix, int control_index);
  *  @param string     Message to displayed to stdout in case of an error 
  */
 void terminate(char *string);
+
 /**
  * Function to compute L2-norm of column vector
  * 
  *  @param matrix     A column vector
  *  @param double     L2-Norm of volumn vector
  */
-
-double vector_norm(Matrix *matrix, int order);
+double vector_2norm(Matrix *matrix);
 /**
- * Function to compute L2-norm of column vector
+ * Function to invmatrix of a matrix
  * 
  *  @param matrix     A Matrix
  *  
- *  @return matrix    inv A;
+ *  @return matrix    location of a space to save result
  */
 Matrix *matrix_inv(Matrix *matrix);
+/**
+ * Function to compute F2-norm of A
+ * 
+ *  @param matrix     A Matrix
+ *  
+ *  @return double    F2norm of a matrix
+ */
+double matrix_F2norm(Matrix *matrix, int order);

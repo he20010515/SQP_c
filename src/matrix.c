@@ -426,25 +426,31 @@ void terminate(char *string)
 	exit(-1);
 }
 
-double vector_norm(Matrix *matrix, int order)
+double vector_2norm(Matrix *matrix)
 {
 	if (matrix->col_size != 1)
 	{
-		return -1.;
+		terminate("vector_2norm must input a column vector");
 	}
-	float norm = 0.;
-
-	switch (order)
+	double norm = 0.;
+	for (int i = 0; i < matrix->row_size; i++)
 	{
-	case 2:
-		for (int i = 0; i < matrix->row_size; i++)
-		{
-			norm += pow(matrix->matrix_entry[i][0], 2.);
-		}
-		return sqrt(norm);
-	default:
-		return -1.;
+		norm += pow(matrix->matrix_entry[i][0], 2.);
 	}
+	return sqrt(norm);
+}
+
+double matrix_F2norm(Matrix *matrix, int order)
+{
+	double norm = 0.;
+	for (int i = 0; i < matrix->row_size; i++)
+	{
+		for (int j = 0; j < matrix->col_size; j++)
+		{
+			norm += pow(matrix->matrix_entry[i][j], 2.);
+		}
+	}
+	return sqrt(norm);
 }
 
 Matrix *matrix_inv(Matrix *matrix)
