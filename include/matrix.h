@@ -53,11 +53,9 @@
  * number or rows and columns
  */
 
-
 #include <stdio.h>
 #include <malloc.h>
 #include <stdlib.h>
-
 
 /**
  * Definition of a  @ref _Matrix structure to hold the matrix entries.
@@ -70,7 +68,7 @@ struct _Matrix
 
   /** The number of columns in the matrix */
   int col_size;
-  
+
   /** The individual entries in the matrix */
   float **matrix_entry;
 };
@@ -91,7 +89,7 @@ typedef struct _Matrix Matrix;
  * @param matrix  Pointer to the matrix to be printed to stdout
  */
 
-void matrix_print (Matrix *matrix);
+void matrix_print(Matrix *matrix);
 
 /**
  *  Printing some columns of a matrix 
@@ -100,8 +98,7 @@ void matrix_print (Matrix *matrix);
  * @param start_index   The  column number to start printing from
  */
 
-void matrix_print_part(Matrix *matrix, int start_index );
-
+void matrix_print_part(Matrix *matrix, int start_index);
 
 /**
  * This fills the entire matrix with values which are  gotten form
@@ -111,7 +108,7 @@ void matrix_print_part(Matrix *matrix, int start_index );
  * be filled.
  */
 
-void matrix_fill(Matrix *matrix );
+void matrix_fill(Matrix *matrix);
 
 /**
  * Creates an identity matrix that is all the diagonal entries are 
@@ -123,7 +120,7 @@ void matrix_fill(Matrix *matrix );
  *                                        created
  */
 
-Matrix * matrix_callalloc(int matrix_size); 
+Matrix *matrix_callalloc(int matrix_size);
 
 /**
  * Allocates memory for a new matrix
@@ -166,7 +163,7 @@ Matrix *matrix_multiply(const Matrix *matrix1, const Matrix *matrix2);
  *                                    of the multiplications
  */
 
-Matrix  *matrix_pow(Matrix *matrix, int index);
+Matrix *matrix_pow(Matrix *matrix, int index);
 
 /**
  * Free an entire matrix
@@ -174,7 +171,6 @@ Matrix  *matrix_pow(Matrix *matrix, int index);
  * @param matrix       The matrix to free.
  */
 void matrix_free(Matrix *matrix);
-
 
 /**
  * Divides an entire row of a matrix by a value of the pivot position
@@ -205,7 +201,7 @@ void row_operation(Matrix *multiplier_matrix, Matrix *matrix, int pivot, int row
  *                                        row
  */
 
-void matrix_row_reduce( Matrix *matrix, int zero_control);
+void matrix_row_reduce(Matrix *matrix, int zero_control);
 
 /**
  * This function performs the  LU decomposition of a matrix
@@ -254,7 +250,7 @@ void matrix_invert(Matrix *inverse_matrix);
  *                        are not equal.
  */
 
-int matrix_equal_size( Matrix *matrix1, Matrix *matrix2);
+int matrix_equal_size(Matrix *matrix1, Matrix *matrix2);
 
 /**
  * Checks  if there are too many zeros in a single line
@@ -263,11 +259,27 @@ int matrix_equal_size( Matrix *matrix1, Matrix *matrix2);
  * @param control_index    The maximum amount of zero's that can be contained
  *                                         in a single row
  */
-void error_zeros( Matrix *matrix, int control_index);
+void error_zeros(Matrix *matrix, int control_index);
 
 /**
  * Function to terminate an application in case of an error
  * 
  *  @param string     Message to displayed to stdout in case of an error 
  */
-void terminate( char *string);
+void terminate(char *string);
+/**
+ * Function to compute L2-norm of column vector
+ * 
+ *  @param matrix     A column vector
+ *  @param double     L2-Norm of volumn vector
+ */
+
+double vector_norm(Matrix *matrix, int order);
+/**
+ * Function to compute L2-norm of column vector
+ * 
+ *  @param matrix     A Matrix
+ *  
+ *  @return matrix    inv A;
+ */
+Matrix *matrix_inv(Matrix *matrix);

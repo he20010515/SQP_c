@@ -13,8 +13,8 @@ int main(void)
             B->matrix_entry[i][j] = i * j;
         }
     }
-    matrix_print(A);
+
+    matrix_fill(A);
+    B = matrix_inv(A);
     matrix_print(B);
-    Matrix *C = matrix_multiply(A, B);
-    matrix_print(C);
 }

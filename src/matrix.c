@@ -16,6 +16,7 @@
  */
 
 #include "matrix.h"
+#include "math.h"
 
 void matrix_print(Matrix *matrix)
 {
@@ -423,4 +424,107 @@ void terminate(char *string)
 	fprintf(stdout, "\n%s\n", string);
 	fprintf(stdout, "The program is exiting now. . . .\n\n");
 	exit(-1);
+}
+
+double vector_norm(Matrix *matrix, int order)
+{
+	if (matrix->col_size != 1)
+	{
+		return -1.;
+	}
+	float norm = 0.;
+
+	switch (order)
+	{
+	case 2:
+		for (int i = 0; i < matrix->row_size; i++)
+		{
+			norm += pow(matrix->matrix_entry[i][0], 2.);
+		}
+		return sqrt(norm);
+	default:
+		return -1.;
+	}
+}
+
+Matrix *matrix_inv(Matrix *matrix)
+{
+	int i, j, k, N = matrix->col_size;
+	float max, temp;
+	int n = matrix->col_size;
+	Matrix *tempMatrix = matrix_alloc(matrix->col_size, matrix->row_size);
+	Matrix *ans = matrix_alloc(matrix->col_size, matrix->row_size);
+	double **B = ans->matrix_entry;
+	float **t = tempMatrix->matrix_entry, **A = matrix->matrix_entry;
+	for (i = 0; i < n; i++)
+	{
+		for (j = 0; j < n; j++)
+		{
+			t[i][j] = A[i][j];
+		}
+	}
+	//初始化B矩阵为单位阵
+	for (i = 0; i < n; i++)
+	{
+		for (j = 0; j < n; j++)
+		{
+			B[i][j] = (i == j) ? (float)1 : 0;
+		}
+	}
+	for (i = 0; i < n; i++)
+	{
+		//寻找主元
+		max = t[i][i];
+		k = i;
+		for (j = i + 1; j < n; j++)
+		{
+			if (fabs(t[j][i]) > fabs(max))
+			{
+				max = t[j][i];
+				k = j;
+			}
+		}
+		//如果主元所在行不是第i行，进行行交换
+		if (k != i)
+		{
+			for (j = 0; j < n; j++)
+			{
+				temp = t[i][j];
+				t[i][j] = t[k][j];
+				t[k][j] = temp;
+				//B伴随交换
+				temp = B[i][j];
+				B[i][j] = B[k][j];
+				B[k][j] = temp;
+			}
+		}
+		//判断主元是否为0, 若是, 则矩阵A不是满秩矩阵,不存在逆矩阵
+		if (t[i][i] == 0)
+		{
+			printf("There is no inverse matrix!");
+			system("pause");
+			exit(0);
+		}
+		//消去A的第i列除去i行以外的各行元素
+		temp = t[i][i];
+		for (j = 0; j < n; j++)
+		{
+			t[i][j] = t[i][j] / temp; //主对角线上的元素变为1
+			B[i][j] = B[i][j] / temp; //伴随计算
+		}
+		for (j = 0; j < n; j++) //第0行->第n行
+		{
+			if (j != i) //不是第i行
+			{
+				temp = t[j][i];
+				for (k = 0; k < n; k++) //第j行元素 - i行元素*j列i行元素
+				{
+					t[j][k] = t[j][k] - t[i][k] * temp;
+					B[j][k] = B[j][k] - B[i][k] * temp;
+				}
+			}
+		}
+	}
+	matrix_free(tempMatrix);
+	return ans;
 }
