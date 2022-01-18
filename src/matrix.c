@@ -90,7 +90,7 @@ Matrix *matrix_alloc(int row_size, int col_size)
 	int j;
 	Matrix *new_matrix = malloc(sizeof(Matrix));
 
-	//Allocating memory for the new matrix structure
+	// Allocating memory for the new matrix structure
 	new_matrix->row_size = row_size;
 	new_matrix->col_size = col_size;
 	new_matrix->matrix_entry = malloc(new_matrix->row_size * sizeof(float *));
@@ -153,8 +153,8 @@ Matrix *matrix_pow(Matrix *matrix, int index)
 
 		int i, j, k, l, sum, count;
 
-		Matrix *temp = matrix_alloc(matrix->row_size, matrix->col_size);   //Allocating space for a temporal matrix
-		Matrix *result = matrix_alloc(matrix->row_size, matrix->col_size); //Allocating space for the result matrix
+		Matrix *temp = matrix_alloc(matrix->row_size, matrix->col_size);   // Allocating space for a temporal matrix
+		Matrix *result = matrix_alloc(matrix->row_size, matrix->col_size); // Allocating space for the result matrix
 
 		matrix_copy(matrix, temp);
 
@@ -183,7 +183,7 @@ Matrix *matrix_pow(Matrix *matrix, int index)
 					}
 				}
 
-				/* Copying the result matrix into the temp matrix for further 
+				/* Copying the result matrix into the temp matrix for further
 				 * multiplication */
 				matrix_copy(result, temp);
 			}
@@ -212,7 +212,7 @@ Matrix *matrix_pow(Matrix *matrix, int index)
 			matrix_free(result);
 
 			return result_final;
-		} //End of else statement
+		} // End of else statement
 	}
 }
 
@@ -246,7 +246,7 @@ void row_operation(Matrix *multiplier_matrix, Matrix *matrix, int pivot, int row
 {
 	int j;
 	float multiplier = (matrix->matrix_entry[row_index][pivot] / matrix->matrix_entry[pivot][pivot]);
-	//Loop which checks if matrix is provided to store the multiplier
+	// Loop which checks if matrix is provided to store the multiplier
 	if (multiplier_matrix != NULL)
 	{
 		multiplier_matrix->matrix_entry[row_index][pivot] = multiplier;
@@ -265,7 +265,7 @@ void matrix_row_reduce(Matrix *matrix, int zero_control)
 	for (pivot = 0; pivot < matrix->row_size; pivot++)
 	{
 
-		error_zeros(matrix, zero_control); //Function checks if there are too many zeros in a single row
+		error_zeros(matrix, zero_control); // Function checks if there are too many zeros in a single row
 		if ((matrix->matrix_entry[pivot][pivot] != 1) && (matrix->matrix_entry[pivot][pivot] != 0))
 		{
 			row_divide(matrix, pivot);
@@ -296,7 +296,7 @@ void LU_decompose(Matrix *upper_triangular, Matrix *lower_triangular)
 	for (pivot = 0; pivot < upper_triangular->row_size; pivot++)
 	{
 
-		error_zeros(upper_triangular, upper_triangular->col_size); //Function checks if there are too many zeros in a single row
+		error_zeros(upper_triangular, upper_triangular->col_size); // Function checks if there are too many zeros in a single row
 		for (row_index = pivot + 1; row_index < upper_triangular->row_size; row_index++)
 		{
 			if (upper_triangular->matrix_entry[pivot][pivot] != 0)
@@ -440,7 +440,7 @@ double vector_2norm(Matrix *matrix)
 	return sqrt(norm);
 }
 
-double matrix_F2norm(Matrix *matrix, int order)
+double matrix_F2norm(Matrix *matrix)
 {
 	double norm = 0.;
 	for (int i = 0; i < matrix->row_size; i++)
@@ -451,86 +451,4 @@ double matrix_F2norm(Matrix *matrix, int order)
 		}
 	}
 	return sqrt(norm);
-}
-
-Matrix *matrix_inv(Matrix *matrix)
-{
-	int i, j, k, N = matrix->col_size;
-	float max, temp;
-	int n = matrix->col_size;
-	Matrix *tempMatrix = matrix_alloc(matrix->col_size, matrix->row_size);
-	Matrix *ans = matrix_alloc(matrix->col_size, matrix->row_size);
-	double **B = ans->matrix_entry;
-	float **t = tempMatrix->matrix_entry, **A = matrix->matrix_entry;
-	for (i = 0; i < n; i++)
-	{
-		for (j = 0; j < n; j++)
-		{
-			t[i][j] = A[i][j];
-		}
-	}
-	//初始化B矩阵为单位阵
-	for (i = 0; i < n; i++)
-	{
-		for (j = 0; j < n; j++)
-		{
-			B[i][j] = (i == j) ? (float)1 : 0;
-		}
-	}
-	for (i = 0; i < n; i++)
-	{
-		//寻找主元
-		max = t[i][i];
-		k = i;
-		for (j = i + 1; j < n; j++)
-		{
-			if (fabs(t[j][i]) > fabs(max))
-			{
-				max = t[j][i];
-				k = j;
-			}
-		}
-		//如果主元所在行不是第i行，进行行交换
-		if (k != i)
-		{
-			for (j = 0; j < n; j++)
-			{
-				temp = t[i][j];
-				t[i][j] = t[k][j];
-				t[k][j] = temp;
-				//B伴随交换
-				temp = B[i][j];
-				B[i][j] = B[k][j];
-				B[k][j] = temp;
-			}
-		}
-		//判断主元是否为0, 若是, 则矩阵A不是满秩矩阵,不存在逆矩阵
-		if (t[i][i] == 0)
-		{
-			printf("There is no inverse matrix!");
-			system("pause");
-			exit(0);
-		}
-		//消去A的第i列除去i行以外的各行元素
-		temp = t[i][i];
-		for (j = 0; j < n; j++)
-		{
-			t[i][j] = t[i][j] / temp; //主对角线上的元素变为1
-			B[i][j] = B[i][j] / temp; //伴随计算
-		}
-		for (j = 0; j < n; j++) //第0行->第n行
-		{
-			if (j != i) //不是第i行
-			{
-				temp = t[j][i];
-				for (k = 0; k < n; k++) //第j行元素 - i行元素*j列i行元素
-				{
-					t[j][k] = t[j][k] - t[i][k] * temp;
-					B[j][k] = B[j][k] - B[i][k] * temp;
-				}
-			}
-		}
-	}
-	matrix_free(tempMatrix);
-	return ans;
 }
