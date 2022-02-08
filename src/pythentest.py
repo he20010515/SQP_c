@@ -1,5 +1,12 @@
-import scipy.optimize.slsqp as slsqp 
+import scipy.optimize.slsqp as slsqp
 import scipy.optimize as opt
+import numpy as np
+_epsilon = 1e-7
+
+
+def _check_unknown_options():
+    return
+
 
 def _minimize_slsqp(func, x0, args=(), jac=None, bounds=None,
                     constraints=(),
@@ -101,16 +108,16 @@ def _minimize_slsqp(func, x0, args=(), jac=None, bounds=None,
                          'args': con.get('args', ())}, )
 
     exit_modes = {-1: "Gradient evaluation required (g & a)",
-                   0: "Optimization terminated successfully",
-                   1: "Function evaluation required (f & c)",
-                   2: "More equality constraints than independent variables",
-                   3: "More than 3*n iterations in LSQ subproblem",
-                   4: "Inequality constraints incompatible",
-                   5: "Singular matrix E in LSQ subproblem",
-                   6: "Singular matrix C in LSQ subproblem",
-                   7: "Rank-deficient equality constraint subproblem HFTI",
-                   8: "Positive directional derivative for linesearch",
-                   9: "Iteration limit reached"}
+                  0: "Optimization terminated successfully",
+                  1: "Function evaluation required (f & c)",
+                  2: "More equality constraints than independent variables",
+                  3: "More than 3*n iterations in LSQ subproblem",
+                  4: "Inequality constraints incompatible",
+                  5: "Singular matrix E in LSQ subproblem",
+                  6: "Singular matrix C in LSQ subproblem",
+                  7: "Rank-deficient equality constraint subproblem HFTI",
+                  8: "Positive directional derivative for linesearch",
+                  9: "Iteration limit reached"}
 
     # Set the parameters that SLSQP will need
     # meq, mieq: number of equality and inequality constraints
@@ -129,7 +136,7 @@ def _minimize_slsqp(func, x0, args=(), jac=None, bounds=None,
     n1 = n + 1
     mineq = m - meq + n1 + n1
     len_w = (3*n1+m)*(n1+1)+(n1-meq+1)*(mineq+2) + 2*mineq+(n1+mineq)*(n1-meq) \
-            + 2*meq + n1 + ((n+1)*n)//2 + 2*m + 3*n + 3*n1 + 1
+        + 2*meq + n1 + ((n+1)*n)//2 + 2*m + 3*n + 3*n1 + 1
     len_jw = mineq
     w = zeros(len_w)
     jw = zeros(len_jw)
