@@ -40,31 +40,31 @@ int main(void)
 
     //! F,C,G,A        MUST ALL BE SET BY THE USER BEFORE EACH CALL.
     M_alloc_variable(m, integer, 0);
-    // IS THE TOTAL NUMBER OF CONSTRAINTS, M .GE. 0
+    // IS THE TOTAL NUMBER OF CONSTRAINTS, M .GE. 0 // 约束的总数量
     M_alloc_variable(meq, integer, 0);
-    // IS THE NUMBER OF EQUALITY CONSTRAINTS, MEQ .GE. 0
+    // IS THE NUMBER OF EQUALITY CONSTRAINTS, MEQ .GE. 0 // 等式约束的数量
     M_alloc_variable(la, integer, 0);
     // SEE A, LA .GE. MAX(M,1)
     M_alloc_variable(n, integer, 0);
-    // IS THE NUMBER OF VARIBLES, N .GE. 1
+    // IS THE NUMBER OF VARIBLES, N .GE. 1 //x的维度
     M_alloc_variable(x, doublereal, 0);
-    // X() STORES THE CURRENT ITERATE OF THE N VECTOR X  *
+    // X() STORES THE CURRENT ITERATE OF THE N VECTOR X   //* x的存储空间
     // ON ENTRY X() MUST BE INITIALIZED. ON EXIT X()
     // STORES THE SOLUTION VECTOR X IF MODE = 0
     M_alloc_variable(xl, doublereal, 0);
-    // XL() STORES AN N VECTOR OF LOWER BOUNDS XL TO X.
+    // XL() STORES AN N VECTOR OF LOWER BOUNDS XL TO X.   //* x的下界
     // ELEMENTS MAY BE NAN TO INDICATE NO LOWER BOUND.
-    M_alloc_variable(xu, doublereal, 0);
+    M_alloc_variable(xu, doublereal, 0);                  //* x的上界
     // XU() STORES AN N VECTOR OF UPPER BOUNDS XU TO X.
     // ELEMENTS MAY BE NAN TO INDICATE NO UPPER BOUND.
-    M_alloc_variable(f, doublereal, 0);
+    M_alloc_variable(f, doublereal, 0);                   //* 目标函数值
     // IS THE VALUE OF THE OBJECTIVE FUNCTION.
-    M_alloc_variable(c__, doublereal, 0);
+    M_alloc_variable(c__, doublereal, 0);                 //* 约束函数C的值
     // C() STORES THE M VECTOR C OF CONSTRAINTS,
     // EQUALITY CONSTRAINTS (IF ANY) FIRST.
     // DIMENSION OF C MUST BE GREATER OR EQUAL LA,
     // which must be GREATER OR EQUAL MAX(1,M).
-    M_alloc_variable(g, doublereal, 0);
+    M_alloc_variable(g, doublereal, 0);                   //* 梯度函数
     // G() STORES THE N VECTOR G OF PARTIALS OF THE
     // OBJECTIVE FUNCTION; DIMENSION OF G MUST BE GREATER OR EQUAL N+1.
     M_alloc_variable(a, doublereal, 0);
