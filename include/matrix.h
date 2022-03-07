@@ -39,6 +39,7 @@
 #include <stdio.h>
 #include <malloc.h>
 #include <stdlib.h>
+#pragma once
 
 /**
  * Definition of a  @ref _Matrix structure to hold the matrix entries.

@@ -2,18 +2,34 @@
 #include "f2c.h"
 #include "slsqp.h"
 #include "math.h"
+#include "function.h"
+#include "myvector.h"
+
 #define M_alloc_variable(x, type, value)    \
     type *x = (type *)malloc(sizeof(type)); \
     *x = value
 
-float target_function(Matrix *mat)
+float target_function(Vector *mat)
 {
-    return pow(mat->matrix_entry[0][0], 2) +
-           pow(mat->matrix_entry[1][0], 2) +
-           pow(mat->matrix_entry[2][0], 2);
+    return pow(mat->entry[0], 2) +
+           pow(mat->entry[1], 2) +
+           pow(mat->entry[2], 2);
 }
 
 int main(void)
+{
+    NdsclaFunction *f = NdsclaFunctionAlloc(target_function, 3);
+    Vector *x0 = VectorAlloc(3);
+    x0->entry[0] = 1.0;
+    x0->entry[1] = 2.0;
+    x0->entry[2] = 2.0;
+    Vector *grad = VectorAlloc(3);
+    centralGrad(f, 0.01, x0, grad);
+    VectorPrint(grad);
+    printf("%f", NdsclaFunctionCall(f, x0));
+}
+
+void tempfunction(void)
 {
     Matrix *A = matrix_alloc(3, 3);
     Matrix *B = matrix_alloc(3, 3);
@@ -53,17 +69,17 @@ int main(void)
     M_alloc_variable(xl, doublereal, 0);
     // XL() STORES AN N VECTOR OF LOWER BOUNDS XL TO X.   //* x的下界
     // ELEMENTS MAY BE NAN TO INDICATE NO LOWER BOUND.
-    M_alloc_variable(xu, doublereal, 0);                  //* x的上界
+    M_alloc_variable(xu, doublereal, 0); //* x的上界
     // XU() STORES AN N VECTOR OF UPPER BOUNDS XU TO X.
     // ELEMENTS MAY BE NAN TO INDICATE NO UPPER BOUND.
-    M_alloc_variable(f, doublereal, 0);                   //* 目标函数值
+    M_alloc_variable(f, doublereal, 0); //* 目标函数值
     // IS THE VALUE OF THE OBJECTIVE FUNCTION.
-    M_alloc_variable(c__, doublereal, 0);                 //* 约束函数C的值
+    M_alloc_variable(c__, doublereal, 0); //* 约束函数C的值
     // C() STORES THE M VECTOR C OF CONSTRAINTS,
     // EQUALITY CONSTRAINTS (IF ANY) FIRST.
     // DIMENSION OF C MUST BE GREATER OR EQUAL LA,
     // which must be GREATER OR EQUAL MAX(1,M).
-    M_alloc_variable(g, doublereal, 0);                   //* 梯度函数
+    M_alloc_variable(g, doublereal, 0); //* 梯度函数
     // G() STORES THE N VECTOR G OF PARTIALS OF THE
     // OBJECTIVE FUNCTION; DIMENSION OF G MUST BE GREATER OR EQUAL N+1.
     M_alloc_variable(a, doublereal, 0);
@@ -171,4 +187,69 @@ int main(void)
            n2,
            n3);
     printf("state%d", *mode);
+}
+
+void minmizeSQP(float (*targetFunction)(Matrix *), Matrix *x0, int intputSize,
+                int maxIter, int exitModes, Matrix *bounds, float _acc)
+{
+    //! bounds 边界
+    int meq = intputSize;  // 等式约束数量
+    int mieq = intputSize; // 不等式约束数量
+    int m = meq + mieq;
+
+    int la = max(1, m); // 约束的数量, 如果为1则没有约束
+    int n = intputSize;
+
+    // 申请SLSQP的工作空间
+    int n__1 = n + 1;
+    int mineq = m - meq + n__1 + n__1;
+    int len_w = (3 * n__1 + m) * (n__1 + 1) + (n__1 - meq + 1) * (mineq + 2) + 2 * mineq + (n__1 + mineq) * (n__1 - meq) + 2 * meq + n__1 + ((n + 1) * n) / 2 + 2 * m + 3 * n + 3 * n__1 + 1;
+    int len_jw = mineq;
+
+    double *w = (float *)malloc(len_w * sizeof(float));
+    double *jw = (float *)malloc(len_w * sizeof(float));
+
+    // TODO bound:
+    double *xl = (float *)malloc(n * sizeof(float));
+    double *xu = (float *)malloc(n * sizeof(float));
+    for (int i = 0; i < n; i++)
+    {
+        xl[i] = NAN;
+        xu[i] = NAN;
+    }
+
+    void (*grade_fun)(Matrix * x, Matrix * grade);
+    grade_fun = grade_fun;
+
+    M_alloc_variable(mode, int, 0);
+    M_alloc_variable(acc, float, _acc);
+    M_alloc_variable(majiter, int, 0);
+    int maiter_prev = 0;
+
+    M_alloc_variable(alpha, float, 0.);
+    M_alloc_variable(f0, float, 0.);
+    M_alloc_variable(gs, float, 0.);
+    M_alloc_variable(h1, float, 0.);
+    M_alloc_variable(h2, float, 0.);
+    M_alloc_variable(h3, float, 0.);
+    M_alloc_variable(h4, float, 0.);
+    M_alloc_variable(t, float, 0.);
+    M_alloc_variable(t0, float, 0.);
+    M_alloc_variable(tol, float, 0.);
+    M_alloc_variable(iexact, int, 0.);
+    M_alloc_variable(incons, int, 0.);
+    M_alloc_variable(ireset, int, 0.);
+    M_alloc_variable(itermx, int, 0.);
+    M_alloc_variable(line, int, 0.);
+    M_alloc_variable(n1, int, n__1);
+    M_alloc_variable(n2, int, 0);
+    M_alloc_variable(n3, int, 0);
+
+    Matrix *x = matrix_alloc(x0->row_size, x0->col_size);
+    matrix_copy(x0, x);
+
+    float fx = target_function(x);
+
+    Matrix *g = matrix_alloc(n, 1);
+    grade_fun(x, g); // 计算梯度
 }
