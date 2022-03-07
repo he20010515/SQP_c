@@ -3,7 +3,7 @@
 /**  barf  [ba:rf]  2.  "He suggested using FORTRAN, and everybody barfed."
 
 	- From The Shogakukan DICTIONARY OF NEW ENGLISH (Second edition) */
-
+//* 标准Fortran代码转换为C代码所用的头文件
 #ifndef F2C_INCLUDE
 #define F2C_INCLUDE
 

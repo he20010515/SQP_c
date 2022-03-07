@@ -1,5 +1,4 @@
 #include "matrix.h"
-#include "linearequations.h"
 #include "f2c.h"
 #include "slsqp.h"
 #include "math.h"
