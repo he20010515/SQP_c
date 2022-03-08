@@ -1,3 +1,5 @@
+#include "function.h"
+
 #include "matrix.h"
 #include "math.h"
 #include "function.h"
@@ -26,3 +28,4 @@ int main(void)
     VectorPrint(grad);
     printf("%f", NdsclaFunctionCall(f, x0));
 }
+
