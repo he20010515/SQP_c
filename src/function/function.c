@@ -13,7 +13,7 @@ NdsclaFunction *NdsclaFunctionAlloc(double (*function)(Vector *), int inputsize)
     f->inputSize = inputsize;
 }
 
-void centralGrad(NdsclaFunction *function, const double h, const Vector *x0, Vector *grad)
+void centralGrad(NdsclaFunction *function, double h, Vector *x0, Vector *grad)
 {
 
     Vector *temp = VectorAlloc(x0->size);

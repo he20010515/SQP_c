@@ -1,6 +1,6 @@
 #include "matrix.h"
 #include "math.h"
-
+#include "string.h"
 void matrix_print(Matrix *matrix)
 {
 	int i, j;
@@ -363,6 +363,48 @@ void matrix_invert(Matrix *inverse_matrix)
 	}
 
 	matrix_free(temp_matrix);
+}
+
+void matrix_inverse(Matrix *mat, Matrix *inv)
+{
+	int i, j, k;
+	if (mat->col_size != mat->row_size)
+	{
+		terminate("ERROR: The matrix to inverse must have same colsize and rowsize");
+	}
+	int num = mat->row_size;
+	double **data = (double **)malloc(num * sizeof(double *));
+	double *pdata = (double *)malloc((num + num + 3) * num * sizeof(double));
+	for (j = 0; j < num; j++)
+	{
+		data[j] = pdata + (num + num + 3) * j;
+		for (i = 0; i < num; i++)
+		{
+			data[j][i] = (double)(mat->matrix_entry[j][i]);
+		}
+		memset(data[j] + num, 0, (num + 3) * sizeof(double));
+		data[j][num + j] = -1.0;
+	}
+	for (k = 0; k < num; k++)
+	{
+		if (data[k][k] == 0)
+		{
+			for (j = k + 1; j < num; j++)
+			{
+				if (data[j][k] != 0)
+				{
+					double *buff = data[k];
+					data[k] = data[j];
+					data[j] = buff;
+					break;
+				}
+			}
+			if (j == num)
+			{
+				free(data);
+			}
+		}
+	}
 }
 
 int matrix_equal_size(Matrix *matrix1, Matrix *matrix2)
