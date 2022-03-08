@@ -1,7 +1,7 @@
-#include "myvector.h"
+#include "vector.h"
 #include <stdlib.h>
 #include "function.h"
-float NdsclaFunctionCall(NdsclaFunction *function, Vector *x)
+double NdsclaFunctionCall(NdsclaFunction *function, Vector *x)
 {
     return function->function(x);
 }

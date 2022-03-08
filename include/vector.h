@@ -1,11 +1,11 @@
 #pragma once
 
-struct myvector
+struct vector
 {
     int size;
     double *entry;
 };
-typedef struct myvector Vector;
+typedef struct vector Vector;
 
 Vector *VectorAlloc(int size);
 Vector *VectorFree(Vector *v);

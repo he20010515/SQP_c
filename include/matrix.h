@@ -54,7 +54,7 @@ struct _Matrix
   int col_size;
 
   /** The individual entries in the matrix */
-  float **matrix_entry;
+  double **matrix_entry;
 };
 
 /**

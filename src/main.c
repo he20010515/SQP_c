@@ -1,13 +1,13 @@
 #include "matrix.h"
 #include "math.h"
 #include "function.h"
-#include "myvector.h"
+#include "vector.h"
 
 #define M_alloc_variable(x, type, value)    \
     type *x = (type *)malloc(sizeof(type)); \
     *x = value
 
-float target_function(Vector *mat)
+double target_function(Vector *mat)
 {
     return pow(mat->entry[0], 2) +
            pow(mat->entry[1], 2) +
@@ -26,4 +26,3 @@ int main(void)
     VectorPrint(grad);
     printf("%f", NdsclaFunctionCall(f, x0));
 }
-

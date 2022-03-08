@@ -1,6 +1,7 @@
 #include "matrix.h"
 #include "math.h"
 #include "string.h"
+#include "util.h"
 void matrix_print(Matrix *matrix)
 {
 	int i, j;
@@ -76,10 +77,10 @@ Matrix *matrix_alloc(int row_size, int col_size)
 	// Allocating memory for the new matrix structure
 	new_matrix->row_size = row_size;
 	new_matrix->col_size = col_size;
-	new_matrix->matrix_entry = malloc(new_matrix->row_size * sizeof(float *));
+	new_matrix->matrix_entry = malloc(new_matrix->row_size * sizeof(double *));
 	for (j = 0; j < new_matrix->row_size; j++)
 	{
-		new_matrix->matrix_entry[j] = malloc(new_matrix->col_size * sizeof(float));
+		new_matrix->matrix_entry[j] = malloc(new_matrix->col_size * sizeof(double));
 	}
 
 	return new_matrix;
@@ -214,7 +215,7 @@ void matrix_free(Matrix *matrix)
 void row_divide(Matrix *matrix, int pivot)
 {
 	int j;
-	float divisor = matrix->matrix_entry[pivot][pivot],
+	double divisor = matrix->matrix_entry[pivot][pivot],
 		  result;
 
 	for (j = pivot; j < matrix->col_size; j++)
@@ -228,7 +229,7 @@ void row_divide(Matrix *matrix, int pivot)
 void row_operation(Matrix *multiplier_matrix, Matrix *matrix, int pivot, int row_index)
 {
 	int j;
-	float multiplier = (matrix->matrix_entry[row_index][pivot] / matrix->matrix_entry[pivot][pivot]);
+	double multiplier = (matrix->matrix_entry[row_index][pivot] / matrix->matrix_entry[pivot][pivot]);
 	// Loop which checks if matrix is provided to store the multiplier
 	if (multiplier_matrix != NULL)
 	{
@@ -244,7 +245,7 @@ void row_operation(Matrix *multiplier_matrix, Matrix *matrix, int pivot, int row
 void matrix_row_reduce(Matrix *matrix, int zero_control)
 {
 	int pivot, row_index;
-	float multiplier;
+	double multiplier;
 	for (pivot = 0; pivot < matrix->row_size; pivot++)
 	{
 
@@ -275,7 +276,7 @@ void matrix_row_reduce(Matrix *matrix, int zero_control)
 void LU_decompose(Matrix *upper_triangular, Matrix *lower_triangular)
 {
 	int pivot, row_index;
-	float multiplier;
+	double multiplier;
 	for (pivot = 0; pivot < upper_triangular->row_size; pivot++)
 	{
 
@@ -367,44 +368,98 @@ void matrix_invert(Matrix *inverse_matrix)
 
 void matrix_inverse(Matrix *mat, Matrix *inv)
 {
-	int i, j, k;
 	if (mat->col_size != mat->row_size)
 	{
 		terminate("ERROR: The matrix to inverse must have same colsize and rowsize");
 	}
-	int num = mat->row_size;
-	double **data = (double **)malloc(num * sizeof(double *));
-	double *pdata = (double *)malloc((num + num + 3) * num * sizeof(double));
-	for (j = 0; j < num; j++)
+	int size = mat->row_size;
+	Matrix *L = matrix_alloc(size, size);
+	Matrix *U = matrix_alloc(size, size);
+	Matrix *Lni = matrix_alloc(size, size);
+	Matrix *Uni = matrix_alloc(size, size);
+	double s;
+	for (size_t i = 0; i < size; i++)
 	{
-		data[j] = pdata + (num + num + 3) * j;
-		for (i = 0; i < num; i++)
-		{
-			data[j][i] = (double)(mat->matrix_entry[j][i]);
-		}
-		memset(data[j] + num, 0, (num + 3) * sizeof(double));
-		data[j][num + j] = -1.0;
+		L->matrix_entry[i][i] = 0;
 	}
-	for (k = 0; k < num; k++)
+	for (size_t i = 0; i < size; i++)
 	{
-		if (data[k][k] == 0)
+		U->matrix_entry[0][i] = mat->matrix_entry[0][i];
+	}
+	for (size_t i = 1; i < size; i++)
+	{
+		L->matrix_entry[i][0] = mat->matrix_entry[i][0] / U->matrix_entry[0][0];
+	}
+	for (size_t k = 1; k < size; k++)
+	{
+		for (size_t j = k; j < size; j++)
 		{
-			for (j = k + 1; j < num; j++)
+			s = 0.0;
+			for (size_t t = 0; t < k; t++)
 			{
-				if (data[j][k] != 0)
+				s += L->matrix_entry[k][t] * U->matrix_entry[t][j];
+			}
+			U->matrix_entry[k][j] = mat->matrix_entry[k][j] - s;
+		}
+		for (size_t i = k; i < size; i++)
+		{
+			s = 0.0;
+			for (size_t t = 0; t < k; t++)
+			{
+				s += L->matrix_entry[i][t] * U->matrix_entry[t][k];
+			}
+			L->matrix_entry[i][k] = (mat->matrix_entry[i][k] - s) / U->matrix_entry[k][k];
+		}
+	}
+	for (size_t j = 0; j < size; j++)
+	{
+		for (size_t i = j; i < size; i++)
+		{
+			if (i == j)
+				Lni->matrix_entry[i][j] = 1 / L->matrix_entry[i][j];
+			else if (i < j)
+				Lni->matrix_entry[i][j] = 0;
+			else
+			{
+				s = 0.0;
+				for (int k = 0; k < i; k++)
 				{
-					double *buff = data[k];
-					data[k] = data[j];
-					data[j] = buff;
-					break;
+					s = s + L->matrix_entry[i][k] + Lni->matrix_entry[k][j];
 				}
-			}
-			if (j == num)
-			{
-				free(data);
+				Lni->matrix_entry[i][j] = -Lni->matrix_entry[j][j] * s;
 			}
 		}
 	}
+	for (size_t j = 0; j < size; j++)
+	{
+		for (size_t i = j; i >= 0; i--)
+		{
+			if (i == j)
+				Uni->matrix_entry[i][j] = 1 / U->matrix_entry[i][j];
+			else if (i > j)
+				Uni->matrix_entry[i][j] = 0;
+			else
+			{
+				s = 0.0;
+				for (size_t k = i + 1; k <= j; k++)
+				{
+					s = s + U->matrix_entry[i][k] * Uni->matrix_entry[k][j];
+				}
+				Uni->matrix_entry[i][j] = -1 / U->matrix_entry[i][i] * s;
+			}
+		}
+	}
+	for (size_t i = 0; i < size; i++)
+	{
+		for (size_t j = 0; j < size; j++)
+		{
+			for (size_t k = 0; k < size; k++)
+			{
+				inv->matrix_entry[i][j] = Uni->matrix_entry[i][k] + Lni->matrix_entry[k][j];
+			}
+		}
+	}
+	return;
 }
 
 int matrix_equal_size(Matrix *matrix1, Matrix *matrix2)

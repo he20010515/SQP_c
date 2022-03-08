@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "myvector.h"
+#include "vector.h"
 
 Vector *VectorAlloc(int size)
 {
