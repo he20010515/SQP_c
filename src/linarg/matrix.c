@@ -82,6 +82,13 @@ Matrix *matrix_alloc(int row_size, int col_size)
 	{
 		new_matrix->matrix_entry[j] = malloc(new_matrix->col_size * sizeof(double));
 	}
+	for (int i = 0; i < row_size; i++)
+	{
+		for (int j = 0; j < col_size; j++)
+		{
+			new_matrix->matrix_entry[i][j] == 0.0;
+		}
+	}
 
 	return new_matrix;
 }
@@ -216,7 +223,7 @@ void row_divide(Matrix *matrix, int pivot)
 {
 	int j;
 	double divisor = matrix->matrix_entry[pivot][pivot],
-		  result;
+		   result;
 
 	for (j = pivot; j < matrix->col_size; j++)
 	{
@@ -380,7 +387,7 @@ void matrix_inverse(Matrix *mat, Matrix *inv)
 	double s;
 	for (size_t i = 0; i < size; i++)
 	{
-		L->matrix_entry[i][i] = 0;
+		L->matrix_entry[i][i] = 1.0;
 	}
 	for (size_t i = 0; i < size; i++)
 	{
@@ -432,12 +439,12 @@ void matrix_inverse(Matrix *mat, Matrix *inv)
 	}
 	for (size_t j = 0; j < size; j++)
 	{
-		for (size_t i = j; i >= 0; i--)
+		for (int i = j; i >= 0; i--)
 		{
 			if (i == j)
-				Uni->matrix_entry[i][j] = 1 / U->matrix_entry[i][j];
+				Uni->matrix_entry[i][j] = 1. / U->matrix_entry[i][j];
 			else if (i > j)
-				Uni->matrix_entry[i][j] = 0;
+				Uni->matrix_entry[i][j] = 0.;
 			else
 			{
 				s = 0.0;
@@ -445,7 +452,7 @@ void matrix_inverse(Matrix *mat, Matrix *inv)
 				{
 					s = s + U->matrix_entry[i][k] * Uni->matrix_entry[k][j];
 				}
-				Uni->matrix_entry[i][j] = -1 / U->matrix_entry[i][i] * s;
+				Uni->matrix_entry[i][j] = -1. / U->matrix_entry[i][i] * s;
 			}
 		}
 	}
@@ -497,13 +504,6 @@ void error_zeros(Matrix *matrix, int control_index)
 			}
 		}
 	}
-}
-
-void terminate(char *string)
-{
-	fprintf(stdout, "\n%s\n", string);
-	fprintf(stdout, "The program is exiting now. . . .\n\n");
-	exit(-1);
 }
 
 double vector_2norm(Matrix *matrix)

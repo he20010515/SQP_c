@@ -1,6 +1,7 @@
 #include "vector.h"
 #include <stdlib.h>
 #include "function.h"
+#include "matrix.h"
 double NdsclaFunctionCall(NdsclaFunction *function, Vector *x)
 {
     return function->function(x);
@@ -29,4 +30,21 @@ void centralGrad(NdsclaFunction *function, double h, Vector *x0, Vector *grad)
         grad->entry[i] = (f_add_h - f_sub_h) / (2. * h);
     }
     VectorFree(temp);
+}
+
+void centralHession(NdsclaFunction *function, double h, Vector *x0, Matrix *hession)
+{
+    // 计算Hession矩阵 H[i][j] = \frac{\partial f}{\partial x_i \partial x_j}
+    if (hession->col_size != hession->row_size)
+        terminate("ERROR hession matrix must have the same row and col size");
+    else if (hession->col_size != function->inputSize)
+        terminate("ERROT function inputsize must same as hession size");
+    for (size_t i = 0; i < hession->row_size; i++)
+    {
+        for (size_t j = 0; j < hession->row_size; j++)
+        {
+
+            hession->matrix_entry[i][j] = 0;
+        }
+    }
 }

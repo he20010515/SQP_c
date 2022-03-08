@@ -267,3 +267,5 @@ double vector_2norm(Matrix *matrix);
  *  @return double    F2norm of a matrix
  */
 double matrix_F2norm(Matrix *matrix);
+
+void matrix_inverse(Matrix *mat, Matrix *inv);
