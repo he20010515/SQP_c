@@ -1,4 +1,5 @@
 #include "vector.h"
+#include "matrix.h"
 #pragma once
 struct NdsclaFunction
 {
@@ -6,6 +7,7 @@ struct NdsclaFunction
     double (*function)(Vector *);
 };
 typedef struct NdsclaFunction NdsclaFunction;
-double NdsclaFunctionCall(NdsclaFunction *function, Vector *x);
-NdsclaFunction *NdsclaFunctionAlloc(double (*function)(Vector *), int inputsize);
-void centralGrad(NdsclaFunction *function, double h, Vector *x0, Vector *grad);
+double ndscla_function_call(NdsclaFunction *function, Vector *x);
+NdsclaFunction *ndscla_function_alloc(double (*function)(Vector *), int inputsize);
+void ndscla_central_grad(NdsclaFunction *function, double h, Vector *x0, Vector *grad);
+void ndscla_central_hession(NdsclaFunction *function, double h, Vector *x0, Matrix *hession);

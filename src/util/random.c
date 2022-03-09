@@ -4,7 +4,7 @@
 #include "util.h"
 int rand_int(int start, int end)
 {
-    //返回一个 start 到 end的随机数,左闭右开 [start,end) 3 10
+    //返回一个 start 到 end的随机数,左闭右开 [start,end)
     if (end < start)
     {
         terminate("ERROR rand_int,start must less than < end");
@@ -16,7 +16,7 @@ int rand_int(int start, int end)
 
 double rand_double(double start, double end)
 {
-    //返回一个 start 到 end的随机数,左闭右开 [start,end) 3 10
+    //返回一个 start 到 end 的随机double浮点数,左闭右开 [start,end)
     if (end < start)
     {
         terminate("ERROR rand_int,start must less than < end");
