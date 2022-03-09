@@ -1,4 +1,7 @@
 #include <stdio.h>
+#define AND &&
+#define OR ||
+
 void terminate(char *string)
 {
     fprintf(stdout, "\n%s\n", string);

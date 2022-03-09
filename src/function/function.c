@@ -17,8 +17,8 @@ NdsclaFunction *NdsclaFunctionAlloc(double (*function)(Vector *), int inputsize)
 void centralGrad(NdsclaFunction *function, double h, Vector *x0, Vector *grad)
 {
 
-    Vector *temp = VectorAlloc(x0->size);
-    VectorCopy(x0, temp);
+    Vector *temp = vector_alloc(x0->size);
+    vector_copy(x0, temp);
     double f_add_h, f_sub_h;
     for (size_t i = 0; i < function->inputSize; i++)
     {
@@ -29,12 +29,12 @@ void centralGrad(NdsclaFunction *function, double h, Vector *x0, Vector *grad)
         temp->entry[i] += h;
         grad->entry[i] = (f_add_h - f_sub_h) / (2. * h);
     }
-    VectorFree(temp);
+    vector_free(temp);
 }
 
 void centralHession(NdsclaFunction *function, double h, Vector *x0, Matrix *hession)
 {
-    // 计算Hession矩阵 H[i][j] = \frac{\partial f}{\partial x_i \partial x_j}
+    // 计算Hession矩阵 H[i][j] = \frac{\partial f}{\partial x_i \partial x_j} // TODO
     if (hession->col_size != hession->row_size)
         terminate("ERROR hession matrix must have the same row and col size");
     else if (hession->col_size != function->inputSize)

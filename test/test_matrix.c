@@ -3,17 +3,21 @@
 #include "math.h"
 #include "function.h"
 #include "vector.h"
+
+#define ADD(x, y)
+
 int main(void)
 {
-    const int N1 = ;
+    const int N1 = 4;
     Matrix *A = matrix_alloc(N1, N1);
-    for (size_t i = 0; i < N1; i++)
-    {
-        for (size_t j = 0; j < N1; j++)
-        {
-            A->matrix_entry[i][j] = (double)i * j + 3.;
-        }
-    }
+
+    double A_2darray[4][4] = {
+        {1.0, 7.0, 8.0, 1},
+        {1.0, 4.0, 1.0, 1},
+        {2.0, 1.0, 7.0, 1},
+        {2.0, 2.0, 7.0, 1},
+    };
+    array_2_matrix((double *)A_2darray, N1, N1, A);
     Matrix *A_inv = matrix_alloc(N1, N1);
     matrix_inverse(A, A_inv);
     printf("Matrix A:\n");

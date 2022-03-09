@@ -2,24 +2,24 @@
 #include <stdio.h>
 #include "vector.h"
 
-Vector *VectorAlloc(int size)
+Vector *vector_alloc(int size)
 {
     Vector *v = (Vector *)malloc(sizeof(Vector));
     v->entry = (double *)malloc(sizeof(double) * size);
     v->size = size;
 };
 
-Vector *VectorFree(Vector *v)
+Vector *vector_free(Vector *v)
 {
     free(v->entry);
     free(v);
 }
 
-void VectorCopy(Vector *v, Vector *w)
+void vector_copy(Vector *v, Vector *w)
 {
     if (v->size != w->size)
     {
-        printf("VectorCopy: w and v must have the same size");
+        printf("vector_copy: w and v must have the same size");
         exit(-1);
     }
 
@@ -30,12 +30,12 @@ void VectorCopy(Vector *v, Vector *w)
     w->size = v->size;
 }
 
-Vector *VectorAddConst(Vector *v, double a, int copy)
+Vector *vector_add_const(Vector *v, double a, int copy)
 {
     if (copy == 1)
     {
-        Vector *w = VectorAlloc(v->size);
-        VectorCopy(v, w);
+        Vector *w = vector_alloc(v->size);
+        vector_copy(v, w);
         for (size_t i = 0; i < v->size; i++)
         {
             w->entry[i] += a;
@@ -48,7 +48,7 @@ Vector *VectorAddConst(Vector *v, double a, int copy)
     }
 }
 
-Vector *VectorAddVector(Vector *v, Vector *w, int copy)
+Vector *vector_add_vector(Vector *v, Vector *w, int copy)
 {
     if (v->size != w->size)
     {
@@ -57,7 +57,7 @@ Vector *VectorAddVector(Vector *v, Vector *w, int copy)
     }
     if (copy == 1)
     {
-        Vector *u = VectorAlloc(v->size);
+        Vector *u = vector_alloc(v->size);
         for (size_t i = 0; i < u->size; i++)
         {
             u->entry[i] = v->entry[i] + w->entry[i];
@@ -74,11 +74,11 @@ Vector *VectorAddVector(Vector *v, Vector *w, int copy)
     }
 }
 
-Vector *VectorMultiply(Vector *v, double a, int copy)
+Vector *vector_multiply_const(Vector *v, double a, int copy)
 {
     if (copy == 1)
     {
-        Vector *w = VectorAlloc(v->size);
+        Vector *w = vector_alloc(v->size);
         for (size_t i = 0; i < v->size; i++)
         {
             w->entry[i] = v->entry[i] * a;
@@ -93,7 +93,7 @@ Vector *VectorMultiply(Vector *v, double a, int copy)
     }
 }
 
-void *VectorPrint(Vector *v)
+void *vector_print(Vector *v)
 {
     printf("[");
     for (size_t i = 0; i < v->size; i++)

@@ -219,13 +219,6 @@ void matrix_subtract(Matrix *result, Matrix *matrix1, Matrix *matrix2);
 void matrix_add(Matrix *result, Matrix *matrix1, Matrix *matrix2);
 
 /**
- * Perform the inverse of a matrix
- *
- * @param inverse_matrix The matrix which is to be inverted
- */
-void matrix_invert(Matrix *inverse_matrix);
-
-/**
  * Checks if two matrices have equal rows and columns
  *
  * @param matrix1    The first matrix
@@ -269,3 +262,7 @@ double vector_2norm(Matrix *matrix);
 double matrix_F2norm(Matrix *matrix);
 
 void matrix_inverse(Matrix *mat, Matrix *inv);
+
+void array_2_matrix(double *array, const int rowsize, const int colsize, Matrix *mat);
+
+void matrix_fill_const(Matrix *mat, double a);

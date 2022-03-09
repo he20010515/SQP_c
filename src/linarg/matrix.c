@@ -108,7 +108,8 @@ void matrix_copy(Matrix *matrix1, Matrix *matrix2)
 
 Matrix *matrix_multiply(const Matrix *matrix1, const Matrix *matrix2)
 {
-	int i, j, k, sum;
+	int i, j, k;
+	double sum;
 	if (matrix1->col_size != matrix2->row_size)
 	{
 		terminate("ERROR: The number columns of matrix1  != number of rows in matrix2!");
@@ -118,7 +119,7 @@ Matrix *matrix_multiply(const Matrix *matrix1, const Matrix *matrix2)
 	{
 		for (k = 0; k < matrix2->col_size; k += 1)
 		{
-			sum = 0;
+			sum = 0.0;
 
 			for (j = 0; j < matrix1->col_size; j += 1)
 			{
@@ -334,45 +335,6 @@ void matrix_add(Matrix *result, Matrix *matrix1, Matrix *matrix2)
 		}
 	}
 }
-
-void matrix_invert(Matrix *inverse_matrix)
-{
-	int j, k;
-	/*Temporal matrix used in this function */
-	Matrix *temp_matrix = matrix_alloc(inverse_matrix->row_size, inverse_matrix->col_size * 2);
-
-	matrix_copy(inverse_matrix, temp_matrix);
-
-	/* Adding an identity matrix at the end of the temporal matrix */
-	for (j = 0; j < temp_matrix->row_size; j++)
-	{
-		for (k = 3; k < temp_matrix->col_size; k++)
-		{
-			if (j + 3 == k)
-			{
-				temp_matrix->matrix_entry[j][k] = 1;
-			}
-			else
-			{
-				temp_matrix->matrix_entry[j][k] = 0;
-			}
-		}
-	}
-
-	matrix_row_reduce(temp_matrix, temp_matrix->row_size);
-
-	/* Copying the inverse matrix from the temp_matrix to the  invse_matrix */
-	for (j = 0; j < temp_matrix->row_size; j++)
-	{
-		for (k = 3; k < temp_matrix->col_size; k++)
-		{
-			inverse_matrix->matrix_entry[j][k - 3] = temp_matrix->matrix_entry[j][k];
-		}
-	}
-
-	matrix_free(temp_matrix);
-}
-
 void matrix_inverse(Matrix *mat, Matrix *inv)
 {
 	if (mat->col_size != mat->row_size)
@@ -381,63 +343,68 @@ void matrix_inverse(Matrix *mat, Matrix *inv)
 	}
 	int size = mat->row_size;
 	Matrix *L = matrix_alloc(size, size);
+	matrix_fill_const(L, 0.0);
 	Matrix *U = matrix_alloc(size, size);
+	matrix_fill_const(U, 0.0);
 	Matrix *Lni = matrix_alloc(size, size);
+	matrix_fill_const(Lni, 0.0);
 	Matrix *Uni = matrix_alloc(size, size);
+	matrix_fill_const(Uni, 0.0);
+
 	double s;
-	for (size_t i = 0; i < size; i++)
+	for (int i = 0; i < size; i++)
 	{
 		L->matrix_entry[i][i] = 1.0;
 	}
-	for (size_t i = 0; i < size; i++)
+	for (int j = 0; j < size; j++)
 	{
-		U->matrix_entry[0][i] = mat->matrix_entry[0][i];
+		U->matrix_entry[0][j] = mat->matrix_entry[0][j];
 	}
-	for (size_t i = 1; i < size; i++)
+	for (int i = 1; i < size; i++)
 	{
 		L->matrix_entry[i][0] = mat->matrix_entry[i][0] / U->matrix_entry[0][0];
 	}
-	for (size_t k = 1; k < size; k++)
+	for (int k = 1; k < size; k++)
 	{
-		for (size_t j = k; j < size; j++)
+		for (int j = k; j < size; j++)
 		{
 			s = 0.0;
-			for (size_t t = 0; t < k; t++)
+			for (int t = 0; t < k; t++)
 			{
 				s += L->matrix_entry[k][t] * U->matrix_entry[t][j];
 			}
 			U->matrix_entry[k][j] = mat->matrix_entry[k][j] - s;
 		}
-		for (size_t i = k; i < size; i++)
+		for (int i = k; i < size; i++)
 		{
 			s = 0.0;
-			for (size_t t = 0; t < k; t++)
+			for (int t = 0; t < k; t++)
 			{
 				s += L->matrix_entry[i][t] * U->matrix_entry[t][k];
 			}
 			L->matrix_entry[i][k] = (mat->matrix_entry[i][k] - s) / U->matrix_entry[k][k];
 		}
 	}
-	for (size_t j = 0; j < size; j++)
+	for (int j = 0; j < size; j++)
 	{
-		for (size_t i = j; i < size; i++)
+		for (int i = j; i < size; i++)
 		{
 			if (i == j)
-				Lni->matrix_entry[i][j] = 1 / L->matrix_entry[i][j];
+				Lni->matrix_entry[i][j] = 1. / L->matrix_entry[i][j];
 			else if (i < j)
-				Lni->matrix_entry[i][j] = 0;
+				Lni->matrix_entry[i][j] = 0.;
 			else
 			{
 				s = 0.0;
-				for (int k = 0; k < i; k++)
+				for (int k = j; k < i; k++)
 				{
-					s = s + L->matrix_entry[i][k] + Lni->matrix_entry[k][j];
+					s += L->matrix_entry[i][k] * Lni->matrix_entry[k][j];
 				}
 				Lni->matrix_entry[i][j] = -Lni->matrix_entry[j][j] * s;
 			}
 		}
 	}
-	for (size_t j = 0; j < size; j++)
+	for (int j = 0; j < size; j++)
 	{
 		for (int i = j; i >= 0; i--)
 		{
@@ -448,24 +415,28 @@ void matrix_inverse(Matrix *mat, Matrix *inv)
 			else
 			{
 				s = 0.0;
-				for (size_t k = i + 1; k <= j; k++)
+				for (int k = i + 1; k <= j; k++)
 				{
-					s = s + U->matrix_entry[i][k] * Uni->matrix_entry[k][j];
+					s += U->matrix_entry[i][k] * Uni->matrix_entry[k][j];
 				}
 				Uni->matrix_entry[i][j] = -1. / U->matrix_entry[i][i] * s;
 			}
 		}
 	}
-	for (size_t i = 0; i < size; i++)
+	for (int i = 0; i < size; i++)
 	{
-		for (size_t j = 0; j < size; j++)
+		for (int j = 0; j < size; j++)
 		{
-			for (size_t k = 0; k < size; k++)
+			for (int k = 0; k < size; k++)
 			{
-				inv->matrix_entry[i][j] = Uni->matrix_entry[i][k] + Lni->matrix_entry[k][j];
+				inv->matrix_entry[i][j] += Uni->matrix_entry[i][k] * Lni->matrix_entry[k][j];
 			}
 		}
 	}
+	matrix_free(L);
+	matrix_free(U);
+	matrix_free(Lni);
+	matrix_free(Uni);
 	return;
 }
 
@@ -531,4 +502,32 @@ double matrix_F2norm(Matrix *matrix)
 		}
 	}
 	return sqrt(norm);
+}
+
+void array_2_matrix(double *array, const int rowsize, const int colsize, Matrix *mat)
+{
+	if ((rowsize != mat->row_size) || (colsize != mat->col_size))
+	{
+		terminate("ERROR array_2_matrix");
+	}
+
+	for (size_t i = 0; i < rowsize; i++)
+	{
+		for (size_t j = 0; j < colsize; j++)
+		{
+			mat->matrix_entry[i][j] = array[colsize * i + j];
+		}
+	}
+	return;
+}
+
+void matrix_fill_const(Matrix *mat, double a)
+{
+	for (size_t i = 0; i < mat->row_size; i++)
+	{
+		for (size_t j = 0; j < mat->col_size; j++)
+		{
+			mat->matrix_entry[i][j] = a;
+		}
+	}
 }

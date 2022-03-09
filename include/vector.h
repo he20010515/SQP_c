@@ -7,10 +7,10 @@ struct vector
 };
 typedef struct vector Vector;
 
-Vector *VectorAlloc(int size);
-Vector *VectorFree(Vector *v);
-void VectorCopy(Vector *v, Vector *w);
-Vector *VectorAddConst(Vector *v, double a, int copy);
-Vector *VectorAddVector(Vector *v, Vector *w, int copy);
-Vector *VectorMultiply(Vector *v, double a, int copy);
-void *VectorPrint(Vector *v);
+Vector *vector_alloc(int size);
+Vector *vector_free(Vector *v);
+void vector_copy(Vector *v, Vector *w);
+Vector *vector_add_const(Vector *v, double a, int copy);
+Vector *vector_add_vector(Vector *v, Vector *w, int copy);
+Vector *vector_multiply_const(Vector *v, double a, int copy);
+void *vector_print(Vector *v);
