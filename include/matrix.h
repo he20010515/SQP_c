@@ -39,6 +39,7 @@
 #include <stdio.h>
 #include <malloc.h>
 #include <stdlib.h>
+#include "vector.h"
 #pragma once
 
 /**
@@ -237,13 +238,6 @@ void error_zeros(Matrix *matrix, int control_index);
 void terminate(char *string);
 
 /**
- * Function to compute L2-norm of column vector
- *
- *  @param matrix     A column vector
- *  @param double     L2-Norm of volumn vector
- */
-double vector_2norm(Matrix *matrix);
-/**
  * Function to compute F2-norm of A
  *
  *  @param matrix     A Matrix
@@ -259,3 +253,7 @@ void array_2_matrix(double *array, const int rowsize, const int colsize, Matrix 
 void matrix_fill_const(Matrix *mat, double a);
 
 void matrix_lu_depose(Matrix *mat, Matrix *L, Matrix *U);
+
+void matrix_mutiply_vector(Matrix *mat, Vector *a, Vector *mat_a);
+
+void vector_mutiply_matrix(Vector *a, Matrix *mat, Vector *mat_a);

@@ -1,7 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "vector.h"
-
+#include <math.h>
+#include "util.h"
 Vector *vector_alloc(int size)
 {
     Vector *v = (Vector *)malloc(sizeof(Vector));
@@ -15,7 +16,7 @@ Vector *vector_free(Vector *v)
     free(v);
 }
 
-void vector_copy(Vector *v, Vector *w)
+void vector_copy(const Vector *v, Vector *w)
 {
     if (v->size != w->size)
     {
@@ -98,7 +99,34 @@ void *vector_print(Vector *v)
     printf("[");
     for (size_t i = 0; i < v->size; i++)
     {
-        printf("%f, ", v->entry[i]);
+        printf("%g, ", v->entry[i]);
     }
-    printf("]");
+    printf("]\n");
+}
+
+double vector_2norm(const Vector *v)
+{
+    double s = 0.0;
+    for (size_t i = 0; i < v->size; i++)
+    {
+        s += pow(v->entry[i], 2);
+    }
+    return sqrt(s);
+}
+
+double vector_2metric(const Vector *v, const Vector *u)
+{
+    if (v->size != u->size)
+    {
+        terminate("ERROR: vector_2metric: vector must have the same size");
+    }
+
+    Vector *temp = vector_alloc(v->size);
+    for (size_t i = 0; i < v->size; i++)
+    {
+        temp->entry[i] = v->entry[i] - u->entry[i];
+    }
+    double distance = vector_2norm(temp);
+    vector_free(temp);
+    return distance;
 }

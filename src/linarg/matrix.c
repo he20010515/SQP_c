@@ -12,7 +12,7 @@ void matrix_print(Matrix *matrix)
 		printf("\t\t");
 		for (j = 0; j < matrix->col_size; j++)
 		{
-			printf("%9.2f", matrix->matrix_entry[i][j]);
+			printf("%9.2g", matrix->matrix_entry[i][j]);
 		}
 		printf("\n");
 	}
@@ -458,21 +458,6 @@ void error_zeros(Matrix *matrix, int control_index)
 		}
 	}
 }
-
-double vector_2norm(Matrix *matrix)
-{
-	if (matrix->col_size != 1)
-	{
-		terminate("vector_2norm must input a column vector");
-	}
-	double norm = 0.;
-	for (int i = 0; i < matrix->row_size; i++)
-	{
-		norm += pow(matrix->matrix_entry[i][0], 2.);
-	}
-	return sqrt(norm);
-}
-
 double matrix_F2norm(Matrix *matrix)
 {
 	double norm = 0.;
@@ -603,7 +588,7 @@ void vector_mutiply_matrix(Vector *a, Matrix *mat, Vector *mat_a)
 		s = 0.0;
 		for (size_t i = 0; i < mat->col_size; i++)
 		{
-			s = s + mat->matrix_entry[i][j] * a->entry[j];
+			s = s + mat->matrix_entry[i][j] * a->entry[i];
 		}
 		mat_a->entry[j] = s;
 	}
