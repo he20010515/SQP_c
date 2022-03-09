@@ -14,8 +14,8 @@ int main(int argc, char const *argv[])
         }
     }
 
-    const float startd = 0.0;
-    const float endd = 10.0;
+    const double startd = 0.0;
+    const double endd = 10.0;
     double td;
     for (int i = 0; i < 100; i++)
     {

@@ -196,15 +196,6 @@ void matrix_row_reduce(Matrix *matrix, int zero_control);
  * @note You should allocate memory for the lower_triangular matrix with
  * @ref matrix_callalloc before passing it to this function
  */
-void LU_decompose(Matrix *upper_triangular, Matrix *lower_triangular);
-
-/**
- * Subtracts one matrix from another
- *
- * @param result         A  matrix to hold the result of the subtraction
- * @param matrix1      The matrix to subtract from
- * @param matrix2       The matrix to be subtracted from another
- */
 
 void matrix_subtract(Matrix *result, Matrix *matrix1, Matrix *matrix2);
 
@@ -266,3 +257,5 @@ void matrix_inverse(Matrix *mat, Matrix *inv);
 void array_2_matrix(double *array, const int rowsize, const int colsize, Matrix *mat);
 
 void matrix_fill_const(Matrix *mat, double a);
+
+void matrix_lu_depose(Matrix *mat, Matrix *L, Matrix *U);

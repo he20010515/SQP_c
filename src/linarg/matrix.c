@@ -2,6 +2,7 @@
 #include "math.h"
 #include "string.h"
 #include "util.h"
+#include "vector.h"
 void matrix_print(Matrix *matrix)
 {
 	int i, j;
@@ -281,25 +282,6 @@ void matrix_row_reduce(Matrix *matrix, int zero_control)
 	}
 }
 
-void LU_decompose(Matrix *upper_triangular, Matrix *lower_triangular)
-{
-	int pivot, row_index;
-	double multiplier;
-	for (pivot = 0; pivot < upper_triangular->row_size; pivot++)
-	{
-
-		error_zeros(upper_triangular, upper_triangular->col_size); // Function checks if there are too many zeros in a single row
-		for (row_index = pivot + 1; row_index < upper_triangular->row_size; row_index++)
-		{
-			if (upper_triangular->matrix_entry[pivot][pivot] != 0)
-			{
-
-				row_operation(lower_triangular, upper_triangular, pivot, row_index);
-			}
-		}
-	}
-}
-
 void matrix_subtract(Matrix *result, Matrix *matrix1, Matrix *matrix2)
 {
 	int i, j;
@@ -529,5 +511,100 @@ void matrix_fill_const(Matrix *mat, double a)
 		{
 			mat->matrix_entry[i][j] = a;
 		}
+	}
+}
+
+void matrix_lu_depose(Matrix *mat, Matrix *L, Matrix *U)
+{
+	if (!(matrix_equal_size(mat, L) AND matrix_equal_size(L, U)))
+	{
+		terminate("ERROR LUdepose must have same size");
+	}
+
+	int size = mat->row_size;
+	matrix_fill_const(L, 0.0);
+	matrix_fill_const(U, 0.0);
+
+	double s;
+	for (int i = 0; i < size; i++)
+	{
+		L->matrix_entry[i][i] = 1.0;
+	}
+	for (int j = 0; j < size; j++)
+	{
+		U->matrix_entry[0][j] = mat->matrix_entry[0][j];
+	}
+	for (int i = 1; i < size; i++)
+	{
+		L->matrix_entry[i][0] = mat->matrix_entry[i][0] / U->matrix_entry[0][0];
+	}
+	for (int k = 1; k < size; k++)
+	{
+		for (int j = k; j < size; j++)
+		{
+			s = 0.0;
+			for (int t = 0; t < k; t++)
+			{
+				s += L->matrix_entry[k][t] * U->matrix_entry[t][j];
+			}
+			U->matrix_entry[k][j] = mat->matrix_entry[k][j] - s;
+		}
+		for (int i = k; i < size; i++)
+		{
+			s = 0.0;
+			for (int t = 0; t < k; t++)
+			{
+				s += L->matrix_entry[i][t] * U->matrix_entry[t][k];
+			}
+			L->matrix_entry[i][k] = (mat->matrix_entry[i][k] - s) / U->matrix_entry[k][k];
+		}
+	}
+
+	return;
+}
+
+void matrix_mutiply_vector(Matrix *mat, Vector *a, Vector *mat_a)
+{
+	if (mat->row_size != a->size)
+	{
+		terminate("ERROR matrix_mutiply_vector: the matrix.row_size must equal to vector.size");
+	}
+	if (a->size != mat_a->size)
+	{
+		terminate("ERROR matrix_mutiply_vector: a.size != mat_a.size ");
+	}
+
+	double s = 0.0;
+	for (size_t i = 0; i < a->size; i++)
+	{
+		s = 0.0;
+		for (size_t j = 0; j < mat->col_size; j++)
+		{
+			s = s + mat->matrix_entry[i][j] * a->entry[j];
+		}
+		mat_a->entry[i] = s;
+	}
+}
+
+void vector_mutiply_matrix(Vector *a, Matrix *mat, Vector *mat_a)
+{
+	if (mat->col_size != a->size)
+	{
+		terminate("ERROR matrix_mutiply_vector: the matrix.col_size must equal to vector.size");
+	}
+	if (a->size != mat_a->size)
+	{
+		terminate("ERROR matrix_mutiply_vector: a.size != mat_a.size ");
+	}
+
+	double s = 0.0;
+	for (size_t j = 0; j < a->size; j++)
+	{
+		s = 0.0;
+		for (size_t i = 0; i < mat->col_size; i++)
+		{
+			s = s + mat->matrix_entry[i][j] * a->entry[j];
+		}
+		mat_a->entry[j] = s;
 	}
 }
