@@ -18,6 +18,7 @@ Vector *vector_free(Vector *v)
 
 void vector_copy(const Vector *v, Vector *w)
 {
+    // copy v to w
     if (v->size != w->size)
     {
         printf("vector_copy: w and v must have the same size");
@@ -29,6 +30,7 @@ void vector_copy(const Vector *v, Vector *w)
         w->entry[i] = v->entry[i];
     }
     w->size = v->size;
+    return;
 }
 
 Vector *vector_add_const(Vector *v, double a, int copy)

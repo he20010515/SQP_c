@@ -43,9 +43,15 @@ int main(int argc, char const *argv[])
     vector_print(AAinvb);
     printf("====jacobi method===\n");
     printf("x0:\n");
-
     vector_print(x0);
-    linear_equation_jacobi(A, b, 0.01, x0, x);
+    // linear_equation_jacobi(A, b, 0.01, x0, x);
+    printf("x:");
+    vector_print(x);
+
+    printf("====gauss sidel method===\n");
+    linear_equation_gauss_sidel(A, b, 0.01, x0, x);
+
+    
     printf("x:");
     vector_print(x);
     return 0;
