@@ -19,6 +19,9 @@ SQP_c
 
 TODOlist:
 
-1. 线性方程组求解 ⬅ here
-2. 二次优化
-3. SQP
+1. 线性方程组求解 done // 可能需要优化某些SOR方法不收敛的情况
+2. 数值微分             
+    1. 中心梯度        done
+    2. 中心Hession矩阵 done
+3. 二次优化  ⬅ here
+4. SQP
