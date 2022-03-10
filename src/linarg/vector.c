@@ -132,3 +132,12 @@ double vector_2metric(const Vector *v, const Vector *u)
     vector_free(temp);
     return distance;
 }
+
+void vector_fill_const(Vector *v, double a)
+{
+    for (size_t i = 0; i < v->size; i++)
+    {
+        v->entry[i] = a;
+    }
+    return;
+}

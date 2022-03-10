@@ -1,5 +1,4 @@
 #pragma once
-
 struct vector
 {
     int size;
@@ -16,3 +15,4 @@ Vector *vector_multiply_const(Vector *v, double a, int copy);
 void *vector_print(Vector *v);
 double vector_2norm(const Vector *v);
 double vector_2metric(const Vector *v, const Vector *u);
+void vector_fill_const(Vector *v, double a);
