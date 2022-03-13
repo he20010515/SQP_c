@@ -4,10 +4,6 @@
 #include "function.h"
 #include "vector.h"
 
-#define M_alloc_variable(x, type, value)    \
-    type *x = (type *)malloc(sizeof(type)); \
-    *x = value
-
 double target_function(Vector *mat)
 {
     return pow(mat->entry[1], 2) * pow(mat->entry[2], 2) +

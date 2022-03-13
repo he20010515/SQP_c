@@ -317,6 +317,7 @@ void matrix_add(Matrix *result, Matrix *matrix1, Matrix *matrix2)
 		}
 	}
 }
+
 void matrix_inverse(Matrix *mat, Matrix *inv)
 {
 	if (mat->col_size != mat->row_size)

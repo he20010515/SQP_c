@@ -71,9 +71,9 @@ int optimize_qp(const Matrix *H, const Vector *c, const Matrix *A, const Vector 
     Matrix *inv = matrix_alloc(2 * n, 2 * n);
     matrix_inverse(HAAT0, inv);
     matrix_mutiply_vector(HAAT0, cb, xlambda);
+    matrix_free(inv);
 
     //* split solution
-
     for (size_t i = 0; i < n; i++)
     {
         x_star->entry[i] = xlambda->entry[i];

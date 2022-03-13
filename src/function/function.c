@@ -12,6 +12,7 @@ NdsclaFunction *ndscla_function_alloc(double (*function)(Vector *), int inputsiz
     NdsclaFunction *f = (NdsclaFunction *)malloc(sizeof(NdsclaFunction));
     f->function = function;
     f->inputSize = inputsize;
+    return f;
 }
 
 void ndscla_central_grad(NdsclaFunction *function, double h, Vector *x0, Vector *grad)
@@ -65,4 +66,9 @@ void ndscla_central_hession(NdsclaFunction *function, double h, Vector *x0, Matr
     }
     vector_free(tempv);
     return;
+}
+
+void ndsclaFunction_free(NdsclaFunction *function)
+{
+    free(function);
 }

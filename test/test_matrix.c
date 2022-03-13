@@ -4,8 +4,6 @@
 #include "function.h"
 #include "vector.h"
 
-#define ADD(x, y)
-
 int main(void)
 {
     const int N1 = 4;
