@@ -26,7 +26,7 @@ int main(int argc, char const *argv[])
     c->entry[2] = 3;
     Vector *x_star = vector_alloc(N1);
     double y;
-    optimize_qp(H, c, A, b, x_star, &y);
+    optimize_qp_linear_constraints(H, c, A, b, x_star, &y);
     vector_print(x_star);
     return 0;
 }

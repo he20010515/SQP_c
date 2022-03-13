@@ -3,7 +3,7 @@
 #include "function.h"
 #include "util.h"
 #include "linear_equations.h"
-int optimize_qp(const Matrix *H, const Vector *c, const Matrix *A, const Vector *b, Vector *x_star, double *maxy)
+int optimize_qp_linear_constraints(const Matrix *H, const Vector *c, const Matrix *A, const Vector *b, Vector *x_star, double *maxy)
 {
     // see: https://zhuanlan.zhihu.com/p/375762164
     // see: https://blog.csdn.net/huangdianye/article/details/85030210
@@ -19,7 +19,7 @@ int optimize_qp(const Matrix *H, const Vector *c, const Matrix *A, const Vector 
     n = H->col_size;
     if (!(n == H->row_size AND n == c->size AND n == A->row_size AND n == A->col_size AND n == b->size))
     {
-        terminate("ERROR: optimize_qp:input argument does NOT fit, please check input");
+        terminate("ERROR: optimize_qp_linear_constraints:input argument does NOT fit, please check input");
     }
     //* alloc workspace
     Matrix *HAAT0 = matrix_alloc(2 * n, 2 * n);
@@ -85,4 +85,20 @@ int optimize_qp(const Matrix *H, const Vector *c, const Matrix *A, const Vector 
     vector_free(cb);
     vector_free(xlambda0);
     return 1;
+}
+int optimize_qp_active_set()
+{
+    // 有效集法求解一般约束下的二次优化问题
+    // see: https://zhuanlan.zhihu.com/p/29525367
+
+    // mainproblem:
+    // min \frac12 x^{T}Hx + c^{T}x
+    // s.t. Ax =(<=) b A (when i = 0,1,..,m  is '=' )
+    //                   (when i = m+1,m+2,...,m+k is '<=')
+
+    
+
+    // subproblem
+    //  frac12 p^TGp + gk
+    return 0;
 }
