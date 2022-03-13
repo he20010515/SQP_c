@@ -1,5 +1,5 @@
 /**
- * @file matrix.h
+ * @file ./include/matrix.h
  *
  * @brief Matrices
  *
@@ -39,6 +39,8 @@
 #include <stdio.h>
 #include <malloc.h>
 #include <stdlib.h>
+#include "vector.h"
+#pragma once
 
 /**
  * Definition of a  @ref _Matrix structure to hold the matrix entries.
@@ -53,7 +55,7 @@ struct _Matrix
   int col_size;
 
   /** The individual entries in the matrix */
-  float **matrix_entry;
+  double **matrix_entry;
 };
 
 /**
@@ -195,15 +197,6 @@ void matrix_row_reduce(Matrix *matrix, int zero_control);
  * @note You should allocate memory for the lower_triangular matrix with
  * @ref matrix_callalloc before passing it to this function
  */
-void LU_decompose(Matrix *upper_triangular, Matrix *lower_triangular);
-
-/**
- * Subtracts one matrix from another
- *
- * @param result         A  matrix to hold the result of the subtraction
- * @param matrix1      The matrix to subtract from
- * @param matrix2       The matrix to be subtracted from another
- */
 
 void matrix_subtract(Matrix *result, Matrix *matrix1, Matrix *matrix2);
 
@@ -216,13 +209,6 @@ void matrix_subtract(Matrix *result, Matrix *matrix1, Matrix *matrix2);
  */
 
 void matrix_add(Matrix *result, Matrix *matrix1, Matrix *matrix2);
-
-/**
- * Perform the inverse of a matrix
- *
- * @param inverse_matrix The matrix which is to be inverted
- */
-void matrix_invert(Matrix *inverse_matrix);
 
 /**
  * Checks if two matrices have equal rows and columns
@@ -252,13 +238,6 @@ void error_zeros(Matrix *matrix, int control_index);
 void terminate(char *string);
 
 /**
- * Function to compute L2-norm of column vector
- *
- *  @param matrix     A column vector
- *  @param double     L2-Norm of volumn vector
- */
-double vector_2norm(Matrix *matrix);
-/**
  * Function to compute F2-norm of A
  *
  *  @param matrix     A Matrix
@@ -266,3 +245,15 @@ double vector_2norm(Matrix *matrix);
  *  @return double    F2norm of a matrix
  */
 double matrix_F2norm(Matrix *matrix);
+
+void matrix_inverse(Matrix *mat, Matrix *inv);
+
+void array_2_matrix(double *array, const int rowsize, const int colsize, Matrix *mat);
+
+void matrix_fill_const(Matrix *mat, double a);
+
+void matrix_lu_depose(Matrix *mat, Matrix *L, Matrix *U);
+
+void matrix_mutiply_vector(Matrix *mat, Vector *a, Vector *mat_a);
+
+void vector_mutiply_matrix(Vector *a, Matrix *mat, Vector *mat_a);
