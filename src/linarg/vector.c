@@ -8,6 +8,7 @@ Vector *vector_alloc(int size)
     Vector *v = (Vector *)malloc(sizeof(Vector));
     v->entry = (double *)malloc(sizeof(double) * size);
     v->size = size;
+    return v;
 };
 
 Vector *vector_free(Vector *v)
@@ -43,12 +44,14 @@ Vector *vector_add_const(Vector *v, double a, int copy)
         {
             w->entry[i] += a;
         }
+        return w;
     }
 
     for (size_t i = 0; i < v->size; i++)
     {
         v->entry[i] += a;
     }
+    return v;
 }
 
 Vector *vector_add_vector(Vector *v, Vector *w, int copy)

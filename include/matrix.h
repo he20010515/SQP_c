@@ -257,3 +257,4 @@ void matrix_lu_depose(Matrix *mat, Matrix *L, Matrix *U);
 void matrix_mutiply_vector(Matrix *mat, Vector *a, Vector *mat_a);
 
 void vector_mutiply_matrix(Vector *a, Matrix *mat, Vector *mat_a);
+void matrix_submatrix_by_rowindex_set(const Matrix *A, const Index_set *index_set, Matrix *subA);

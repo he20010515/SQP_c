@@ -3,6 +3,106 @@
 #include "function.h"
 #include "util.h"
 #include "linear_equations.h"
+#include "index_set.h"
+
+struct constraints
+{
+    int dim;   // 要约束的空间大小
+    int size;  // 约束的数量
+    int e;     // 等式数量
+    int i;     // 不等式数量 e+i = size; 0,1,2,..,e-1 等式约束,e,e+1,...,e+i-1,大于号约束
+    Matrix *A; // 系数矩阵
+    Vector *b; // 约束向量
+};
+
+typedef struct constraints Constraints;
+
+Constraints *constraints_alloc(int dim, int size, int e, int i, const Matrix *A, const Vector *b)
+{
+    Constraints *con = (Constraints *)malloc(sizeof(Constraints));
+    if (!(size == e + i AND dim != A->col_size AND size != A->row_size))
+    {
+        terminate("ERROR :constraints_alloc: numbers of constraints doesn't fit");
+    }
+    con->dim = dim;
+    con->size = size;
+    con->e = e;
+    con->i = i;
+    con->A = A;
+    con->b = b;
+}
+
+void *constraints_verification(const Constraints *con, const Vector *x, Index_set *set)
+{
+    // 验证解x是否满足约束,将满足的约束编号添加到约束集合mat上
+    if (!(con->dim == x->size AND set->index_range == x->size))
+    {
+        terminate("ERROR : constraints_verification: dim of vector to verificate doesn't fit");
+    }
+    Vector *b_ = vector_alloc(x->size);
+    matrix_mutiply_vector(con->A, x, b_);
+    for (int i = 0; i < b_->size; i++)
+    {
+        if (i < con->e)
+        {
+            if (double_equal(b_->entry[i], con->b->entry[i]))
+            {
+                index_set_append(set, i); // 满足等式约束条件则添加
+            }
+        }
+        else
+        {
+            if (b_->entry[i] >= con->b->entry[i])
+            {
+                index_set_append(set, i); // 满足不等式约束条件则添加
+            }
+        }
+    }
+    vector_free(b_);
+}
+
+void constraints_free(Constraints *con, int recursion)
+{
+    if (recursion)
+    {
+        matrix_free(con->A);
+        vector_free(con->b);
+        free(con);
+    }
+    else
+    {
+        free(con);
+    }
+}
+
+void constrains_subconstrains(const Constraints *con, const Index_set *set, Matrix *A, Vector *b)
+{
+    // 通过给定的指标集和指定的约束构建子等式约束
+    // A矩阵应为与G相等的方阵,b应与其匹配的列向量
+    if (!(con->size == set->index_range AND A->row_size == A->col_size AND A->col_size == con->dim) AND b->size == con->dim)
+    {
+        terminate("ERROR constrains_subconstrains size not fit");
+    }
+    int sub_i = 0;
+    matrix_fill_const(A, 0.0);
+    vector_fill_const(b, 0.0);
+    for (int i = 0; i < con->size; i++)
+    {
+        if (index_set_is_in(set, i))
+        {
+            // 如果在指标集中
+            for (int j = 0; j < A->col_size; j++) // 复制矩阵
+            {
+                A->matrix_entry[sub_i][j] = con->A->matrix_entry[i][j];
+            }
+            b->entry[sub_i] = con->b->entry[i];
+            sub_i += 1;
+        }
+        else
+            continue;
+    }
+}
+
 int optimize_qp_linear_constraints(const Matrix *H, const Vector *c, const Matrix *A, const Vector *b, Vector *x_star, double *maxy)
 {
     // see: https://zhuanlan.zhihu.com/p/375762164
@@ -86,7 +186,7 @@ int optimize_qp_linear_constraints(const Matrix *H, const Vector *c, const Matri
     vector_free(xlambda0);
     return 1;
 }
-int optimize_qp_active_set()
+int optimize_qp_active_set(const Matrix *G, const Vector *c, const Constraints *cons, const Vector *x0, Vector *x_star)
 {
     // 有效集法求解一般约束下的二次优化问题
     // see: https://zhuanlan.zhihu.com/p/29525367
@@ -96,9 +196,75 @@ int optimize_qp_active_set()
     // s.t. Ax =(<=) b A (when i = 0,1,..,m  is '=' )
     //                   (when i = m+1,m+2,...,m+k is '<=')
 
-    
+    // alloc workspace
+    int m = cons->size;
+    Index_set *W_k = index_set_alloc(m); // 工作集
+    Index_set *W_k_1 = index_set_alloc(m);
+    Vector *x_k = vector_alloc(cons->dim);
+    Vector *x_k_1 = vector_alloc(cons->dim);
+    double *y = (double *)malloc(sizeof(double));
+    constraints_verification(cons, x0, W_k);
 
-    // subproblem
-    //  frac12 p^TGp + gk
+    // begin compute
+    while (1)
+    {
+        //计算子问题得到pk
+        int sizeofw = index_set_size(W_k); // TODO 将等式约束加入指标集
+        for (int i = 0; i < cons->e; i++)  //确保添加进去等式约束
+        {
+            index_set_append(W_k, i);
+        }
+
+        if (sizeofw >= cons->dim)
+        {
+            //! 如果指标集的大小比输入维度还大的话,这种问题我们目前还没法处理,报错
+            terminate("ERROR size of wk too big");
+        }
+        Matrix *sub_A = matrix_alloc(cons->dim, cons->dim);
+        Vector *sub_b = vector_alloc(cons->dim);
+
+        constrains_subconstrains(cons, W_k, sub_A, sub_b);
+        optimize_qp_linear_constraints(G, c, sub_A, sub_b, x_k, y);
+
+        if (1)
+        {
+            //* 计算拉格朗日系数 lambda i
+            // sum_{i\in W}{a_i \lambdai = g = Gx +c}
+
+            // 子线性方程组:
+            Matrix *sub_Ai = matrix_alloc(index_set_size(W_k), index_set(W_k));
+            matrix_submatrix_by_rowindex_set(cons->A, W_k, sub_Ai);
+            Vector *lambda = vector_alloc(index_set_size(W_k));
+            Vector *sub_bi = vector_alloc(index_set_size(W_k));
+            linear_equation_gauss_sidel(sub_Ai, sub_bi, 0.001, x0, x_k);
+
+            if (1) //若lambda i >0 (激活不等式约束集)
+            {
+                ; //停止迭代
+                break;
+            }
+            else
+            {
+                ; //删除某个约束
+            }
+        }
+        else
+        {
+            //计算alphak
+            //更新xk
+            if (1) //若不满足某些约束
+            {
+                ; //将不满足的约束添加进工作集
+            }
+            else
+            {
+
+                ; //约束集不变
+            }
+        }
+    }
+
+    // free workspace
+    ;
     return 0;
 }

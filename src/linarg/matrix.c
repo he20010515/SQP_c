@@ -3,6 +3,7 @@
 #include "string.h"
 #include "util.h"
 #include "vector.h"
+#include "index_set.h"
 void matrix_print(Matrix *matrix)
 {
 	int i, j;
@@ -592,5 +593,25 @@ void vector_mutiply_matrix(Vector *a, Matrix *mat, Vector *mat_a)
 			s = s + mat->matrix_entry[i][j] * a->entry[i];
 		}
 		mat_a->entry[j] = s;
+	}
+}
+
+void matrix_submatrix_by_rowindex_set(const Matrix *A, const Index_set *index_set, Matrix *subA)
+{
+	if (!(A->col_size == subA->col_size AND index_set->index_range == A->row_size))
+	{
+		terminate("ERROR matrix_submatrix_by_rouindex_set size not fit");
+	}
+	int sub_i = 0;
+	for (int i = 0; i < A->row_size; i++)
+	{
+		if (index_set_is_in(index_set, i))
+		{
+			for (int j = 0; j < A->col_size; j++)
+			{
+				subA->matrix_entry[sub_i][j] = A->matrix_entry[i][j];
+			}
+			sub_i++;
+		}
 	}
 }

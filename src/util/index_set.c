@@ -19,7 +19,7 @@ void index_set_free(Index_set *set)
 
 void index_set_append(Index_set *set, const int i)
 {
-    if (i <0 OR i >= set->index_range)
+    if (i < 0 OR i >= set->index_range)
     {
         terminate("ERROR: index_set_append index out of range");
     }
@@ -98,4 +98,17 @@ void index_set_print(Index_set *set)
     }
     printf("}\n");
     return;
+}
+
+int index_set_size(Index_set *set)
+{
+    int s = 0;
+    for (int i = 0; i < set->index_range; i++)
+    {
+        if (index_set_is_in(set, i))
+        {
+            s++;
+        }
+    }
+    return s;
 }
