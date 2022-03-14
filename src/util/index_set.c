@@ -7,7 +7,7 @@ Index_set *index_set_alloc(int size)
     s->elem = (int *)malloc(size * sizeof(int));
     for (int i = 0; i < size; i++)
     {
-        s->elem[i] == 0;
+        s->elem[i] = 0;
     }
     return s;
 }
@@ -45,13 +45,13 @@ void index_set_remove(Index_set *set, const int i)
     return;
 }
 
-int index_set_is_in(Index_set *set, int i)
+int index_set_is_in(const Index_set *set, int i)
 {
     if (i < 0 OR i >= set->index_range)
     {
         terminate("ERROR: index_set_insert index out of range");
     }
-    return set->elem[i];
+    return set->elem[i] == 1;
 }
 
 void index_set_union(Index_set *A, Index_set *B, Index_set *A_U_B)

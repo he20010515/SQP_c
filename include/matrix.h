@@ -1,45 +1,8 @@
-/**
- * @file ./include/matrix.h
- *
- * @brief Matrices
- *
- * This header file contains all the functions which can be used to  manipulate the
- * matrices so as to obtain required outputs.
- *
- * To create a new matrix, you will have to allocate space for the matrix using
- *  @ref matrix_alloc or @ref matrix_callalloc
- *
- * To  copy  a matrix into another, use @ref matrix_copy.
- *
- * To multiply two matrices, use @ref matrix_multiply.
- *
- * To multiply a matrix by itself 'n' times (i.e raise the matrix to the nth power)
- * use @ref matrix_pow.
- *
- * To add or subtract two matrices, use @ref matrix_add or @ref  matrix_subtract
- * respectively.
- *
- * To perform LU decomposition of a matrix, use @ref LU_decompose.
- *
- * To perform row echelon reduction of a particular matrix, use
- * @ref matrix_row_reduce.
- *
- * To print the matrix at any time, use @ref matrix_print or @ref matrix_print_part
- *
- * The function @ref row_divide is  used as an accessory function in  other functions
- * to divide a row of a matrix by a specific value.
- *
- * The function  @ref row_operation is used as an accessory function in other
- * functions to perform row operations on a matrix.
- *
- * The function  @ref matrix_equal_size checks if two matrices have the same
- * number or rows and columns
- */
-
 #include <stdio.h>
 #include <malloc.h>
 #include <stdlib.h>
 #include "vector.h"
+#include "index_set.h"
 #pragma once
 
 /**
@@ -254,7 +217,8 @@ void matrix_fill_const(Matrix *mat, double a);
 
 void matrix_lu_depose(Matrix *mat, Matrix *L, Matrix *U);
 
-void matrix_mutiply_vector(Matrix *mat, Vector *a, Vector *mat_a);
+void matrix_mutiply_vector(const Matrix *mat, const Vector *a, Vector *mat_a);
 
 void vector_mutiply_matrix(Vector *a, Matrix *mat, Vector *mat_a);
+
 void matrix_submatrix_by_rowindex_set(const Matrix *A, const Index_set *index_set, Matrix *subA);

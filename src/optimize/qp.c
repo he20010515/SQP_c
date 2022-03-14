@@ -4,23 +4,12 @@
 #include "util.h"
 #include "linear_equations.h"
 #include "index_set.h"
+#include "qp.h"
 
-struct constraints
-{
-    int dim;   // 要约束的空间大小
-    int size;  // 约束的数量
-    int e;     // 等式数量
-    int i;     // 不等式数量 e+i = size; 0,1,2,..,e-1 等式约束,e,e+1,...,e+i-1,大于号约束
-    Matrix *A; // 系数矩阵
-    Vector *b; // 约束向量
-};
-
-typedef struct constraints Constraints;
-
-Constraints *constraints_alloc(int dim, int size, int e, int i, const Matrix *A, const Vector *b)
+Constraints *constraints_alloc(int dim, int size, int e, int i, Matrix *A, Vector *b)
 {
     Constraints *con = (Constraints *)malloc(sizeof(Constraints));
-    if (!(size == e + i AND dim != A->col_size AND size != A->row_size))
+    if (!(size == e + i AND dim == A->col_size AND size == A->row_size))
     {
         terminate("ERROR :constraints_alloc: numbers of constraints doesn't fit");
     }
@@ -35,11 +24,11 @@ Constraints *constraints_alloc(int dim, int size, int e, int i, const Matrix *A,
 void *constraints_verification(const Constraints *con, const Vector *x, Index_set *set)
 {
     // 验证解x是否满足约束,将满足的约束编号添加到约束集合mat上
-    if (!(con->dim == x->size AND set->index_range == x->size))
+    if (!(con->dim == x->size AND set->index_range == con->A->row_size))
     {
         terminate("ERROR : constraints_verification: dim of vector to verificate doesn't fit");
     }
-    Vector *b_ = vector_alloc(x->size);
+    Vector *b_ = vector_alloc(con->b->size);
     matrix_mutiply_vector(con->A, x, b_);
     for (int i = 0; i < b_->size; i++)
     {
@@ -52,7 +41,7 @@ void *constraints_verification(const Constraints *con, const Vector *x, Index_se
         }
         else
         {
-            if (b_->entry[i] >= con->b->entry[i])
+            if (double_equal(b_->entry[i], con->b->entry[i]))
             {
                 index_set_append(set, i); // 满足不等式约束条件则添加
             }
@@ -186,6 +175,7 @@ int optimize_qp_linear_constraints(const Matrix *H, const Vector *c, const Matri
     vector_free(xlambda0);
     return 1;
 }
+
 int optimize_qp_active_set(const Matrix *G, const Vector *c, const Constraints *cons, const Vector *x0, Vector *x_star)
 {
     // 有效集法求解一般约束下的二次优化问题
@@ -203,28 +193,43 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const Constraints *
     Vector *x_k = vector_alloc(cons->dim);
     Vector *x_k_1 = vector_alloc(cons->dim);
     double *y = (double *)malloc(sizeof(double));
-    constraints_verification(cons, x0, W_k);
-
+    int k = 0;
+    //* firstcompute 首次计算
+    // 计算一个初始点以及其对应的工作集
+    vector_copy(x0, x_k);
+    constraints_verification(cons, x_k, W_k); // 获取工作集
     // begin compute
     while (1)
     {
-        //计算子问题得到pk
-        int sizeofw = index_set_size(W_k); // TODO 将等式约束加入指标集
+        //*计算子问题得到pk
+        int sizeofw = index_set_size(W_k); // TODO 将等式约束加入指标集  DONE
         for (int i = 0; i < cons->e; i++)  //确保添加进去等式约束
-        {
             index_set_append(W_k, i);
-        }
-
-        if (sizeofw >= cons->dim)
-        {
-            //! 如果指标集的大小比输入维度还大的话,这种问题我们目前还没法处理,报错
-            terminate("ERROR size of wk too big");
-        }
+        printf("work set of x0:\n");
+        index_set_print(W_k);
+        if (sizeofw > cons->dim)
+            terminate("ERROR size of wk too big"); //! 如果指标集的大小比输入维度还大的话,这种问题我们目前还没法处理,报错
+        //子问题目标函数的一次项
+        Vector *Gxk = vector_alloc(cons->dim);
+        matrix_mutiply_vector(G, x_k, Gxk);
+        vector_print(Gxk);
+        Vector *Gxk_c = vector_alloc(cons->dim);
+        vector_add_vector(Gxk, c, Gxk_c);
+        Vector *p = vector_alloc(cons->dim);
+        vector_print(Gxk_c);
+        //子问题约束矩阵
         Matrix *sub_A = matrix_alloc(cons->dim, cons->dim);
         Vector *sub_b = vector_alloc(cons->dim);
-
         constrains_subconstrains(cons, W_k, sub_A, sub_b);
-        optimize_qp_linear_constraints(G, c, sub_A, sub_b, x_k, y);
+        vector_fill_const(sub_b, 0);
+        printf("constrains matrix of subproblem when k = %d\n", k);
+        matrix_print(sub_A);
+        printf("constrains vector of subproblem when k = %d\n", k);
+        vector_print(sub_b);
+        //计算子问题得到p
+        optimize_qp_linear_constraints(G, Gxk_c, sub_A, sub_b, p, y);
+        printf("p in subproblem\n");
+        vector_print(p);
 
         if (1)
         {
@@ -232,12 +237,11 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const Constraints *
             // sum_{i\in W}{a_i \lambdai = g = Gx +c}
 
             // 子线性方程组:
-            Matrix *sub_Ai = matrix_alloc(index_set_size(W_k), index_set(W_k));
+            Matrix *sub_Ai = matrix_alloc(index_set_size(W_k), index_set_size(W_k));
             matrix_submatrix_by_rowindex_set(cons->A, W_k, sub_Ai);
             Vector *lambda = vector_alloc(index_set_size(W_k));
             Vector *sub_bi = vector_alloc(index_set_size(W_k));
             linear_equation_gauss_sidel(sub_Ai, sub_bi, 0.001, x0, x_k);
-
             if (1) //若lambda i >0 (激活不等式约束集)
             {
                 ; //停止迭代
@@ -262,6 +266,7 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const Constraints *
                 ; //约束集不变
             }
         }
+        k++;
     }
 
     // free workspace

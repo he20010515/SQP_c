@@ -54,29 +54,18 @@ Vector *vector_add_const(Vector *v, double a, int copy)
     return v;
 }
 
-Vector *vector_add_vector(Vector *v, Vector *w, int copy)
+Vector *vector_add_vector(const Vector *v, const Vector *w, Vector *v_w)
 {
     if (v->size != w->size)
     {
         printf("v and w must have the same size");
         exit(-1);
     }
-    if (copy == 1)
+
+    Vector *u = vector_alloc(v->size);
+    for (size_t i = 0; i < u->size; i++)
     {
-        Vector *u = vector_alloc(v->size);
-        for (size_t i = 0; i < u->size; i++)
-        {
-            u->entry[i] = v->entry[i] + w->entry[i];
-        }
-        return u;
-    }
-    else
-    {
-        for (size_t i = 0; i < v->size; i++)
-        {
-            w->entry[i] += v->entry[i];
-        }
-        return w;
+        v_w->entry[i] = v->entry[i] + w->entry[i];
     }
 }
 

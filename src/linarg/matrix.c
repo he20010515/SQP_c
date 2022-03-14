@@ -550,19 +550,19 @@ void matrix_lu_depose(Matrix *mat, Matrix *L, Matrix *U)
 	return;
 }
 
-void matrix_mutiply_vector(Matrix *mat, Vector *a, Vector *mat_a)
+void matrix_mutiply_vector(const Matrix *mat, const Vector *a, Vector *mat_a)
 {
-	if (mat->row_size != a->size)
+	if (mat->col_size != a->size)
 	{
-		terminate("ERROR matrix_mutiply_vector: the matrix.row_size must equal to vector.size");
+		terminate("ERROR matrix_mutiply_vector: the matrix.col must equal to vector.size");
 	}
-	if (a->size != mat_a->size)
+	if (mat_a->size != mat->row_size)
 	{
 		terminate("ERROR matrix_mutiply_vector: a.size != mat_a.size ");
 	}
 
 	double s = 0.0;
-	for (size_t i = 0; i < a->size; i++)
+	for (size_t i = 0; i < mat_a->size; i++)
 	{
 		s = 0.0;
 		for (size_t j = 0; j < mat->col_size; j++)
