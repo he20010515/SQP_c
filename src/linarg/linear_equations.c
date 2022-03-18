@@ -182,8 +182,12 @@ void linear_equation_gaussian_elimination(const Matrix *mat, const Vector *b, Ve
     // see: https://blog.csdn.net/weixin_42465397/article/details/103264328
     int laber;
     double temp;
+    double sum;
     Matrix *tempA = matrix_alloc(mat->row_size, mat->col_size + 1);
     // 构建增广矩阵
+    // N:row_size
+    // M:col_size
+    vector_fill_const(x, 0.0);
     for (int i = 0; i < tempA->row_size; i++)
     {
         for (int j = 0; j < tempA->col_size; j++)
@@ -194,8 +198,6 @@ void linear_equation_gaussian_elimination(const Matrix *mat, const Vector *b, Ve
                 tempA->matrix_entry[i][j] = b->entry[i];
         }
     }
-
-    double sum;
     for (int k = 0; k < mat->row_size; k++)
     {
         laber = _get_max_i_number(tempA, k);
@@ -206,13 +208,11 @@ void linear_equation_gaussian_elimination(const Matrix *mat, const Vector *b, Ve
 
         for (int i = k + 1; i < mat->row_size; i++)
         {
-            if (tempA->matrix_entry[k][k] == 0)
+            if (tempA->matrix_entry[k][k] == 0.0)
                 break;
             temp = tempA->matrix_entry[i][k] / tempA->matrix_entry[k][k];
             for (int j = k; j < tempA->col_size; j++)
-            {
                 tempA->matrix_entry[i][j] = tempA->matrix_entry[k][j] * temp - tempA->matrix_entry[i][j];
-            }
         }
     }
     for (int i = tempA->row_size - 1; i >= 0; i--)
@@ -222,6 +222,7 @@ void linear_equation_gaussian_elimination(const Matrix *mat, const Vector *b, Ve
         {
             sum = sum + tempA->matrix_entry[i][j] * x->entry[j];
         }
-        x->entry[i] = (tempA->matrix_entry[i][tempA->col_size]) / tempA->matrix_entry[i][i];
+        x->entry[i] = (tempA->matrix_entry[i][tempA->col_size - 1] - sum) / tempA->matrix_entry[i][i];
     }
+    matrix_free(tempA);
 }

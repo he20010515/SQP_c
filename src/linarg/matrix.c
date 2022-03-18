@@ -615,3 +615,18 @@ void matrix_submatrix_by_rowindex_set(const Matrix *A, const Index_set *index_se
 		}
 	}
 }
+
+void matrix_transpose(const Matrix *mat, Matrix *matT)
+{
+	if (!(mat->col_size == matT->row_size AND mat->row_size == matT->col_size))
+	{
+		terminate("ERROR matrix_transpose matrix size not fit");
+	}
+	for (int i = 0; i < mat->row_size; i++)
+	{
+		for (int j = 0; j < mat->col_size; j++)
+		{
+			matT->matrix_entry[j][i] = mat->matrix_entry[i][j];
+		}
+	}
+}

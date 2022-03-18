@@ -6,7 +6,7 @@
 int main(int argc, char const *argv[])
 {
     Matrix *G = matrix_alloc(2, 2);
-    double G_array[2][2] = {0.5, 0, 0, 0.5};
+    double G_array[2][2] = {2, 0, 0, 2};
     array_2_matrix((double *)G_array, 2, 2, G);
 
     Vector *c = vector_alloc(2);

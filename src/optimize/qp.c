@@ -209,43 +209,51 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const Constraints *
         int sizeofw = index_set_size(W_k); // TODO 将等式约束加入指标集  DONE
         for (int i = 0; i < cons->e; i++)  //确保添加进去等式约束
             index_set_append(W_k, i);
-        printf("work set of x0:\n");
-        index_set_print(W_k);
         if (sizeofw > cons->dim)
             terminate("ERROR size of wk too big"); //! 如果指标集的大小比输入维度还大的话,这种问题我们目前还没法处理,报错
         //子问题目标函数的一次项
         Vector *Gxk = vector_alloc(cons->dim);
         matrix_mutiply_vector(G, x_k, Gxk);
-        vector_print(Gxk);
         Vector *Gxk_c = vector_alloc(cons->dim);
         vector_add_vector(Gxk, c, Gxk_c);
         Vector *p = vector_alloc(cons->dim);
-        vector_print(Gxk_c);
         //子问题约束矩阵
         Matrix *sub_A = matrix_alloc(cons->dim, cons->dim);
         Vector *sub_b = vector_alloc(cons->dim);
         constrains_subconstrains(cons, W_k, sub_A, sub_b);
         vector_fill_const(sub_b, 0);
-        printf("constrains matrix of subproblem when k = %d\n", k);
-        matrix_print(sub_A);
-        printf("constrains vector of subproblem when k = %d\n", k);
-        vector_print(sub_b);
         //计算子问题得到p
         optimize_qp_linear_constraints(G, Gxk_c, sub_A, sub_b, p, y);
-        printf("p in subproblem\n");
-        vector_print(p);
 
-        if (1)
+        if (double_equal(vector_2norm(p), 0.0)) // if p_k = 0
         {
             //* 计算拉格朗日系数 lambda i
             // sum_{i\in W}{a_i \lambdai = g = Gx +c}
 
             // 子线性方程组:
             Matrix *sub_Ai = matrix_alloc(index_set_size(W_k), index_set_size(W_k));
+            Matrix *sub_AiT = matrix_alloc(index_set_size(W_k), index_set_size(W_k));
             matrix_submatrix_by_rowindex_set(cons->A, W_k, sub_Ai);
-            Vector *lambda = vector_alloc(index_set_size(W_k));
-            Vector *sub_bi = vector_alloc(index_set_size(W_k));
-            linear_equation_gauss_sidel(sub_Ai, sub_bi, 0.001, x0, x_k);
+            matrix_transpose(sub_Ai, sub_AiT);
+            Vector *sub_lambda = vector_alloc(index_set_size(W_k));
+            linear_equation_gaussian_elimination(sub_AiT, Gxk_c, sub_lambda); //小的lambda
+            //将lambda 放大到根activeset一样大
+            Vector *lambda = vector_alloc(W_k->index_range);
+            vector_print(sub_lambda);
+
+            int temp = 0;
+            for (int i = 0; i < W_k->index_range; i++)
+            {
+                if (index_set_is_in(W_k, i))
+                {
+                    lambda->entry[i] = sub_lambda->entry[temp];
+                    temp++;
+                }
+                else
+                    lambda->entry[i] = 0.0;
+            }
+
+            vector_print(lambda);
             if (1) //若lambda i >0 (激活不等式约束集)
             {
                 ; //停止迭代
