@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <math.h>
 #include "util.h"
+#include "vector.h"
 void terminate(char *string)
 {
     fprintf(stdout, "\n%s\n", string);
@@ -18,4 +19,14 @@ int double_equal(double a, double b)
     {
         return 0;
     }
+}
+
+int vector_any_bigger_equal_than_const(const Vector *v, double a)
+{
+    for (int i = 0; i < v->size; i++)
+    {
+        if (v->entry[i] < a)
+            return 0;
+    }
+    return 1;
 }

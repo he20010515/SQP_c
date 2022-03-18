@@ -133,3 +133,18 @@ void vector_fill_const(Vector *v, double a)
     }
     return;
 }
+
+int vector_argmin(const Vector *v)
+{
+    double min = v->entry[0];
+    int flag = 0;
+    for (int i = 0; i < v->size; i++)
+    {
+        if (v->entry[i] < min)
+        {
+            flag = i;
+            min = v->entry[i];
+        }
+    }
+    return flag;
+}

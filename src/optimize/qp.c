@@ -254,14 +254,17 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const Constraints *
             }
 
             vector_print(lambda);
-            if (1) //若lambda i >0 (激活不等式约束集)
+            if (vector_any_bigger_equal_than_const(sub_lambda, 0)) //若lambda i >0 (激活不等式约束集) (\any i \in Wk)
             {
-                ; //停止迭代
-                break;
+                vector_copy(x_k, x_star);
+                return;
             }
             else
             {
-                ; //删除某个约束
+                int j = vector_argmin(lambda);
+                index_set_remove(W_k, j);
+                vector_copy(x_k, x_k_1);
+                // TODO here
             }
         }
         else
