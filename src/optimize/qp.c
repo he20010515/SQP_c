@@ -159,6 +159,8 @@ int optimize_qp_linear_constraints(const Matrix *H, const Vector *c, const Matri
     // linear_equation_sor(HAAT0, cb, 0.0001, xlambda0, xlambda, 0.5);
     Matrix *inv = matrix_alloc(2 * n, 2 * n);
     matrix_inverse(HAAT0, inv);
+    matrix_print(inv);
+    matrix_print(HAAT0);
     matrix_mutiply_vector(HAAT0, cb, xlambda);
     matrix_free(inv);
 
@@ -194,7 +196,7 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const Constraints *
     Vector *x_k_1 = vector_alloc(cons->dim);
     double *y = (double *)malloc(sizeof(double));
     int k = 0;
-    //* firstcompute 首次计算
+    //* first compute 首次计算
     // 计算一个初始点以及其对应的工作集
     vector_copy(x0, x_k);
     constraints_verification(cons, x_k, W_k); // 获取工作集

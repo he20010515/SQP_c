@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <math.h>
 #include "util.h"
-
 void terminate(char *string)
 {
     fprintf(stdout, "\n%s\n", string);
@@ -11,7 +10,7 @@ void terminate(char *string)
 
 int double_equal(double a, double b)
 {
-    if (abs(a - b) < DOUBLE_ERROR)
+    if (fabs(a - b) < DOUBLE_ERROR)
     {
         return 1;
     }

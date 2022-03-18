@@ -1,6 +1,7 @@
 #include "vector.h"
 #include "matrix.h"
 #include "util.h"
+#include "math.h"
 #define MAXITER 500
 void linear_equation_jacobi(const Matrix *mat, const Vector *b, const double epsilon, const Vector *x0, Vector *x)
 {
@@ -147,4 +148,60 @@ void linear_equation_sor(const Matrix *mat, const Vector *b, const double epsilo
     vector_copy(xk_1, x);
     vector_free(xk);
     vector_free(xk_1);
+}
+
+int _get_max_i_number(const Matrix *A, int k)
+{
+    // 获取主元所在行
+    int laber = k;
+    double maxinum = 0;
+    for (int i = k; i < A->row_size; i++)
+    {
+        if (maxinum < fabs(A->matrix_entry[i][k]))
+        {
+            maxinum = fabs(A->matrix_entry[i][k]);
+            laber = i;
+        }
+    }
+    return laber;
+}
+
+void _swap_row_ij(Matrix *A, int i, int j)
+{
+    // 交换矩阵第i行和第j行
+    double temp = 0;
+    for (int k = 0; k < A->col_size; k++)
+    {
+        temp = A->matrix_entry[i][k];
+        A->matrix_entry[i][k] = A->matrix_entry[j][k];
+        A->matrix_entry[j][k] = temp;
+    }
+}
+void linear_equation_gaussian_elimination(const Matrix *mat, const Vector *b, Vector *x) // A[N][M]
+{
+    // see: https://blog.csdn.net/weixin_42465397/article/details/103264328
+    int laber;
+    double temp;
+    Matrix *tempA = matrix_alloc(mat->row_size, mat->col_size);
+    matrix_copy(mat, tempA);
+    for (int k = 0; k < mat->row_size; k++)
+    {
+        laber = _get_max_i_number(tempA, k);
+        if (laber != k)
+        {
+            _swap_row_ij(tempA, laber, k);
+        }
+
+        for (int i = k + 1; i < mat->row_size; i++)
+        {
+            if (tempA->matrix_entry[k][k] == 0)
+                break;
+            temp = tempA->matrix_entry[i][k] / tempA->matrix_entry[k][k];
+            for (int j = k; j < tempA->col_size; j++)
+            {
+                tempA->matrix_entry[i][j] = tempA->matrix_entry[k][j] * temp - tempA->matrix_entry[i][j];
+            }
+        }
+
+    }
 }
