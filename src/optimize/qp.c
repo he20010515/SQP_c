@@ -155,14 +155,16 @@ int optimize_qp_linear_constraints(const Matrix *H, const Vector *c, const Matri
             cb->entry[i] = -b->entry[i - n];
         }
     }
-    //* compute linear function #TODO 这里用一般的迭代法不收敛,目前先用LU分解验证
+    // // * compute linear function #TODO 这里用一般的迭代法不收敛,目前先用LU分解验证
+    //* 现在采用高斯消去法求解线性方程组
     // linear_equation_sor(HAAT0, cb, 0.0001, xlambda0, xlambda, 0.5);
-    Matrix *inv = matrix_alloc(2 * n, 2 * n);
-    matrix_inverse(HAAT0, inv);
-    matrix_print(inv);
-    matrix_print(HAAT0);
-    matrix_mutiply_vector(HAAT0, cb, xlambda);
-    matrix_free(inv);
+    linear_equation_gaussian_elimination(HAAT0, cb, xlambda);
+    // Matrix *inv = matrix_alloc(2 * n, 2 * n);
+    // matrix_inverse(HAAT0, inv);
+    // matrix_print(inv);
+    // matrix_print(HAAT0);
+    // matrix_mutiply_vector(HAAT0, cb, xlambda);
+    // matrix_free(inv);
 
     //* split solution
     for (size_t i = 0; i < n; i++)

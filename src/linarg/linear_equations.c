@@ -182,8 +182,20 @@ void linear_equation_gaussian_elimination(const Matrix *mat, const Vector *b, Ve
     // see: https://blog.csdn.net/weixin_42465397/article/details/103264328
     int laber;
     double temp;
-    Matrix *tempA = matrix_alloc(mat->row_size, mat->col_size);
-    matrix_copy(mat, tempA);
+    Matrix *tempA = matrix_alloc(mat->row_size, mat->col_size + 1);
+    // 构建增广矩阵
+    for (int i = 0; i < tempA->row_size; i++)
+    {
+        for (int j = 0; j < tempA->col_size; j++)
+        {
+            if (j < tempA->col_size - 1)
+                tempA->matrix_entry[i][j] = mat->matrix_entry[i][j];
+            else
+                tempA->matrix_entry[i][j] = b->entry[i];
+        }
+    }
+
+    double sum;
     for (int k = 0; k < mat->row_size; k++)
     {
         laber = _get_max_i_number(tempA, k);
@@ -202,6 +214,14 @@ void linear_equation_gaussian_elimination(const Matrix *mat, const Vector *b, Ve
                 tempA->matrix_entry[i][j] = tempA->matrix_entry[k][j] * temp - tempA->matrix_entry[i][j];
             }
         }
-
+    }
+    for (int i = tempA->row_size - 1; i >= 0; i--)
+    {
+        sum = 0.;
+        for (int j = i + 1; j < tempA->row_size; j++)
+        {
+            sum = sum + tempA->matrix_entry[i][j] * x->entry[j];
+        }
+        x->entry[i] = (tempA->matrix_entry[i][tempA->col_size]) / tempA->matrix_entry[i][i];
     }
 }
