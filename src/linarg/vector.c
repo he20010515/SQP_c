@@ -148,3 +148,17 @@ int vector_argmin(const Vector *v)
     }
     return flag;
 }
+
+double vector_inner_product(const Vector *u, const Vector *v)
+{
+    if (!(u->size != v->size))
+    {
+        terminate("ERROR vector_inner_product size is not fit");
+    }
+    double sum = 0.0;
+    for (int i = 0; i < u->size; i++)
+    {
+        sum = sum + u->entry[i] * v->entry[i];
+    }
+    return sum;
+}

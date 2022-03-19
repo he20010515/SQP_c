@@ -17,3 +17,4 @@ double vector_2norm(const Vector *v);
 double vector_2metric(const Vector *v, const Vector *u);
 void vector_fill_const(Vector *v, double a);
 int vector_argmin(const Vector *v);
+double vector_inner_product(const Vector *u, const Vector *v);

@@ -6,6 +6,8 @@
 #include "index_set.h"
 #include "qp.h"
 
+#define min(a, b) (((a) < (b)) ? (a) : (b))
+
 Constraints *constraints_alloc(int dim, int size, int e, int i, Matrix *A, Vector *b)
 {
     Constraints *con = (Constraints *)malloc(sizeof(Constraints));
@@ -193,7 +195,11 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const Constraints *
     // alloc workspace
     int m = cons->size;
     Index_set *W_k = index_set_alloc(m); // 工作集
-    Index_set *W_k_1 = index_set_alloc(m);
+    Index_set *index_set_I = index_set_alloc(m);
+    for (int i = cons->e; i < m; i++)
+    {
+        index_set_append(index_set_I, i);
+    }
     Vector *x_k = vector_alloc(cons->dim);
     Vector *x_k_1 = vector_alloc(cons->dim);
     double *y = (double *)malloc(sizeof(double));
@@ -224,6 +230,8 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const Constraints *
         vector_fill_const(sub_b, 0);
         //计算子问题得到p
         optimize_qp_linear_constraints(G, Gxk_c, sub_A, sub_b, p, y);
+        matrix_free(sub_A);
+        vector_free(sub_b);
 
         if (double_equal(vector_2norm(p), 0.0)) // if p_k = 0
         {
@@ -252,36 +260,71 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const Constraints *
                 else
                     lambda->entry[i] = 0.0;
             }
+            Index_set *W_k_inter_I = index_set_alloc(m);
+            index_set_intersection(W_k, index_set_I, W_k_inter_I);
+            Vector *subsublambda = vector_alloc(index_set_size(W_k_inter_I)); // 申请一个和Wk 交 I一样大小的向量,随后将满足条件的lambda 放进去
 
-            vector_print(lambda);
-            if (vector_any_bigger_equal_than_const(sub_lambda, 0)) //若lambda i >0 (激活不等式约束集) (\any i \in Wk)
+            temp = 0;
+            for (int i = 0; i < m; i++)
+            {
+                if (index_set_is_in(W_k_inter_I, i))
+                {
+                    subsublambda->entry[temp] = lambda->entry[i];
+                    temp++;
+                }
+            }
+
+            if (vector_any_bigger_equal_than_const(subsublambda, 0)) //若lambda i >0 (激活不等式约束集) (\any i \in Wk)
             {
                 vector_copy(x_k, x_star);
-                return;
+                return 0;
             }
             else
             {
                 int j = vector_argmin(lambda);
                 index_set_remove(W_k, j);
                 vector_copy(x_k, x_k_1);
-                // TODO here
             }
         }
         else
         {
             //计算alphak
-            //更新xk
-            if (1) //若不满足某些约束
+            // TODO 计算alphak
+            double alphak = 1.0;
+            int j = 0;
+            for (int i = 0; i < m; i++)
             {
-                ; //将不满足的约束添加进工作集
+                Vector *ai = vector_alloc(cons->A->col_size); // 获取ai
+                for (int k = 0; k < cons->A->row_size; k++)
+                    ai->entry[k] = cons->A->matrix_entry[i][k];
+                double aipk = vector_inner_product(ai, p);
+                if (aipk < 0 AND !(index_set_is_in(W_k, i)))
+                {
+                    double temp = (cons->b->entry[i] - vector_inner_product(ai, x_k)) / aipk;
+                    if (temp < alphak)
+                    {
+                        j = i;
+                        alphak = temp;
+                    }
+                }
+                vector_free(ai);
+            }
+            alphak = min(1, alphak);
+            //更新xk
+            Vector *alphapk = vector_multiply_const(p, alphak, 1); // copy = 1
+            vector_add_vector(x_k, alphapk, x_k_1);
+            vector_free(alphapk);
+            if (alphak < 1.) //若不满足某些约束
+            {
+                index_set_append(W_k, j); //将不满足的约束添加进工作集
             }
             else
             {
-
                 ; //约束集不变
             }
         }
         k++;
+        vector_copy(x_k_1, x_k);
     }
 
     // free workspace
