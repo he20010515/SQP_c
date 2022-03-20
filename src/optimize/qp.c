@@ -95,6 +95,93 @@ void constrains_subconstrains(const Constraints *con, const Index_set *set, Matr
     }
 }
 
+void __qp_compute_subproblem(const Index_set *W_k, const Constraints *cons, const Matrix *G, const Vector *c, Vector *xk, Vector *p, double *y)
+{
+
+    int sizeofw = index_set_size(W_k);
+    if (sizeofw > cons->dim)
+        terminate("ERROR size of wk too big"); //! 如果指标集的大小比输入维度还大的话,这种问题我们目前还没法处理,报错
+    //子问题目标函数的一次项
+    Vector *Gxk = vector_alloc(cons->dim);
+    matrix_mutiply_vector(G, xk, Gxk);
+    Vector *Gxk_c = vector_alloc(cons->dim);
+    vector_add_vector(Gxk, c, Gxk_c);
+    //子问题约束矩阵
+    Matrix *sub_A = matrix_alloc(index_set_size(W_k), cons->dim); // 约束个行,dim个列
+    Vector *sub_b = vector_alloc(index_set_size(W_k));
+    constrains_subconstrains(cons, W_k, sub_A, sub_b);
+    vector_fill_const(sub_b, 0);
+    //计算子问题得到p
+    optimize_qp_linear_constraints(G, Gxk_c, sub_A, sub_b, p, y);
+    return;
+}
+Vector *__qp_compute_lambda(const Index_set *W_k, const Constraints *cons, const Matrix *G, const Vector *c, Vector *xk, Index_set *index_set_I, Vector *lambda)
+{
+    //* 计算拉格朗日系数 lambda i
+    // sum_{i\in W}{a_i \lambdai = g = Gx +c}
+    // 子线性方程组:
+    int m = cons->dim;
+    Vector *Gxk = vector_alloc(cons->dim);
+    matrix_mutiply_vector(G, xk, Gxk);
+    Vector *Gxk_c = vector_alloc(cons->dim);
+    vector_add_vector(Gxk, c, Gxk_c);
+    Matrix *sub_Ai = matrix_alloc(index_set_size(W_k), cons->dim);
+    Matrix *sub_AiT = matrix_alloc(cons->dim, index_set_size(W_k));
+    matrix_submatrix_by_rowindex_set(cons->A, W_k, sub_Ai);
+    matrix_transpose(sub_Ai, sub_AiT);
+    Vector *sub_lambda = vector_alloc(index_set_size(W_k));           // wk大小的lambda
+    linear_equation_gaussian_elimination(sub_AiT, Gxk_c, sub_lambda); //小的lambda
+    //将lambda 放大到根activeset一样大
+    int temp = 0;
+    for (int i = 0; i < W_k->index_range; i++)
+    {
+        if (index_set_is_in(W_k, i))
+        {
+            lambda->entry[i] = sub_lambda->entry[temp];
+            temp++;
+        }
+        else
+            lambda->entry[i] = 0.0;
+    }
+    Index_set *W_k_inter_I = index_set_alloc(m);
+    index_set_intersection(W_k, index_set_I, W_k_inter_I);
+    Vector *subsublambda = vector_alloc(index_set_size(W_k_inter_I)); // 申请一个和Wk 交 I一样大小的向量,随后将满足条件的lambda 放进去
+    temp = 0;
+    for (int i = 0; i < m; i++)
+    {
+        if (index_set_is_in(W_k_inter_I, i))
+        {
+            subsublambda->entry[temp] = lambda->entry[i];
+            temp++;
+        }
+    }
+    return subsublambda;
+}
+double __qp_compute_alphak(const Index_set *W_k, const Constraints *cons, const Vector *x_k, const Vector *p, Vector *alphas)
+{
+    //计算alphak
+    double alphak = 1.0;
+    int m = cons->size;
+    int j = 0;
+    for (int i = 0; i < m; i++)
+    {
+        Vector *ai = vector_alloc(cons->A->col_size); // 获取ai
+        for (int k = 0; k < cons->A->col_size; k++)
+            ai->entry[k] = cons->A->matrix_entry[i][k];
+        double aipk = vector_inner_product(ai, p);
+        if (aipk < 0 AND !(index_set_is_in(W_k, i)))
+        {
+            double temp = (cons->b->entry[i] - vector_inner_product(ai, x_k)) / aipk;
+            alphas->entry[i] = temp;
+        }
+        else
+            alphas->entry[i] = NAN;
+        vector_free(ai);
+    }
+    alphak = vector_min(alphas);
+    return alphak;
+}
+
 int optimize_qp_linear_constraints(const Matrix *H, const Vector *c, const Matrix *A, const Vector *b, Vector *x_star, double *maxy)
 {
     // see: https://zhuanlan.zhihu.com/p/375762164
@@ -211,10 +298,13 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const Constraints *
     // 计算一个初始点以及其对应的工作集
     vector_copy(x0, x_k);
     constraints_verification(cons, x_k, W_k); // 获取工作集
+
     // begin compute
     while (1)
     {
         //*计算子问题得到pk
+        for (int i = 0; i < cons->e; i++) //确保添加进去等式约束
+            index_set_append(W_k, i);
         printf("========iter k = %d=========\n", k);
         Vector *p = vector_alloc(cons->dim);
         __qp_compute_subproblem(W_k, cons, G, c, x_k, p, y);
@@ -269,92 +359,4 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const Constraints *
     // free workspace
     ;
     return 0;
-}
-
-void __qp_compute_subproblem(const Index_set *W_k, const Constraints *cons, const Matrix *G, const Vector *c, Vector *xk, Vector *p, double *y)
-{
-    int sizeofw = index_set_size(W_k); // TODO 将等式约束加入指标集  DONE
-    for (int i = 0; i < cons->e; i++)  //确保添加进去等式约束
-        index_set_append(W_k, i);
-    if (sizeofw > cons->dim)
-        terminate("ERROR size of wk too big"); //! 如果指标集的大小比输入维度还大的话,这种问题我们目前还没法处理,报错
-    //子问题目标函数的一次项
-    Vector *Gxk = vector_alloc(cons->dim);
-    matrix_mutiply_vector(G, xk, Gxk);
-    Vector *Gxk_c = vector_alloc(cons->dim);
-    vector_add_vector(Gxk, c, Gxk_c);
-    //子问题约束矩阵
-    Matrix *sub_A = matrix_alloc(index_set_size(W_k), cons->dim); // 约束个行,dim个列
-    Vector *sub_b = vector_alloc(index_set_size(W_k));
-    constrains_subconstrains(cons, W_k, sub_A, sub_b);
-    vector_fill_const(sub_b, 0);
-    //计算子问题得到p
-    optimize_qp_linear_constraints(G, Gxk_c, sub_A, sub_b, p, y);
-    return;
-}
-Vector *__qp_compute_lambda(const Index_set *W_k, const Constraints *cons, const Matrix *G, const Vector *c, Vector *xk, Index_set *index_set_I, Vector *lambda)
-{
-    //* 计算拉格朗日系数 lambda i
-    // sum_{i\in W}{a_i \lambdai = g = Gx +c}
-    // 子线性方程组:
-    int m = cons->dim;
-    Vector *Gxk = vector_alloc(cons->dim);
-    matrix_mutiply_vector(G, xk, Gxk);
-    Vector *Gxk_c = vector_alloc(cons->dim);
-    vector_add_vector(Gxk, c, Gxk_c);
-    Matrix *sub_Ai = matrix_alloc(index_set_size(W_k), cons->dim);
-    Matrix *sub_AiT = matrix_alloc(cons->dim, index_set_size(W_k));
-    matrix_submatrix_by_rowindex_set(cons->A, W_k, sub_Ai);
-    matrix_transpose(sub_Ai, sub_AiT);
-    Vector *sub_lambda = vector_alloc(index_set_size(W_k));           // wk大小的lambda
-    linear_equation_gaussian_elimination(sub_AiT, Gxk_c, sub_lambda); //小的lambda
-    //将lambda 放大到根activeset一样大
-    int temp = 0;
-    for (int i = 0; i < W_k->index_range; i++)
-    {
-        if (index_set_is_in(W_k, i))
-        {
-            lambda->entry[i] = sub_lambda->entry[temp];
-            temp++;
-        }
-        else
-            lambda->entry[i] = 0.0;
-    }
-    Index_set *W_k_inter_I = index_set_alloc(m);
-    index_set_intersection(W_k, index_set_I, W_k_inter_I);
-    Vector *subsublambda = vector_alloc(index_set_size(W_k_inter_I)); // 申请一个和Wk 交 I一样大小的向量,随后将满足条件的lambda 放进去
-    temp = 0;
-    for (int i = 0; i < m; i++)
-    {
-        if (index_set_is_in(W_k_inter_I, i))
-        {
-            subsublambda->entry[temp] = lambda->entry[i];
-            temp++;
-        }
-    }
-    return subsublambda;
-}
-double __qp_compute_alphak(const Index_set *W_k, const Constraints *cons, const *x_k, const Vector *p, Vector *alphas)
-{
-    //计算alphak
-    double alphak = 1.0;
-    int m = cons->size;
-    int j = 0;
-    for (int i = 0; i < m; i++)
-    {
-        Vector *ai = vector_alloc(cons->A->col_size); // 获取ai
-        for (int k = 0; k < cons->A->col_size; k++)
-            ai->entry[k] = cons->A->matrix_entry[i][k];
-        double aipk = vector_inner_product(ai, p);
-        if (aipk < 0 AND !(index_set_is_in(W_k, i)))
-        {
-            double temp = (cons->b->entry[i] - vector_inner_product(ai, x_k)) / aipk;
-            alphas->entry[i] = temp;
-        }
-        else
-            alphas->entry[i] = NAN;
-        vector_free(ai);
-    }
-    alphak = vector_min(alphas);
-    return alphak;
 }

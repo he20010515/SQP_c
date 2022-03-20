@@ -70,7 +70,7 @@ void index_set_union(Index_set *A, Index_set *B, Index_set *A_U_B)
     return;
 }
 
-void index_set_intersection(Index_set *A, Index_set *B, Index_set *A_I_B)
+void index_set_intersection(const Index_set *A, const Index_set *B, Index_set *A_I_B)
 {
     if (A->index_range != B->index_range)
     {

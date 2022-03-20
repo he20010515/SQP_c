@@ -14,6 +14,6 @@ void index_set_append(Index_set *set, const int i);
 void index_set_remove(Index_set *set, const int i);
 int index_set_is_in(const Index_set *set, int i);
 void index_set_union(Index_set *A, Index_set *B, Index_set *A_U_B);
-void index_set_intersection(Index_set *A, Index_set *B, Index_set *A_I_B);
+void index_set_intersection(const Index_set *A, const Index_set *B, Index_set *A_I_B);
 void index_set_print(Index_set *set);
 int index_set_size(const Index_set *set);
