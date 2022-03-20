@@ -1,4 +1,5 @@
 #include <math.h>
+#include <stdio.h>
 #define N 2
 #define M 2
 //获取主元所在行

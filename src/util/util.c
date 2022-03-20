@@ -3,6 +3,7 @@
 #include "util.h"
 #include "vector.h"
 #include "assert.h"
+#include <stdlib.h>
 void terminate(char *string)
 {
     fprintf(stdout, "\n%s\n", string);
