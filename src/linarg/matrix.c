@@ -41,7 +41,7 @@ void matrix_fill(Matrix *matrix)
 	{
 		for (j = 0; j < matrix->col_size; j++)
 		{
-			scanf("%f", &matrix->matrix_entry[i][j]);
+			scanf("%lf", &matrix->matrix_entry[i][j]);
 		}
 	}
 }
