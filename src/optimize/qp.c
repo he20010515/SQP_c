@@ -113,6 +113,11 @@ void __qp_compute_subproblem(const Index_set *W_k, const Constraints *cons, cons
     vector_fill_const(sub_b, 0);
     //计算子问题得到p
     optimize_qp_linear_constraints(G, Gxk_c, sub_A, sub_b, p, y);
+
+    vector_free(Gxk);
+    vector_free(Gxk_c);
+    matrix_free(sub_A);
+    vector_free(sub_b);
     return;
 }
 Vector *__qp_compute_lambda(const Index_set *W_k, const Constraints *cons, const Matrix *G, const Vector *c, Vector *xk, Index_set *index_set_I, Vector *lambda)
@@ -155,6 +160,12 @@ Vector *__qp_compute_lambda(const Index_set *W_k, const Constraints *cons, const
             temp++;
         }
     }
+    vector_free(Gxk);
+    vector_free(Gxk_c);
+    matrix_free(sub_Ai);
+    matrix_free(sub_AiT);
+    vector_free(sub_lambda);
+    index_set_free(W_k_inter_I);
     return subsublambda;
 }
 double __qp_compute_alphak(const Index_set *W_k, const Constraints *cons, const Vector *x_k, const Vector *p, Vector *alphas)
@@ -320,11 +331,12 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const Constraints *
             vector_print(lambda);
             if (vector_any_bigger_equal_than_const(subsublambda, 0)) //若lambda i >0 (激活不等式约束集) (\any i \in Wk)
             {
-                vector_free(subsublambda);
                 printf("case: iter done\nx_star = \n");
                 vector_copy(x_k, x_star);
                 vector_print(x_star);
-                return 0;
+                vector_free(lambda);
+                vector_free(subsublambda);
+                break;
             }
             else
             {
@@ -333,6 +345,8 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const Constraints *
                 printf("remove cons %d\n", j);
                 index_set_remove(W_k, j);
                 vector_copy(x_k, x_k_1);
+                vector_free(lambda);
+                vector_free(subsublambda);
             }
         }
         else
@@ -364,12 +378,17 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const Constraints *
         }
         printf("iter%d done;xk = \n", k);
         vector_print(x_k_1);
-
         k++;
         vector_copy(x_k_1, x_k);
+        vector_free(p);
     }
 
     // free workspace
-    ;
+    index_set_free(W_k);
+    index_set_free(index_set_I);
+    vector_free(x_k);
+    vector_free(x_k_1);
+    free(y);
+
     return 0;
 }

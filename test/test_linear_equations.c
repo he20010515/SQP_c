@@ -49,9 +49,8 @@ int main(int argc, char const *argv[])
     vector_print(x);
 
     printf("====gauss sidel method===\n");
-    linear_equation_gauss_sidel(A, b, 0.01, x0, x);
+    linear_equation_gaussian_elimination(A, b, x);
 
-    
     printf("x:");
     vector_print(x);
     return 0;
