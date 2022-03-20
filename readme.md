@@ -25,6 +25,6 @@ TODOlist:
     2. 中心Hession矩阵 done
 3. 二次优化
     1. 二次线性约束优化问题 done
-    2. 二次不等式约束优化问题 ←  doing
-    3. 二次混合约束优化问题   ←  doing
-4. SQP
+    2. 二次不等式约束优化问题 ←  done
+    3. 二次混合约束优化问题   ←  done
+4. SQP   ← HERE
