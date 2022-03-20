@@ -5,6 +5,7 @@
 #include "linear_equations.h"
 #include "index_set.h"
 #include "qp.h"
+#include "math.h"
 
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 
@@ -70,8 +71,8 @@ void constrains_subconstrains(const Constraints *con, const Index_set *set, Matr
 {
     // 通过给定的指标集和指定的约束构建子等式约束
     // A矩阵应为与G相等的方阵,b应与其匹配的列向量
-    if (!(con->size == set->index_range AND A->row_size == A->col_size AND A->col_size == con->dim) AND b->size == con->dim)
-    {
+    if (!(con->size == set->index_range AND A->col_size == con->dim AND b->size == index_set_size(set) AND A->row_size == index_set_size(set)))
+    { // 约束的大小等于索引集合的范围;约束矩阵的列数等于问题维度;约束列向量大小等于约束数量;矩阵行数等于工作集大小
         terminate("ERROR constrains_subconstrains size not fit");
     }
     int sub_i = 0;
@@ -108,37 +109,39 @@ int optimize_qp_linear_constraints(const Matrix *H, const Vector *c, const Matri
     //* Check input:
     int n;
     n = H->col_size;
-    if (!(n == H->row_size AND n == c->size AND n == A->row_size AND n == A->col_size AND n == b->size))
+    int m = A->row_size;
+    if (!(n == H->row_size AND n == c->size AND n == A->col_size AND A->row_size == b->size))
     {
+        // H必须是方阵;一次项;约束矩阵维度匹配;约束数量与b匹配;
         terminate("ERROR: optimize_qp_linear_constraints:input argument does NOT fit, please check input");
     }
     //* alloc workspace
-    Matrix *HAAT0 = matrix_alloc(2 * n, 2 * n);
-    Vector *xlambda = vector_alloc(2 * n);
-    Vector *cb = vector_alloc(2 * n);
-    Vector *xlambda0 = vector_alloc(2 * n);
+    Matrix *HAAT0 = matrix_alloc(m + n, m + n);
+    Vector *xlambda = vector_alloc(m + n);
+    Vector *cb = vector_alloc(m + n);
+    Vector *xlambda0 = vector_alloc(m + n);
     vector_fill_const(xlambda0, 0);
     //* set big matrix and vector
     //* set HAAT0:
-    for (int i = 0; i < 2 * n; i++)
+    for (int i = 0; i < m + n; i++)
     {
-        for (int j = 0; j < 2 * n; j++)
+        for (int j = 0; j < m + n; j++)
         {
             if (i < n AND j < n)
             {
                 HAAT0->matrix_entry[i][j] = H->matrix_entry[i][j];
             }
-            else if (n <= i AND i < 2 * n AND j < n)
+            else if (n <= i AND i < m + n AND j < n)
             {
                 // case A
                 HAAT0->matrix_entry[i][j] = A->matrix_entry[i - n][j];
             }
-            else if (i < n AND n <= j AND j < 2 * n)
+            else if (i < n AND n <= j AND j < m + n)
             {
                 // case A^T
                 HAAT0->matrix_entry[i][j] = A->matrix_entry[j - n][i];
             }
-            else if (n <= i AND i < 2 * n AND n <= j AND j < 2 * n)
+            else if (n <= i AND i < m + n AND n <= j AND j < m + n)
             {
                 // case 0
                 HAAT0->matrix_entry[i][j] = 0.0;
@@ -146,7 +149,7 @@ int optimize_qp_linear_constraints(const Matrix *H, const Vector *c, const Matri
         }
     }
     //* set cb
-    for (int i = 0; i < 2 * n; i++)
+    for (int i = 0; i < m + n; i++)
     {
         if (i < n)
         {
@@ -212,75 +215,24 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const Constraints *
     while (1)
     {
         //*计算子问题得到pk
-        int sizeofw = index_set_size(W_k); // TODO 将等式约束加入指标集  DONE
-        for (int i = 0; i < cons->e; i++)  //确保添加进去等式约束
-            index_set_append(W_k, i);
-        if (sizeofw > cons->dim)
-            terminate("ERROR size of wk too big"); //! 如果指标集的大小比输入维度还大的话,这种问题我们目前还没法处理,报错
-        //子问题目标函数的一次项
-        Vector *Gxk = vector_alloc(cons->dim);
-        matrix_mutiply_vector(G, x_k, Gxk);
-        Vector *Gxk_c = vector_alloc(cons->dim);
-        vector_add_vector(Gxk, c, Gxk_c);
+        printf("========iter k = %d=========\n", k);
         Vector *p = vector_alloc(cons->dim);
-        //子问题约束矩阵
-        Matrix *sub_A = matrix_alloc(cons->dim, cons->dim);
-        Vector *sub_b = vector_alloc(cons->dim);
-        constrains_subconstrains(cons, W_k, sub_A, sub_b);
-        vector_fill_const(sub_b, 0);
-        //计算子问题得到p
-        optimize_qp_linear_constraints(G, Gxk_c, sub_A, sub_b, p, y);
-        matrix_free(sub_A);
-        vector_free(sub_b);
-
+        __qp_compute_subproblem(W_k, cons, G, c, x_k, p, y);
         if (double_equal(vector_2norm(p), 0.0)) // if p_k = 0
         {
-            //* 计算拉格朗日系数 lambda i
-            // sum_{i\in W}{a_i \lambdai = g = Gx +c}
-
-            // 子线性方程组:
-            Matrix *sub_Ai = matrix_alloc(index_set_size(W_k), index_set_size(W_k));
-            Matrix *sub_AiT = matrix_alloc(index_set_size(W_k), index_set_size(W_k));
-            matrix_submatrix_by_rowindex_set(cons->A, W_k, sub_Ai);
-            matrix_transpose(sub_Ai, sub_AiT);
-            Vector *sub_lambda = vector_alloc(index_set_size(W_k));
-            linear_equation_gaussian_elimination(sub_AiT, Gxk_c, sub_lambda); //小的lambda
-            //将lambda 放大到根activeset一样大
-            Vector *lambda = vector_alloc(W_k->index_range);
-            vector_print(sub_lambda);
-
-            int temp = 0;
-            for (int i = 0; i < W_k->index_range; i++)
-            {
-                if (index_set_is_in(W_k, i))
-                {
-                    lambda->entry[i] = sub_lambda->entry[temp];
-                    temp++;
-                }
-                else
-                    lambda->entry[i] = 0.0;
-            }
-            Index_set *W_k_inter_I = index_set_alloc(m);
-            index_set_intersection(W_k, index_set_I, W_k_inter_I);
-            Vector *subsublambda = vector_alloc(index_set_size(W_k_inter_I)); // 申请一个和Wk 交 I一样大小的向量,随后将满足条件的lambda 放进去
-
-            temp = 0;
-            for (int i = 0; i < m; i++)
-            {
-                if (index_set_is_in(W_k_inter_I, i))
-                {
-                    subsublambda->entry[temp] = lambda->entry[i];
-                    temp++;
-                }
-            }
-
+            //*计算lambda
+            Vector *lambda = vector_alloc(cons->size);
+            Vector *subsublambda = __qp_compute_lambda(W_k, cons, G, c, x_k, index_set_I, lambda);
             if (vector_any_bigger_equal_than_const(subsublambda, 0)) //若lambda i >0 (激活不等式约束集) (\any i \in Wk)
             {
+                vector_free(subsublambda);
+                printf("case: iter done\n");
                 vector_copy(x_k, x_star);
                 return 0;
             }
             else
             {
+                printf("case: remove con\n");
                 int j = vector_argmin(lambda);
                 index_set_remove(W_k, j);
                 vector_copy(x_k, x_k_1);
@@ -288,41 +240,28 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const Constraints *
         }
         else
         {
-            //计算alphak
-            // TODO 计算alphak
-            double alphak = 1.0;
-            int j = 0;
-            for (int i = 0; i < m; i++)
-            {
-                Vector *ai = vector_alloc(cons->A->col_size); // 获取ai
-                for (int k = 0; k < cons->A->row_size; k++)
-                    ai->entry[k] = cons->A->matrix_entry[i][k];
-                double aipk = vector_inner_product(ai, p);
-                if (aipk < 0 AND !(index_set_is_in(W_k, i)))
-                {
-                    double temp = (cons->b->entry[i] - vector_inner_product(ai, x_k)) / aipk;
-                    if (temp < alphak)
-                    {
-                        j = i;
-                        alphak = temp;
-                    }
-                }
-                vector_free(ai);
-            }
-            alphak = min(1, alphak);
+            //*计算alphak
             //更新xk
+            Vector *alphas = vector_alloc(cons->size);
+            double alphak = __qp_compute_alphak(W_k, cons, x_k, p, alphas);
             Vector *alphapk = vector_multiply_const(p, alphak, 1); // copy = 1
+            int j = vector_argmin(alphas);
             vector_add_vector(x_k, alphapk, x_k_1);
             vector_free(alphapk);
+            vector_free(alphas);
             if (alphak < 1.) //若不满足某些约束
             {
                 index_set_append(W_k, j); //将不满足的约束添加进工作集
+                printf("Index set append%d\n", j);
             }
             else
             {
                 ; //约束集不变
             }
         }
+        printf("iter%d done;xk = \n", k);
+        vector_print(x_k);
+
         k++;
         vector_copy(x_k_1, x_k);
     }
@@ -330,4 +269,92 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const Constraints *
     // free workspace
     ;
     return 0;
+}
+
+void __qp_compute_subproblem(const Index_set *W_k, const Constraints *cons, const Matrix *G, const Vector *c, Vector *xk, Vector *p, double *y)
+{
+    int sizeofw = index_set_size(W_k); // TODO 将等式约束加入指标集  DONE
+    for (int i = 0; i < cons->e; i++)  //确保添加进去等式约束
+        index_set_append(W_k, i);
+    if (sizeofw > cons->dim)
+        terminate("ERROR size of wk too big"); //! 如果指标集的大小比输入维度还大的话,这种问题我们目前还没法处理,报错
+    //子问题目标函数的一次项
+    Vector *Gxk = vector_alloc(cons->dim);
+    matrix_mutiply_vector(G, xk, Gxk);
+    Vector *Gxk_c = vector_alloc(cons->dim);
+    vector_add_vector(Gxk, c, Gxk_c);
+    //子问题约束矩阵
+    Matrix *sub_A = matrix_alloc(index_set_size(W_k), cons->dim); // 约束个行,dim个列
+    Vector *sub_b = vector_alloc(index_set_size(W_k));
+    constrains_subconstrains(cons, W_k, sub_A, sub_b);
+    vector_fill_const(sub_b, 0);
+    //计算子问题得到p
+    optimize_qp_linear_constraints(G, Gxk_c, sub_A, sub_b, p, y);
+    return;
+}
+Vector *__qp_compute_lambda(const Index_set *W_k, const Constraints *cons, const Matrix *G, const Vector *c, Vector *xk, Index_set *index_set_I, Vector *lambda)
+{
+    //* 计算拉格朗日系数 lambda i
+    // sum_{i\in W}{a_i \lambdai = g = Gx +c}
+    // 子线性方程组:
+    int m = cons->dim;
+    Vector *Gxk = vector_alloc(cons->dim);
+    matrix_mutiply_vector(G, xk, Gxk);
+    Vector *Gxk_c = vector_alloc(cons->dim);
+    vector_add_vector(Gxk, c, Gxk_c);
+    Matrix *sub_Ai = matrix_alloc(index_set_size(W_k), cons->dim);
+    Matrix *sub_AiT = matrix_alloc(cons->dim, index_set_size(W_k));
+    matrix_submatrix_by_rowindex_set(cons->A, W_k, sub_Ai);
+    matrix_transpose(sub_Ai, sub_AiT);
+    Vector *sub_lambda = vector_alloc(index_set_size(W_k));           // wk大小的lambda
+    linear_equation_gaussian_elimination(sub_AiT, Gxk_c, sub_lambda); //小的lambda
+    //将lambda 放大到根activeset一样大
+    int temp = 0;
+    for (int i = 0; i < W_k->index_range; i++)
+    {
+        if (index_set_is_in(W_k, i))
+        {
+            lambda->entry[i] = sub_lambda->entry[temp];
+            temp++;
+        }
+        else
+            lambda->entry[i] = 0.0;
+    }
+    Index_set *W_k_inter_I = index_set_alloc(m);
+    index_set_intersection(W_k, index_set_I, W_k_inter_I);
+    Vector *subsublambda = vector_alloc(index_set_size(W_k_inter_I)); // 申请一个和Wk 交 I一样大小的向量,随后将满足条件的lambda 放进去
+    temp = 0;
+    for (int i = 0; i < m; i++)
+    {
+        if (index_set_is_in(W_k_inter_I, i))
+        {
+            subsublambda->entry[temp] = lambda->entry[i];
+            temp++;
+        }
+    }
+    return subsublambda;
+}
+double __qp_compute_alphak(const Index_set *W_k, const Constraints *cons, const *x_k, const Vector *p, Vector *alphas)
+{
+    //计算alphak
+    double alphak = 1.0;
+    int m = cons->size;
+    int j = 0;
+    for (int i = 0; i < m; i++)
+    {
+        Vector *ai = vector_alloc(cons->A->col_size); // 获取ai
+        for (int k = 0; k < cons->A->col_size; k++)
+            ai->entry[k] = cons->A->matrix_entry[i][k];
+        double aipk = vector_inner_product(ai, p);
+        if (aipk < 0 AND !(index_set_is_in(W_k, i)))
+        {
+            double temp = (cons->b->entry[i] - vector_inner_product(ai, x_k)) / aipk;
+            alphas->entry[i] = temp;
+        }
+        else
+            alphas->entry[i] = NAN;
+        vector_free(ai);
+    }
+    alphak = vector_min(alphas);
+    return alphak;
 }

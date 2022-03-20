@@ -67,6 +67,7 @@ Vector *vector_add_vector(const Vector *v, const Vector *w, Vector *v_w)
     {
         v_w->entry[i] = v->entry[i] + w->entry[i];
     }
+    return u;
 }
 
 Vector *vector_multiply_const(Vector *v, double a, int copy)
@@ -78,6 +79,7 @@ Vector *vector_multiply_const(Vector *v, double a, int copy)
         {
             w->entry[i] = v->entry[i] * a;
         }
+        return w;
     }
     else
     {
@@ -85,6 +87,7 @@ Vector *vector_multiply_const(Vector *v, double a, int copy)
         {
             v->entry[i] *= a;
         }
+        return v;
     }
 }
 
@@ -136,22 +139,31 @@ void vector_fill_const(Vector *v, double a)
 
 int vector_argmin(const Vector *v)
 {
-    double min = v->entry[0];
+    double min = NAN;
     int flag = 0;
+    int iswaitfirstnumber = 1;
     for (int i = 0; i < v->size; i++)
     {
+        if (v->entry[i] != NAN AND iswaitfirstnumber) // 遇到的第一个非NAN的数设置0
+        {
+            min = v->entry[i];
+            iswaitfirstnumber = 0;
+        }
+
+        if (v->entry[i] == NAN)
+            continue;
+
         if (v->entry[i] < min)
         {
             flag = i;
             min = v->entry[i];
         }
     }
-    return flag;
 }
 
 double vector_inner_product(const Vector *u, const Vector *v)
 {
-    if (!(u->size != v->size))
+    if (!(u->size == v->size))
     {
         terminate("ERROR vector_inner_product size is not fit");
     }
@@ -161,4 +173,29 @@ double vector_inner_product(const Vector *u, const Vector *v)
         sum = sum + u->entry[i] * v->entry[i];
     }
     return sum;
+}
+
+double vector_min(const Vector *v)
+{
+    double min = NAN;
+    int flag = 0;
+    int iswaitfirstnumber = 1;
+    for (int i = 0; i < v->size; i++)
+    {
+        if (v->entry[i] != NAN AND iswaitfirstnumber) // 遇到的第一个非NAN的数设置0
+        {
+            min = v->entry[i];
+            iswaitfirstnumber = 0;
+        }
+
+        if (v->entry[i] == NAN)
+            continue;
+
+        if (v->entry[i] < min)
+        {
+            flag = i;
+            min = v->entry[i];
+        }
+    }
+    return min;
 }

@@ -41,7 +41,7 @@ void index_set_remove(Index_set *set, const int i)
         printf("Warning: index_set_remove you are trying to remove a not exitst element");
     }
 
-    set->elem[i] == 0;
+    set->elem[i] = 0;
     return;
 }
 
@@ -100,7 +100,7 @@ void index_set_print(Index_set *set)
     return;
 }
 
-int index_set_size(Index_set *set)
+int index_set_size(const Index_set *set)
 {
     int s = 0;
     for (int i = 0; i < set->index_range; i++)

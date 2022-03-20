@@ -37,7 +37,7 @@ typedef struct _Matrix Matrix;
  * @param matrix  Pointer to the matrix to be printed to stdout
  */
 
-void matrix_print(Matrix *matrix);
+void matrix_print(const Matrix *matrix);
 
 /**
  *  Printing some columns of a matrix

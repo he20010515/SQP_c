@@ -4,7 +4,7 @@
 #include "util.h"
 #include "vector.h"
 #include "index_set.h"
-void matrix_print(Matrix *matrix)
+void matrix_print(const Matrix *matrix)
 {
 	int i, j;
 	printf("\n");
