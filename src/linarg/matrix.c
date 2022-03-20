@@ -1,6 +1,6 @@
-#include "matrix.h"
-#include "math.h"
+#include <math.h>
 #include "string.h"
+#include "matrix.h"
 #include "util.h"
 #include "vector.h"
 #include "index_set.h"
