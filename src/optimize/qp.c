@@ -120,7 +120,7 @@ Vector *__qp_compute_lambda(const Index_set *W_k, const Constraints *cons, const
     //* 计算拉格朗日系数 lambda i
     // sum_{i\in W}{a_i \lambdai = g = Gx +c}
     // 子线性方程组:
-    int m = cons->dim;
+    int m = cons->size;
     Vector *Gxk = vector_alloc(cons->dim);
     matrix_mutiply_vector(G, xk, Gxk);
     Vector *Gxk_c = vector_alloc(cons->dim);
@@ -131,7 +131,7 @@ Vector *__qp_compute_lambda(const Index_set *W_k, const Constraints *cons, const
     matrix_transpose(sub_Ai, sub_AiT);
     Vector *sub_lambda = vector_alloc(index_set_size(W_k));           // wk大小的lambda
     linear_equation_gaussian_elimination(sub_AiT, Gxk_c, sub_lambda); //小的lambda
-    //将lambda 放大到根activeset一样大
+    //将lambda 放大到和activeset一样大
     int temp = 0;
     for (int i = 0; i < W_k->index_range; i++)
     {
@@ -141,7 +141,7 @@ Vector *__qp_compute_lambda(const Index_set *W_k, const Constraints *cons, const
             temp++;
         }
         else
-            lambda->entry[i] = 0.0;
+            lambda->entry[i] = NAN;
     }
     Index_set *W_k_inter_I = index_set_alloc(m);
     index_set_intersection(W_k, index_set_I, W_k_inter_I);
@@ -160,7 +160,7 @@ Vector *__qp_compute_lambda(const Index_set *W_k, const Constraints *cons, const
 double __qp_compute_alphak(const Index_set *W_k, const Constraints *cons, const Vector *x_k, const Vector *p, Vector *alphas)
 {
     //计算alphak
-    double alphak = 1.0;
+    double alphak;
     int m = cons->size;
     int j = 0;
     for (int i = 0; i < m; i++)
@@ -305,25 +305,32 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const Constraints *
         //*计算子问题得到pk
         for (int i = 0; i < cons->e; i++) //确保添加进去等式约束
             index_set_append(W_k, i);
-        printf("========iter k = %d=========\n", k);
+        printf("========iter k = %d=========\nwork_set", k);
+        index_set_print(W_k);
         Vector *p = vector_alloc(cons->dim);
         __qp_compute_subproblem(W_k, cons, G, c, x_k, p, y);
+        printf("subproblem p\n");
+        vector_print(p);
         if (double_equal(vector_2norm(p), 0.0)) // if p_k = 0
         {
             //*计算lambda
             Vector *lambda = vector_alloc(cons->size);
             Vector *subsublambda = __qp_compute_lambda(W_k, cons, G, c, x_k, index_set_I, lambda);
+            printf("lambda:");
+            vector_print(lambda);
             if (vector_any_bigger_equal_than_const(subsublambda, 0)) //若lambda i >0 (激活不等式约束集) (\any i \in Wk)
             {
                 vector_free(subsublambda);
-                printf("case: iter done\n");
+                printf("case: iter done\nx_star = \n");
                 vector_copy(x_k, x_star);
+                vector_print(x_star);
                 return 0;
             }
             else
             {
                 printf("case: remove con\n");
                 int j = vector_argmin(lambda);
+                printf("remove cons %d\n", j);
                 index_set_remove(W_k, j);
                 vector_copy(x_k, x_k_1);
             }
@@ -334,23 +341,29 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const Constraints *
             //更新xk
             Vector *alphas = vector_alloc(cons->size);
             double alphak = __qp_compute_alphak(W_k, cons, x_k, p, alphas);
+            alphak = min(1, alphak);
             Vector *alphapk = vector_multiply_const(p, alphak, 1); // copy = 1
             int j = vector_argmin(alphas);
             vector_add_vector(x_k, alphapk, x_k_1);
+            printf("alpha k:");
+            vector_print(alphas);
             vector_free(alphapk);
             vector_free(alphas);
             if (alphak < 1.) //若不满足某些约束
             {
+                printf("case: update wk,and update wk\n");
                 index_set_append(W_k, j); //将不满足的约束添加进工作集
                 printf("Index set append%d\n", j);
+                printf("alphak = %f\n", alphak);
             }
             else
             {
-                ; //约束集不变
+                printf("case: update xk and keep wk\n"); //约束集不变
+                printf("alphak = %f\n", alphak);
             }
         }
         printf("iter%d done;xk = \n", k);
-        vector_print(x_k);
+        vector_print(x_k_1);
 
         k++;
         vector_copy(x_k_1, x_k);

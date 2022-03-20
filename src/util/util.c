@@ -2,10 +2,13 @@
 #include <math.h>
 #include "util.h"
 #include "vector.h"
+#include "assert.h"
 void terminate(char *string)
 {
     fprintf(stdout, "\n%s\n", string);
     fprintf(stdout, "The program is exiting now. . . .\n\n");
+    Vector *v = vector_alloc(4);
+    v->entry[4200] = 42.0;
     exit(-1);
 }
 

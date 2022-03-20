@@ -144,13 +144,14 @@ int vector_argmin(const Vector *v)
     int iswaitfirstnumber = 1;
     for (int i = 0; i < v->size; i++)
     {
-        if (v->entry[i] != NAN AND iswaitfirstnumber) // 遇到的第一个非NAN的数设置0
+        if (!(isnan(v->entry[i]))AND iswaitfirstnumber) // 遇到的第一个非NAN的数设置0
         {
             min = v->entry[i];
+            flag = i;
             iswaitfirstnumber = 0;
         }
 
-        if (v->entry[i] == NAN)
+        if (isnan(v->entry[i]))
             continue;
 
         if (v->entry[i] < min)
@@ -159,6 +160,7 @@ int vector_argmin(const Vector *v)
             min = v->entry[i];
         }
     }
+    return flag;
 }
 
 double vector_inner_product(const Vector *u, const Vector *v)
@@ -182,13 +184,13 @@ double vector_min(const Vector *v)
     int iswaitfirstnumber = 1;
     for (int i = 0; i < v->size; i++)
     {
-        if (v->entry[i] != NAN AND iswaitfirstnumber) // 遇到的第一个非NAN的数设置0
+        if (!isnan(v->entry[i]) AND iswaitfirstnumber) // 遇到的第一个非NAN的数设置0
         {
             min = v->entry[i];
             iswaitfirstnumber = 0;
         }
 
-        if (v->entry[i] == NAN)
+        if (isnan(v->entry[i]))
             continue;
 
         if (v->entry[i] < min)

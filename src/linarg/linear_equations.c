@@ -3,6 +3,20 @@
 #include "util.h"
 #include "math.h"
 #define MAXITER 500
+
+void __one_line(const Matrix *mat, const Vector *b, Vector *x)
+{
+    Vector *alpha = vector_alloc(mat->row_size);
+    for (int i = 0; i < b->size; i++)
+    {
+        alpha->entry[i] = mat->matrix_entry[i][0];
+    }
+    double temp = vector_inner_product(alpha, b) / (vector_inner_product(alpha, alpha));
+    vector_free(alpha);
+    x->entry[0] = temp;
+    return;
+}
+
 void linear_equation_jacobi(const Matrix *mat, const Vector *b, const double epsilon, const Vector *x0, Vector *x)
 {
     // see: https://blog.csdn.net/Reborn_Lee/article/details/80959509
@@ -177,9 +191,21 @@ void _swap_row_ij(Matrix *A, int i, int j)
         A->matrix_entry[j][k] = temp;
     }
 }
+
 void linear_equation_gaussian_elimination(const Matrix *mat, const Vector *b, Vector *x) // A[N][M]
 {
     // see: https://blog.csdn.net/weixin_42465397/article/details/103264328
+    if (!(mat->col_size == x->size AND mat->row_size == b->size))
+    {
+        terminate("ERROR :linear_equation_gaussian_elimination:input argument size doesn't fit.");
+    }
+    // 处理一个特殊情况,矩阵行为1的情况:
+    if (mat->col_size == 1)
+    {
+        __one_line(mat, b, x);
+        return;
+    }
+
     int laber;
     double temp;
     double sum;
