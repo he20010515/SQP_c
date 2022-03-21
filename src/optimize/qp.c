@@ -6,8 +6,9 @@
 #include "index_set.h"
 #include "qp.h"
 #include "math.h"
-
+#include "elog.h"
 #define min(a, b) (((a) < (b)) ? (a) : (b))
+#define LOG_TAG "QP"
 
 Constraints *constraints_alloc(int dim, int size, int e, int i, Matrix *A, Vector *b)
 {
@@ -316,33 +317,31 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const Constraints *
         //*计算子问题得到pk
         for (int i = 0; i < cons->e; i++) //确保添加进去等式约束
             index_set_append(W_k, i);
-        printf("========iter k = %d=========\nwork_set", k);
-        index_set_print(W_k);
+        log_i("========iter k = %d=========", k);
         Vector *p = vector_alloc(cons->dim);
         __qp_compute_subproblem(W_k, cons, G, c, x_k, p, y);
-        printf("subproblem p\n");
-        vector_print(p);
+        // vector_print(p);
         if (double_equal(vector_2norm(p), 0.0)) // if p_k = 0
         {
             //*计算lambda
             Vector *lambda = vector_alloc(cons->size);
             Vector *subsublambda = __qp_compute_lambda(W_k, cons, G, c, x_k, index_set_I, lambda);
-            printf("lambda:");
-            vector_print(lambda);
+            log_i("lambda:");
+            // vector_print(lambda);
             if (vector_any_bigger_equal_than_const(subsublambda, 0)) //若lambda i >0 (激活不等式约束集) (\any i \in Wk)
             {
-                printf("case: iter done\nx_star = \n");
+                log_i("case: iter done\n");
                 vector_copy(x_k, x_star);
-                vector_print(x_star);
+                // vector_print(x_star);
                 vector_free(lambda);
                 vector_free(subsublambda);
                 break;
             }
             else
             {
-                printf("case: remove con\n");
+                log_i("case: remove con");
                 int j = vector_argmin(lambda);
-                printf("remove cons %d\n", j);
+                log_i("remove cons %d", j);
                 index_set_remove(W_k, j);
                 vector_copy(x_k, x_k_1);
                 vector_free(lambda);
@@ -359,25 +358,25 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const Constraints *
             Vector *alphapk = vector_multiply_const(p, alphak, 1); // copy = 1
             int j = vector_argmin(alphas);
             vector_add_vector(x_k, alphapk, x_k_1);
-            printf("alpha k:");
-            vector_print(alphas);
+            log_i("alpha k:%lf", alphak);
+            // vector_print(alphas);
             vector_free(alphapk);
             vector_free(alphas);
             if (alphak < 1.) //若不满足某些约束
             {
-                printf("case: update wk,and update wk\n");
+                log_i("case: update wk,and update wk");
                 index_set_append(W_k, j); //将不满足的约束添加进工作集
-                printf("Index set append%d\n", j);
-                printf("alphak = %f\n", alphak);
+                log_i("Index set append%d", j);
+                log_i("alphak = %f", alphak);
             }
             else
             {
-                printf("case: update xk and keep wk\n"); //约束集不变
-                printf("alphak = %f\n", alphak);
+                log_i("case: update xk and keep wk"); //约束集不变
+                log_i("alphak = %f", alphak);
             }
         }
-        printf("iter%d done;xk = \n", k);
-        vector_print(x_k_1);
+        log_i("iter%d done;xk = ", k);
+        // vector_print(x_k_1);
         k++;
         vector_copy(x_k_1, x_k);
         vector_free(p);

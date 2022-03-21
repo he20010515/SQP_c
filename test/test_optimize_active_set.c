@@ -2,9 +2,11 @@
 #include "matrix.h"
 #include "vector.h"
 #include "index_set.h"
-
+#include "util.h"
 int main(int argc, char const *argv[])
 {
+    sqp_init();
+    
     Matrix *G = matrix_alloc(2, 2);
     double G_array[2][2] = {2, 0, 0, 2};
     array_2_matrix((double *)G_array, 2, 2, G);
@@ -40,5 +42,6 @@ int main(int argc, char const *argv[])
     x0->entry[0] = 2;
     x0->entry[1] = 0;
     optimize_qp_active_set(G, c, con, x0, xstar);
+    vector_print(xstar);
     return 0;
 }
