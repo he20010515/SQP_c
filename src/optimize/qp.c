@@ -99,8 +99,8 @@ void __qp_compute_subproblem(const Index_set *W_k, const Constraints *cons, cons
 {
 
     int sizeofw = index_set_size(W_k);
-    if (sizeofw > cons->dim)
-        terminate("ERROR size of wk too big"); //! 如果指标集的大小比输入维度还大的话,这种问题我们目前还没法处理,报错
+    // if (sizeofw > cons->dim)
+    //     terminate("ERROR size of wk too big"); //! 如果指标集的大小比输入维度还大的话,这种问题我们目前还没法处理,报错
     //子问题目标函数的一次项
     Vector *Gxk = vector_alloc(cons->dim);
     matrix_mutiply_vector(G, xk, Gxk);
