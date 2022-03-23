@@ -10,9 +10,9 @@
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 #define LOG_TAG "QP"
 
-Constraints *constraints_alloc(int dim, int size, int e, int i, Matrix *A, Vector *b)
+LinearConstraints *constraints_alloc(int dim, int size, int e, int i, Matrix *A, Vector *b)
 {
-    Constraints *con = (Constraints *)malloc(sizeof(Constraints));
+    LinearConstraints *con = (LinearConstraints *)malloc(sizeof(LinearConstraints));
     if (!(size == e + i AND dim == A->col_size AND size == A->row_size))
     {
         terminate("ERROR :constraints_alloc: numbers of constraints doesn't fit");
@@ -25,7 +25,7 @@ Constraints *constraints_alloc(int dim, int size, int e, int i, Matrix *A, Vecto
     con->b = b;
 }
 
-void *constraints_verification(const Constraints *con, const Vector *x, Index_set *set)
+void *constraints_verification(const LinearConstraints *con, const Vector *x, Index_set *set)
 {
     // 验证解x是否满足约束,将满足的约束编号添加到约束集合mat上
     if (!(con->dim == x->size AND set->index_range == con->A->row_size))
@@ -54,7 +54,7 @@ void *constraints_verification(const Constraints *con, const Vector *x, Index_se
     vector_free(b_);
 }
 
-void constraints_free(Constraints *con, int recursion)
+void constraints_free(LinearConstraints *con, int recursion)
 {
     if (recursion)
     {
@@ -68,7 +68,7 @@ void constraints_free(Constraints *con, int recursion)
     }
 }
 
-void constrains_subconstrains(const Constraints *con, const Index_set *set, Matrix *A, Vector *b)
+void constrains_subconstrains(const LinearConstraints *con, const Index_set *set, Matrix *A, Vector *b)
 {
     // 通过给定的指标集和指定的约束构建子等式约束
     // A矩阵应为与G相等的方阵,b应与其匹配的列向量
@@ -96,7 +96,7 @@ void constrains_subconstrains(const Constraints *con, const Index_set *set, Matr
     }
 }
 
-void __qp_compute_subproblem(const Index_set *W_k, const Constraints *cons, const Matrix *G, const Vector *c, Vector *xk, Vector *p, double *y)
+void __qp_compute_subproblem(const Index_set *W_k, const LinearConstraints *cons, const Matrix *G, const Vector *c, Vector *xk, Vector *p, double *y)
 {
 
     int sizeofw = index_set_size(W_k);
@@ -121,7 +121,7 @@ void __qp_compute_subproblem(const Index_set *W_k, const Constraints *cons, cons
     vector_free(sub_b);
     return;
 }
-Vector *__qp_compute_lambda(const Index_set *W_k, const Constraints *cons, const Matrix *G, const Vector *c, Vector *xk, Index_set *index_set_I, Vector *lambda)
+Vector *__qp_compute_lambda(const Index_set *W_k, const LinearConstraints *cons, const Matrix *G, const Vector *c, Vector *xk, Index_set *index_set_I, Vector *lambda)
 {
     //* 计算拉格朗日系数 lambda i
     // sum_{i\in W}{a_i \lambdai = g = Gx +c}
@@ -169,7 +169,7 @@ Vector *__qp_compute_lambda(const Index_set *W_k, const Constraints *cons, const
     index_set_free(W_k_inter_I);
     return subsublambda;
 }
-double __qp_compute_alphak(const Index_set *W_k, const Constraints *cons, const Vector *x_k, const Vector *p, Vector *alphas)
+double __qp_compute_alphak(const Index_set *W_k, const LinearConstraints *cons, const Vector *x_k, const Vector *p, Vector *alphas)
 {
     //计算alphak
     double alphak;
@@ -284,7 +284,7 @@ int optimize_qp_linear_constraints(const Matrix *H, const Vector *c, const Matri
     return 1;
 }
 
-int optimize_qp_active_set(const Matrix *G, const Vector *c, const Constraints *cons, const Vector *x0, Vector *x_star)
+int optimize_qp_active_set(const Matrix *G, const Vector *c, const LinearConstraints *cons, const Vector *x0, Vector *x_star)
 {
     // 有效集法求解一般约束下的二次优化问题
     // see: https://zhuanlan.zhihu.com/p/29525367

@@ -10,9 +10,9 @@ struct constraints
     Vector *b; // 约束向量
 };
 
-typedef struct constraints Constraints;
-Constraints *constraints_alloc(int dim, int size, int e, int i, Matrix *A, Vector *b);
+typedef struct constraints LinearConstraints;
+LinearConstraints *constraints_alloc(int dim, int size, int e, int i, Matrix *A, Vector *b);
 int optimize_qp_linear_constraints(const Matrix *H, const Vector *c, const Matrix *A, const Vector *b, Vector *x_star, double *maxy);
-int optimize_qp_active_set(const Matrix *G, const Vector *c, const Constraints *cons, const Vector *x0, Vector *x_star);
-void constrains_subconstrains(const Constraints *con, const Index_set *set, Matrix *A, Vector *b);
-void constraints_free(Constraints *con, int recursion);
+int optimize_qp_active_set(const Matrix *G, const Vector *c, const LinearConstraints *cons, const Vector *x0, Vector *x_star);
+void constrains_subconstrains(const LinearConstraints *con, const Index_set *set, Matrix *A, Vector *b);
+void constraints_free(LinearConstraints *con, int recursion);

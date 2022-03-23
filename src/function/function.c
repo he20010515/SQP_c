@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "function.h"
 #include "matrix.h"
+#include "elog.h"
 double ndscla_function_call(NdsclaFunction *function, Vector *x)
 {
     return function->function(x);
@@ -71,4 +72,27 @@ void ndscla_central_hession(NdsclaFunction *function, double h, Vector *x0, Matr
 void ndsclaFunction_free(NdsclaFunction *function)
 {
     free(function);
+}
+
+NdVectorfunction *ndVectorfunction_alloc(void (*function)(Vector *, Vector *), int intputdim, int outputdim)
+{
+    NdVectorfunction *f = (NdVectorfunction *)malloc(sizeof(NdVectorfunction));
+    f->function = function;
+    f->inputdim = intputdim;
+    f->outputdim = outputdim;
+}
+
+void ndVectorfunction_free(NdVectorfunction *function)
+{
+    free(function);
+}
+
+void ndVectorfunction_call(NdVectorfunction *function, Vector *input, Vector *output)
+{
+    if (!(input->size == function->inputdim AND output->size == function->outputdim))
+    {
+        terminate("shape not fit");
+    }
+    function->function(input, output);
+    return;
 }
