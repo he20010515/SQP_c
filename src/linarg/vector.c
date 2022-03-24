@@ -70,7 +70,7 @@ Vector *vector_add_vector(const Vector *v, const Vector *w, Vector *v_w)
     return u;
 }
 
-Vector *vector_multiply_const(Vector *v, double a, int copy)
+Vector *vector_multiply_const(const Vector *v, double a, int copy)
 {
     if (copy == 1)
     {
@@ -87,7 +87,8 @@ Vector *vector_multiply_const(Vector *v, double a, int copy)
         {
             v->entry[i] *= a;
         }
-        return v;
+        // return v;
+        terminate("must copy");
     }
 }
 

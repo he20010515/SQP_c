@@ -3,7 +3,7 @@
 #include "function.h"
 #include "matrix.h"
 #include "elog.h"
-double ndscla_function_call(NdsclaFunction *function, Vector *x)
+double ndscla_function_call(const NdsclaFunction *function, Vector *x)
 {
     return function->function(x);
 }
@@ -16,7 +16,7 @@ NdsclaFunction *ndscla_function_alloc(double (*function)(Vector *), int inputsiz
     return f;
 }
 
-void ndscla_central_grad(NdsclaFunction *function, double h, Vector *x0, Vector *grad)
+void ndscla_central_grad(const NdsclaFunction *function, double h, const Vector *x0, Vector *grad)
 {
 
     Vector *temp = vector_alloc(x0->size);
@@ -34,7 +34,7 @@ void ndscla_central_grad(NdsclaFunction *function, double h, Vector *x0, Vector 
     vector_free(temp);
 }
 
-void ndscla_central_hession(NdsclaFunction *function, double h, Vector *x0, Matrix *hession)
+void ndscla_central_hession(const NdsclaFunction *function, double h, const Vector *x0, Matrix *hession)
 {
     // 计算Hession矩阵 H[i][j] = \frac{\partial f}{\partial x_i \partial x_j}
     if (hession->col_size != hession->row_size)
@@ -74,7 +74,7 @@ void ndsclaFunction_free(NdsclaFunction *function)
     free(function);
 }
 
-NdVectorfunction *ndVectorfunction_alloc(void (*function)(Vector *, Vector *), int intputdim, int outputdim)
+NdVectorfunction *ndVectorfunction_alloc(void (*function)(const Vector *, Vector *), int intputdim, int outputdim)
 {
     NdVectorfunction *f = (NdVectorfunction *)malloc(sizeof(NdVectorfunction));
     f->function = function;
@@ -87,7 +87,7 @@ void ndVectorfunction_free(NdVectorfunction *function)
     free(function);
 }
 
-void ndVectorfunction_call(NdVectorfunction *function, Vector *input, Vector *output)
+void ndVectorfunction_call(const NdVectorfunction *function, const Vector *input, Vector *output)
 {
     if (!(input->size == function->inputdim AND output->size == function->outputdim))
     {

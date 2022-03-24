@@ -17,12 +17,20 @@ typedef struct nonlinearconstraints Nonlinearconstraints;
 
 struct __wrapper_info
 {
-    NdsclaFunction *fun;
-    Nonlinearconstraints *con;
+    const NdsclaFunction *fun;
+    const Nonlinearconstraints *con;
     Vector *lambda;
 };
 
 struct __wrapper_info _wrapper_info;
+
+int __check_input(const NdsclaFunction *fun, const Nonlinearconstraints *con, const Vector *x0, const Vector *xstar);
+int __check_inner_loop(const Vector *xk, const Vector *pk, double aita, double miu, double alphak, const Nonlinearconstraints *con, const NdsclaFunction *fun);
+double __phi_1(const Vector *x, const double miu, const Nonlinearconstraints *con, const NdsclaFunction *fun);
+double __D(const Vector *xk, const Vector *pk, const double miu, const NdsclaFunction *fun, const Nonlinearconstraints *con);
+double __lagrange_function(Vector *xk, const Vector *lambda, const NdsclaFunction *fun, const Nonlinearconstraints *con);
+double __lagrange_wrapper(Vector *x);
+
 void optimize_sqp(const NdsclaFunction *fun,
                   const Nonlinearconstraints *con,
                   const Vector *x0,
@@ -55,6 +63,8 @@ void optimize_sqp(const NdsclaFunction *fun,
     Matrix *HxxLk = matrix_alloc(n, n);
     Matrix *HxxLk_1 = matrix_alloc(n, n);
 
+    Vector *lambda = vector_alloc(m);
+
     // init varlable
     ndscla_central_grad(fun, NUMERICAL_DIFF_STEP, x0, gradf0);
     vector_copy(gradf0, gradfk);
@@ -70,12 +80,12 @@ void optimize_sqp(const NdsclaFunction *fun,
 
     _wrapper_info.con = con;
     _wrapper_info.fun = fun;
-    _wrapper_info.lambda = lambda0;
-    ndscla_central_hession(__lagrange_wrapper, NUMERICAL_DIFF_STEP, x0, HxxL0);
+    _wrapper_info.lambda = lambda;
+    //
+    NdsclaFunction *lagrange_function = ndscla_function_alloc(__lagrange_wrapper, n);
+    ndscla_central_hession(lagrange_function, NUMERICAL_DIFF_STEP, x0, HxxL0);
     matrix_copy(HxxL0, HxxLk);
     matrix_copy(HxxL0, HxxLk_1);
-
-    
 
     //  mainloop
     while (1)
@@ -102,9 +112,7 @@ int __check_input(const NdsclaFunction *fun, const Nonlinearconstraints *con, co
     int n = fun->inputSize;
     int m = con->size; // 约束的大小
     int t = !(
-        n == fun->inputSize AND n == con->dim AND n == x0->size AND \ 
-        n == xstar->size AND\ 
-        n == con->c->inputdim AND m == con->size AND m == con->c->outputdim);
+        n == fun->inputSize AND n == con->dim AND n == x0->size AND n == xstar->size AND n == con->c->inputdim AND m == con->size AND m == con->c->outputdim);
     return t;
 }
 
@@ -124,7 +132,8 @@ double __phi_1(const Vector *x, const double miu, const Nonlinearconstraints *co
 {
     Vector *cx = vector_alloc(con->c->outputdim);
     ndVectorfunction_call(con->c, x, cx);
-    double fx = ndscla_function_call(fun, x);
+    Vector *xw = (Vector *)x;
+    double fx = ndscla_function_call(fun, xw);
     return fx + miu * vector_1norm(cx);
 }
 
@@ -140,14 +149,14 @@ double __D(const Vector *xk, const Vector *pk, const double miu, const NdsclaFun
     return temp;
 }
 
-double __lagrange_function(const Vector *xk, const Vector *lambda, const NdsclaFunction *fun, const Nonlinearconstraints *con)
+double __lagrange_function(Vector *xk, const Vector *lambda, const NdsclaFunction *fun, const Nonlinearconstraints *con)
 {
     Vector *cx = vector_alloc(con->c->outputdim);
     ndVectorfunction_call(con->c, xk, cx);
     return ndscla_function_call(fun, xk) - vector_inner_product(lambda, cx);
 }
 
-double __lagrange_wrapper(const Vector *x)
+double __lagrange_wrapper(Vector *x)
 {
     // 借助一个文件内的结构体_wrapper_info,将拉格朗日函数包装为可以用Ndsclafunciton Hession可以求导的样式
     return __lagrange_function(x, _wrapper_info.lambda, _wrapper_info.fun, _wrapper_info.con);

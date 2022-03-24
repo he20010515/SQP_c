@@ -11,7 +11,7 @@ Vector *vector_free(Vector *v);
 void vector_copy(const Vector *v, Vector *w);
 Vector *vector_add_const(Vector *v, double a, int copy);
 Vector *vector_add_vector(const Vector *v, const Vector *w, Vector *v_w);
-Vector *vector_multiply_const(Vector *v, double a, int copy);
+Vector *vector_multiply_const(const Vector *v, double a, int copy);
 void *vector_print(Vector *v);
 double vector_2norm(const Vector *v);
 double vector_2metric(const Vector *v, const Vector *u);
