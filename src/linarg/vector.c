@@ -201,3 +201,13 @@ double vector_min(const Vector *v)
     }
     return min;
 }
+
+double vector_1norm(const Vector *v)
+{
+    double m = 0;
+    for (int i = 0; i < v->size; i++)
+    {
+        m = m + fabs(v->entry[i]);
+    }
+    return m;
+}

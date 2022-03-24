@@ -96,3 +96,34 @@ void ndVectorfunction_call(NdVectorfunction *function, Vector *input, Vector *ou
     function->function(input, output);
     return;
 }
+
+void ndVectorfunction_jacobian(const NdVectorfunction *function, const Vector *x0, double h, Matrix *jacobian)
+{
+    Vector *y = vector_alloc(function->outputdim);
+    Vector *x = vector_alloc(function->inputdim);
+    double yi_add_h, yi_sub_h;
+    vector_copy(x0, x);
+    if (!(jacobian->col_size == function->inputdim AND jacobian->row_size == function->outputdim AND x0->size == function->inputdim))
+    {
+        terminate("ndVectorfunction_jacobian size don't fit");
+    }
+    for (int i = 0; i < jacobian->row_size; i++)
+    {
+        for (int j = 0; j < jacobian->col_size; j++)
+        {
+            // \partical yi/ \partical xj;
+            ;
+            x->entry[j] += h;
+            ndVectorfunction_call(function, x, y);
+            yi_add_h = y->entry[i];
+            x->entry[j] -= 2 * h;
+            ndVectorfunction_call(function, x, y);
+            yi_sub_h = y->entry[i];
+            x->entry[j] += h;
+
+            jacobian->matrix_entry[i][j] = (yi_add_h - yi_sub_h) / (2. * h);
+        }
+    }
+    vector_free(y);
+    vector_free(x);
+}

@@ -19,3 +19,4 @@ void vector_fill_const(Vector *v, double a);
 int vector_argmin(const Vector *v);
 double vector_inner_product(const Vector *u, const Vector *v);
 double vector_min(const Vector *v);
+double vector_1norm(const Vector *v);
