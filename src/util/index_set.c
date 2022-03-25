@@ -25,7 +25,7 @@ void index_set_append(Index_set *set, const int i)
     }
     if (set->elem[i] == 1)
     {
-        printf("Warning: index_set_append you are trying to append a exitst element");
+        printf("Warning: index_set_append you are trying to append a exitst element\n");
     }
     set->elem[i] = 1;
 }

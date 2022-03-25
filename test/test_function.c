@@ -13,6 +13,7 @@ double target_function(Vector *mat)
 
 int main(void)
 {
+    sqp_init();
     NdsclaFunction *f = ndscla_function_alloc(target_function, 3);
     Vector *x0 = vector_alloc(3);
     x0->entry[0] = 1.0;

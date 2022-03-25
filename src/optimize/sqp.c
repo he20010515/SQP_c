@@ -2,18 +2,10 @@
 #include "vector.h"
 #include "qp.h"
 #include "function.h"
+#include "sqp.h"
+#include "elog.h"
 
 #define NUMERICAL_DIFF_STEP 0.001
-
-struct nonlinearconstraints
-{
-    int dim;  //问题维度
-    int size; //约束数量
-    int e;    //等式约束数量
-    int i;    //不等式约束数量
-    NdVectorfunction *c;
-};
-typedef struct nonlinearconstraints Nonlinearconstraints;
 
 struct __wrapper_info
 {
@@ -81,30 +73,54 @@ void optimize_sqp(const NdsclaFunction *fun,
     _wrapper_info.con = con;
     _wrapper_info.fun = fun;
     _wrapper_info.lambda = lambda;
-    //
+    vector_copy(lambda0, lambda);
     NdsclaFunction *lagrange_function = ndscla_function_alloc(__lagrange_wrapper, n);
     ndscla_central_hession(lagrange_function, NUMERICAL_DIFF_STEP, x0, HxxL0);
     matrix_copy(HxxL0, HxxLk);
     matrix_copy(HxxL0, HxxLk_1);
+    log_i("x0");
+    vector_print(x0);
+    log_i("Hession matrix of lagrange function");
+    matrix_print(HxxL0);
+    log_i("grad of target function in x0");
+    vector_print(gradf0);
+    log_i("jacobian matrix of c in x0");
+    matrix_print(A0);
 
-    //  mainloop
-    while (1)
-    {
-        //计算子问题
-        // plambda = lambdahat-lambdak
-        // chose miuk
-        // alpha = 1
-        while (1)
-        {
-            // update alphak
-        }
-        // update xk,lambdak
-        //构建子问题
-        //  如果采用拟牛顿近似 更新bk
-    }
-    // free workspace
+    // //  mainloop
+    // while (1)
+    // {
+    //     //计算子问题
+    //     // plambda = lambdahat-lambdak
+    //     // chose miuk
+    //     // alpha = 1
+    //     while (1)
+    //     {
+    //         // update alphak
+    //     }
+    //     // update xk,lambdak
+    //     //构建子问题
+    //     //  如果采用拟牛顿近似 更新bk
+    // }
+    // // free workspace
 
     return;
+}
+
+Nonlinearconstraints *nonlinearconstraints_alloc(int dim, int size, int e, int i, NdVectorfunction *c)
+{
+    Nonlinearconstraints *con = (Nonlinearconstraints *)malloc(sizeof(Nonlinearconstraints));
+    con->dim = dim;
+    con->size = size;
+    con->e = e;
+    con->i = i;
+    con->c = c;
+    return con;
+}
+
+void nonlinearconstraints_free(Nonlinearconstraints *con)
+{
+    free(con);
 }
 
 int __check_input(const NdsclaFunction *fun, const Nonlinearconstraints *con, const Vector *x0, const Vector *xstar)

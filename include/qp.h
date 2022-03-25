@@ -1,6 +1,7 @@
 #include "matrix.h"
 #include "vector.h"
-struct constraints
+#pragma once
+struct linearconstraints
 {
     int dim;   // 要约束的空间大小
     int size;  // 约束的数量
@@ -9,8 +10,7 @@ struct constraints
     Matrix *A; // 系数矩阵
     Vector *b; // 约束向量
 };
-
-typedef struct constraints LinearConstraints;
+typedef struct linearconstraints LinearConstraints;
 LinearConstraints *constraints_alloc(int dim, int size, int e, int i, Matrix *A, Vector *b);
 int optimize_qp_linear_constraints(const Matrix *H, const Vector *c, const Matrix *A, const Vector *b, Vector *x_star, double *maxy);
 int optimize_qp_active_set(const Matrix *G, const Vector *c, const LinearConstraints *cons, const Vector *x0, Vector *x_star);

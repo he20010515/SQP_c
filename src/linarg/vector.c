@@ -92,7 +92,7 @@ Vector *vector_multiply_const(const Vector *v, double a, int copy)
     }
 }
 
-void *vector_print(Vector *v)
+void *vector_print(const Vector *v)
 {
     printf("[");
     for (size_t i = 0; i < v->size; i++)
