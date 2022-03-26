@@ -1,4 +1,6 @@
 #include "index_set.h"
+#include "elog.h"
+#define LOG_TAG "INDEX_SET"
 
 Index_set *index_set_alloc(int size)
 {
@@ -25,7 +27,7 @@ void index_set_append(Index_set *set, const int i)
     }
     if (set->elem[i] == 1)
     {
-        printf("Warning: index_set_append you are trying to append a exitst element\n");
+        log_w("Warning: index_set_append you are trying to append a exitst element {%d}", i);
     }
     set->elem[i] = 1;
 }

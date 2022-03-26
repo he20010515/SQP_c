@@ -114,6 +114,10 @@ void __qp_compute_subproblem(const Index_set *W_k, const LinearConstraints *cons
     vector_fill_const(sub_b, 0);
     //计算子问题得到p
     optimize_qp_linear_constraints(G, Gxk_c, sub_A, sub_b, p, y);
+    matrix_print(G);
+    vector_print(Gxk_c);
+    matrix_print(sub_A);
+    vector_print(sub_b);
 
     vector_free(Gxk);
     vector_free(Gxk_c);
@@ -320,7 +324,7 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const LinearConstra
         log_i("========iter k = %d=========", k);
         Vector *p = vector_alloc(cons->dim);
         __qp_compute_subproblem(W_k, cons, G, c, x_k, p, y);
-        // vector_print(p);
+        vector_print(p);
         if (double_equal(vector_2norm(p), 0.0)) // if p_k = 0
         {
             //*计算lambda

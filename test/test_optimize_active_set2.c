@@ -38,8 +38,8 @@ int main(int argc, char const *argv[])
     LinearConstraints *con = constraints_alloc(2, 5, 1, 4, A, b);
     Vector *x0 = vector_alloc(2);
     Vector *xstar = vector_alloc(2);
-    x0->entry[0] = 2;
-    x0->entry[1] = 0;
+    x0->entry[0] = 1.2;
+    x0->entry[1] = 0.8;
     optimize_qp_active_set(G, c, con, x0, xstar);
     vector_print(xstar);
     return 0;
