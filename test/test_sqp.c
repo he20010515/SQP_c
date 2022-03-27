@@ -1,5 +1,6 @@
 #include "sqp.h"
 #include "math.h"
+#include "elog.h"
 double _fun(Vector *x)
 {
     double temp = 0.0;
@@ -24,6 +25,7 @@ int main(int argc, char const *argv[])
     Nonlinearconstraints *con = nonlinearconstraints_alloc(3, 4, 1, 3, c);
     NdsclaFunction *f = ndscla_function_alloc(_fun, 3);
     Vector *x0 = vector_alloc(3);
+
     x0->entry[0] = 1;
     x0->entry[1] = 2;
     x0->entry[2] = 3;
@@ -33,6 +35,8 @@ int main(int argc, char const *argv[])
     lambda0->entry[2] = 0;
     lambda0->entry[3] = 0;
     Vector *xstar = vector_alloc(3);
+    log_i("hello elog");
     optimize_sqp(f, con, x0, lambda0, xstar);
+
     return 0;
 }
