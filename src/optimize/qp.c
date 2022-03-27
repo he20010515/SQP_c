@@ -9,7 +9,7 @@
 #include "elog.h"
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 #define LOG_TAG "QP"
-
+#define MAX_ITER 200
 LinearConstraints *constraints_alloc(int dim, int size, int e, int i, Matrix *A, Vector *b)
 {
     LinearConstraints *con = (LinearConstraints *)malloc(sizeof(LinearConstraints));
@@ -114,10 +114,10 @@ void __qp_compute_subproblem(const Index_set *W_k, const LinearConstraints *cons
     vector_fill_const(sub_b, 0);
     //计算子问题得到p
     optimize_qp_linear_constraints(G, Gxk_c, sub_A, sub_b, p, y);
-    matrix_print(G);
-    vector_print(Gxk_c);
-    matrix_print(sub_A);
-    vector_print(sub_b);
+    // matrix_print(G);
+    // vector_print(Gxk_c);
+    // matrix_print(sub_A);
+    // vector_print(sub_b);
 
     vector_free(Gxk);
     vector_free(Gxk_c);
@@ -288,7 +288,7 @@ int optimize_qp_linear_constraints(const Matrix *H, const Vector *c, const Matri
     return 1;
 }
 
-int optimize_qp_active_set(const Matrix *G, const Vector *c, const LinearConstraints *cons, const Vector *x0, Vector *x_star)
+int optimize_qp_active_set(const Matrix *G, const Vector *c, const LinearConstraints *cons, const Vector *x0, Vector *x_star, Vector *lam)
 {
     // 有效集法求解一般约束下的二次优化问题
     // see: https://zhuanlan.zhihu.com/p/29525367
@@ -324,7 +324,7 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const LinearConstra
         log_i("========iter k = %d=========", k);
         Vector *p = vector_alloc(cons->dim);
         __qp_compute_subproblem(W_k, cons, G, c, x_k, p, y);
-        vector_print(p);
+        // vector_print(p);
         if (double_equal(vector_2norm(p), 0.0)) // if p_k = 0
         {
             //*计算lambda
@@ -337,6 +337,7 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const LinearConstra
                 log_i("case: iter done\n");
                 vector_copy(x_k, x_star);
                 // vector_print(x_star);
+                vector_copy(lambda, lam);
                 vector_free(lambda);
                 vector_free(subsublambda);
                 break;
@@ -382,6 +383,12 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const LinearConstra
         log_i("iter%d done;xk = ", k);
         // vector_print(x_k_1);
         k++;
+        if (k >= MAX_ITER)
+        {
+            log_e("Iteration overflow ,Please check inputs. qp is Break");
+            break;
+        }
+
         vector_copy(x_k_1, x_k);
         vector_free(p);
     }

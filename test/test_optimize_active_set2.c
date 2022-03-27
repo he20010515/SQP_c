@@ -37,10 +37,11 @@ int main(int argc, char const *argv[])
     array_2_matrix((double *)A_array, 5, 2, A);
     LinearConstraints *con = constraints_alloc(2, 5, 1, 4, A, b);
     Vector *x0 = vector_alloc(2);
+    Vector *lambda = vector_alloc(5);
     Vector *xstar = vector_alloc(2);
     x0->entry[0] = 1.2;
     x0->entry[1] = 0.8;
-    optimize_qp_active_set(G, c, con, x0, xstar);
+    optimize_qp_active_set(G, c, con, x0, xstar, lambda);
     vector_print(xstar);
     return 0;
 }

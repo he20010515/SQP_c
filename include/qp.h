@@ -13,6 +13,6 @@ struct linearconstraints
 typedef struct linearconstraints LinearConstraints;
 LinearConstraints *constraints_alloc(int dim, int size, int e, int i, Matrix *A, Vector *b);
 int optimize_qp_linear_constraints(const Matrix *H, const Vector *c, const Matrix *A, const Vector *b, Vector *x_star, double *maxy);
-int optimize_qp_active_set(const Matrix *G, const Vector *c, const LinearConstraints *cons, const Vector *x0, Vector *x_star);
+int optimize_qp_active_set(const Matrix *G, const Vector *c, const LinearConstraints *cons, const Vector *x0, Vector *x_star, Vector *lam);
 void constrains_subconstrains(const LinearConstraints *con, const Index_set *set, Matrix *A, Vector *b);
 void constraints_free(LinearConstraints *con, int recursion);
