@@ -32,7 +32,6 @@
 #include "util.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <windows.h>
 
 static void test_elog(void);
 
@@ -60,7 +59,6 @@ void test_elog(void)
         log_d("Hello EasyLogger!");
         log_v("Hello EasyLogger!");
         //        elog_raw("Hello EasyLogger!");
-        Sleep(1000);
         break;
     }
 }

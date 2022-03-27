@@ -200,7 +200,11 @@ void __BFGS_update(const Matrix *Bk, const Vector *lambdak_1, const Vector *xk, 
         thetak = SBS * 0.8 / (SBS - skyk);
     }
     // compute r r= \theta y + (1-theta)Bksk
-    //TODO here
+    // TODO here
+    Vector *thetay = vector_multiply_const(yk, thetak, 1);
+    Vector *Bksk = matrix_alloc(Bk->col_size);
+    matrix_mutiply_vector(Bk, sk, Bksk);
+    Vector *one_min_theta_bksk = vector_multiply_const(Bksk, (1 - thetak));
 
     // compute \frac{Bss^TB}{s^TBs}
     Matrix *ssT = matrix_alloc(sk->size, sk->size);

@@ -573,7 +573,7 @@ void matrix_mutiply_vector(const Matrix *mat, const Vector *a, Vector *mat_a)
 	}
 }
 
-void vector_mutiply_matrix(Vector *a, Matrix *mat, Vector *mat_a)
+void vector_mutiply_matrix(const Vector *a, const Matrix *mat, Vector *mat_a)
 {
 	if (mat->col_size != a->size)
 	{
