@@ -22,7 +22,7 @@ double __phi_1(const Vector *x, const double miu, const Nonlinearconstraints *co
 double __D(const Vector *xk, const Vector *pk, const double miu, const NdsclaFunction *fun, const Nonlinearconstraints *con);
 double __lagrange_function(Vector *xk, const Vector *lambda, const NdsclaFunction *fun, const Nonlinearconstraints *con);
 double __lagrange_wrapper(Vector *x);
-
+void __BFGS_update(const Matrix *Bk, const Vector *lambdak_1, const Vector *xk, const Vector *xk_1, Matrix *Bk_1, NdsclaFunction *lagrange);
 // TODO List
 //*1. BFGS 修正 // Hession矩阵计算
 // 2. lambda 到底应该是多少
@@ -65,9 +65,12 @@ void optimize_sqp(const NdsclaFunction *fun,
     Vector *ck = vector_alloc(m);
     Vector *ck_1 = vector_alloc(m);
 
-    Matrix *HxxL0 = matrix_alloc(n, n);
-    Matrix *HxxLk = matrix_alloc(n, n);
-    Matrix *HxxLk_1 = matrix_alloc(n, n);
+    // Matrix *HxxL0 = matrix_alloc(n, n);
+    // Matrix *HxxLk = matrix_alloc(n, n);
+    // Matrix *HxxLk_1 = matrix_alloc(n, n);
+    Matrix *B0 = matrix_alloc(n, n);
+    Matrix *Bk = matrix_alloc(n, n);
+    Matrix *Bk_1 = matrix_alloc(n, n);
 
     Vector *lambdak = vector_alloc(m); //*传给拉格朗日函数的lambda
     Vector *plambda = vector_alloc(m); //* lambda 步长
@@ -91,14 +94,17 @@ void optimize_sqp(const NdsclaFunction *fun,
     _wrapper_info.lambda = lambdak;
     vector_copy(lambda0, lambdak);
     NdsclaFunction *lagrange_function = ndscla_function_alloc(__lagrange_wrapper, n);
-    ndscla_central_hession(lagrange_function, NUMERICAL_DIFF_STEP, x0, HxxL0); // 考虑换成BFGS修正
-    matrix_copy(HxxL0, HxxLk);
-    matrix_copy(HxxL0, HxxLk_1);
+
+    matrix_fill_const(B0, 0.0);
+    for (int i = 0; i < n; i++)
+        B0->matrix_entry[i][i] = 1.;
+    matrix_copy(B0, Bk);
+    matrix_copy(B0, Bk_1);
 
     log_i("x0");
     vector_print(x0);
     log_i("Hession matrix of lagrange function");
-    matrix_print(HxxL0);
+    matrix_print(B0);
     log_i("grad of target function in x0");
     vector_print(gradf0);
     log_i("jacobian matrix of c in x0");
@@ -111,7 +117,7 @@ void optimize_sqp(const NdsclaFunction *fun,
         Vector *_ck = vector_multiply_const(ck, -1., 1);
         LinearConstraints *subcon = constraints_alloc(n, m, con->e, con->i, Ak, _ck);
 
-        optimize_qp_active_set(HxxLk, gradfk, subcon, xk, p, lambdahat);
+        optimize_qp_active_set(Bk, gradfk, subcon, xk, p, lambdahat);
         vector_free(_ck);
 
         // plambda = lambdahat-lambdak
@@ -121,7 +127,7 @@ void optimize_sqp(const NdsclaFunction *fun,
 
         // choose miuk
         Vector *temp = vector_alloc(n);
-        vector_mutiply_matrix(p, HxxLk, temp);
+        vector_mutiply_matrix(p, Bk, temp);
         double miu = (vector_inner_product(gradfk, p) + 0.5 * vector_inner_product(temp, p)) / ((1 - rho) * vector_1norm(ck));
         vector_free(temp);
         double alphak = 0.01;
@@ -136,7 +142,7 @@ void optimize_sqp(const NdsclaFunction *fun,
         ndscla_central_grad(fun, NUMERICAL_DIFF_STEP, xk_1, gradfk_1);
         ndVectorfunction_call(con->c, xk_1, ck_1);
         ndVectorfunction_jacobian(con->c, xk_1, NUMERICAL_DIFF_STEP, Ak_1);
-        ndscla_central_hession(fun, NUMERICAL_DIFF_STEP, xk_1, HxxLk_1);
+        __BFGS_update(Bk, _lambdak, xk, xk_1, Bk_1, lagrange_function);
         //构建子问题
         //  如果采用拟牛顿近似 更新bk
 
@@ -145,7 +151,9 @@ void optimize_sqp(const NdsclaFunction *fun,
         vector_copy(gradfk_1, gradfk);
         vector_copy(ck_1, ck);
         matrix_copy(Ak_1, Ak);
-        matrix_copy(HxxLk_1, HxxLk);
+        matrix_copy(Bk_1, Bk);
+
+        break;
     }
     // // free workspace
 
@@ -173,16 +181,14 @@ void __BFGS_update(const Matrix *Bk, const Vector *lambdak_1, const Vector *xk, 
     Vector *sk = vector_alloc(xk->size);
     Vector *_xk = vector_multiply_const(xk, -1., 1);
     vector_add_vector(xk_1, _xk, sk); // sk = xK+1-xk;
-    vector_free(_xk);
 
     Vector *gradxk_1 = vector_alloc(xk->size);
     ndscla_central_grad(lagrange, NUMERICAL_DIFF_STEP, xk, gradxk_1);
     Vector *gradxk = vector_alloc(xk->size);
     ndscla_central_grad(lagrange, NUMERICAL_DIFF_STEP, xk_1, gradxk);
     Vector *yk = vector_alloc(xk->size);
-    Vector *_gradxk = vector_multiply_const(gradxk, -1, 1);
+    Vector *_gradxk = vector_multiply_const(gradxk, -1., 1);
     vector_add_vector(gradxk_1, _gradxk, yk);
-    vector_free(_gradxk);
 
     // thetak
     double thetak = 0;
@@ -192,29 +198,57 @@ void __BFGS_update(const Matrix *Bk, const Vector *lambdak_1, const Vector *xk, 
     double SBS = vector_inner_product(temp, sk);
     vector_free(temp);
     if (skyk >= SBS)
-    {
         thetak = 1;
-    }
     else
-    {
         thetak = SBS * 0.8 / (SBS - skyk);
-    }
+
     // compute r r= \theta y + (1-theta)Bksk
-    // TODO here
     Vector *thetay = vector_multiply_const(yk, thetak, 1);
-    Vector *Bksk = matrix_alloc(Bk->col_size);
+    Vector *Bksk = vector_alloc(Bk->col_size);
     matrix_mutiply_vector(Bk, sk, Bksk);
-    Vector *one_min_theta_bksk = vector_multiply_const(Bksk, (1 - thetak));
+    Vector *one_min_theta_bksk = vector_multiply_const(Bksk, (1. - thetak), 1);
+    Vector *r = vector_alloc(yk->size);
+    vector_add_vector(thetay, one_min_theta_bksk, r);
 
     // compute \frac{Bss^TB}{s^TBs}
     Matrix *ssT = matrix_alloc(sk->size, sk->size);
     vector_mutiply_vectorT(sk, sk, ssT);
     Matrix *BssT = matrix_multiply(Bk, ssT);
     Matrix *BssTB = matrix_multiply(BssT, Bk);
-    Matrix *BssTB_SBS = matrix_alloc(BssT->row_size, BssT->col_size);
-    matrix_mutiply_const(BssTB, 1 / SBS, BssTB_SBS);
+    Matrix *_BssTB_SBS = matrix_alloc(BssT->row_size, BssT->col_size);
+    matrix_mutiply_const(BssTB, -1. / SBS, _BssTB_SBS);
+
     // compute \frac{rr^T}{s^Tr}
     // Matrix *rrT = matrix_alloc();
+    Matrix *rrt = matrix_alloc(Bk->col_size, Bk->col_size);
+    vector_mutiply_vectorT(r, r, rrt);
+    Matrix *rrt_st = matrix_alloc(rrt->col_size, rrt->col_size);
+    matrix_mutiply_const(rrt, 1 / vector_inner_product(sk, r), rrt_st);
+    Matrix *tempmat = matrix_alloc(Bk->col_size, Bk->row_size);
+    //*update Bk
+    matrix_add(tempmat, _BssTB_SBS, rrt_st);
+    matrix_add(Bk_1, (Matrix *)Bk, (Matrix *)tempmat);
+
+    vector_free(sk);
+    vector_free(_xk);
+    vector_free(gradxk);
+    vector_free(gradxk_1);
+    vector_free(_gradxk);
+    vector_free(yk);
+
+    vector_free(thetay);
+    vector_free(Bksk);
+    vector_free(one_min_theta_bksk);
+
+    vector_free(r);
+    matrix_free(rrt);
+    matrix_free(rrt_st);
+    matrix_free(tempmat);
+
+    matrix_free(ssT);
+    matrix_free(BssT);
+    matrix_free(BssTB);
+    matrix_free(_BssTB_SBS);
 }
 
 int __check_input(const NdsclaFunction *fun, const Nonlinearconstraints *con, const Vector *x0, const Vector *xstar)
