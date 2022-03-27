@@ -630,3 +630,35 @@ void matrix_transpose(const Matrix *mat, Matrix *matT)
 		}
 	}
 }
+
+void vector_mutiply_vectorT(const Vector *V, const Vector *W, Matrix *VWT)
+{
+	if (!(V->size == W->size AND W->size == VWT->col_size AND VWT->row_size == VWT->col_size))
+	{
+		terminate("ERROT vector_mutiply_vectorT size don't fit");
+	}
+	for (int i = 0; i < VWT->col_size; i++)
+	{
+		for (int j = 0; j < VWT->row_size; j++)
+		{
+			VWT->matrix_entry[i][j] = V->entry[i] * W->entry[j];
+		}
+	}
+	return;
+}
+
+void matrix_mutiply_const(const Matrix *A, double k, Matrix *kA)
+{
+	if (!(A->row_size == kA->row_size AND A->col_size == kA->col_size))
+	{
+		terminate("ERROR vector_mutiplu_vectorT size is NOT fit");
+	}
+	for (int i = 0; i < kA->row_size; i++)
+	{
+		for (int j = 0; j < kA->col_size; j++)
+		{
+			kA->matrix_entry[i][j] = k * A->matrix_entry[i][j];
+		}
+	}
+	return;
+}

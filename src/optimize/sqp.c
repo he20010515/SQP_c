@@ -91,7 +91,7 @@ void optimize_sqp(const NdsclaFunction *fun,
     _wrapper_info.lambda = lambdak;
     vector_copy(lambda0, lambdak);
     NdsclaFunction *lagrange_function = ndscla_function_alloc(__lagrange_wrapper, n);
-    ndscla_central_hession(lagrange_function, NUMERICAL_DIFF_STEP, x0, HxxL0);
+    ndscla_central_hession(lagrange_function, NUMERICAL_DIFF_STEP, x0, HxxL0); // 考虑换成BFGS修正
     matrix_copy(HxxL0, HxxLk);
     matrix_copy(HxxL0, HxxLk_1);
 
@@ -166,6 +166,51 @@ Nonlinearconstraints *nonlinearconstraints_alloc(int dim, int size, int e, int i
 void nonlinearconstraints_free(Nonlinearconstraints *con)
 {
     free(con);
+}
+
+void __BFGS_update(const Matrix *Bk, const Vector *lambdak_1, const Vector *xk, const Vector *xk_1, Matrix *Bk_1, NdsclaFunction *lagrange)
+{
+    Vector *sk = vector_alloc(xk->size);
+    Vector *_xk = vector_multiply_const(xk, -1., 1);
+    vector_add_vector(xk_1, _xk, sk); // sk = xK+1-xk;
+    vector_free(_xk);
+
+    Vector *gradxk_1 = vector_alloc(xk->size);
+    ndscla_central_grad(lagrange, NUMERICAL_DIFF_STEP, xk, gradxk_1);
+    Vector *gradxk = vector_alloc(xk->size);
+    ndscla_central_grad(lagrange, NUMERICAL_DIFF_STEP, xk_1, gradxk);
+    Vector *yk = vector_alloc(xk->size);
+    Vector *_gradxk = vector_multiply_const(gradxk, -1, 1);
+    vector_add_vector(gradxk_1, _gradxk, yk);
+    vector_free(_gradxk);
+
+    // thetak
+    double thetak = 0;
+    double skyk = vector_inner_product(sk, yk);
+    Vector *temp = vector_alloc(Bk->row_size);
+    vector_mutiply_matrix(sk, Bk, temp);
+    double SBS = vector_inner_product(temp, sk);
+    vector_free(temp);
+    if (skyk >= SBS)
+    {
+        thetak = 1;
+    }
+    else
+    {
+        thetak = SBS * 0.8 / (SBS - skyk);
+    }
+    // compute r r= \theta y + (1-theta)Bksk
+    //TODO here
+
+    // compute \frac{Bss^TB}{s^TBs}
+    Matrix *ssT = matrix_alloc(sk->size, sk->size);
+    vector_mutiply_vectorT(sk, sk, ssT);
+    Matrix *BssT = matrix_multiply(Bk, ssT);
+    Matrix *BssTB = matrix_multiply(BssT, Bk);
+    Matrix *BssTB_SBS = matrix_alloc(BssT->row_size, BssT->col_size);
+    matrix_mutiply_const(BssTB, 1 / SBS, BssTB_SBS);
+    // compute \frac{rr^T}{s^Tr}
+    // Matrix *rrT = matrix_alloc();
 }
 
 int __check_input(const NdsclaFunction *fun, const Nonlinearconstraints *con, const Vector *x0, const Vector *xstar)

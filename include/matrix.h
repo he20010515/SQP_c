@@ -224,3 +224,7 @@ void vector_mutiply_matrix(Vector *a, Matrix *mat, Vector *mat_a);
 void matrix_submatrix_by_rowindex_set(const Matrix *A, const Index_set *index_set, Matrix *subA);
 
 void matrix_transpose(const Matrix *mat, Matrix *matT);
+
+void vector_mutiply_vectorT(const Vector *V, const Vector *W, Matrix *VWT);
+
+void matrix_mutiply_const(const Matrix *A, double k, Matrix *kA);
