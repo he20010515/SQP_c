@@ -147,7 +147,7 @@ const char *elog_port_get_t_info(void)
 }
 
 #endif
-#ifdef __gnu_linux__
+#ifdef __linux__
 /*
  * This file is part of the EasyLogger Library.
  *
