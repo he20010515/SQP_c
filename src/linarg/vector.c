@@ -212,3 +212,4 @@ double vector_1norm(const Vector *v)
     }
     return m;
 }
+
