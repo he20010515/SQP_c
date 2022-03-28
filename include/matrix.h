@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include "vector.h"
 #include "index_set.h"
+
 #pragma once
 
 /**
@@ -228,3 +229,6 @@ void matrix_transpose(const Matrix *mat, Matrix *matT);
 void vector_mutiply_vectorT(const Vector *V, const Vector *W, Matrix *VWT);
 
 void matrix_mutiply_const(const Matrix *A, double k, Matrix *kA);
+
+void vector_log(const Vector *v);
+void matrix_log(const Matrix *mat);

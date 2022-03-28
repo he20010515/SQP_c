@@ -5,6 +5,8 @@
 #include "sqp.h"
 #include "elog.h"
 
+#define LOG_TAG "SQP"
+
 #define NUMERICAL_DIFF_STEP 0.001
 
 struct __wrapper_info
@@ -102,21 +104,30 @@ void optimize_sqp(const NdsclaFunction *fun,
     matrix_copy(B0, Bk_1);
 
     log_i("x0");
-    vector_print(x0);
+    vector_log(x0);
     log_i("Hession matrix of lagrange function");
-    matrix_print(B0);
+    matrix_log(B0);
     log_i("grad of target function in x0");
-    vector_print(gradf0);
+    vector_log(gradf0);
     log_i("jacobian matrix of c in x0");
-    matrix_print(A0);
+    matrix_log(A0);
 
+    int k = 0;
     //  mainloop
     while (1)
     {
         // 计算子问题
         Vector *_ck = vector_multiply_const(ck, -1., 1);
         LinearConstraints *subcon = constraints_alloc(n, m, con->e, con->i, Ak, _ck);
-
+        log_i("=========iter k = %d =========", k);
+        log_i("subproblem :");
+        log_i("B:");
+        matrix_log(Bk);
+        log_i("gradfk");
+        vector_log(gradfk);
+        log_i("subcon:");
+        matrix_print(subcon->A);
+        vector_print(subcon->b);
         optimize_qp_active_set(Bk, gradfk, subcon, xk, p, lambdahat);
         vector_free(_ck);
 

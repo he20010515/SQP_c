@@ -4,6 +4,7 @@
 #include "util.h"
 #include "vector.h"
 #include "index_set.h"
+#include "elog.h"
 void matrix_print(const Matrix *matrix)
 {
 	int i, j;
@@ -660,5 +661,43 @@ void matrix_mutiply_const(const Matrix *A, double k, Matrix *kA)
 			kA->matrix_entry[i][j] = k * A->matrix_entry[i][j];
 		}
 	}
+	return;
+}
+
+void vector_log(const Vector *v)
+{
+	char buf[BUFSIZ];
+	char *bufp = buf;
+	int l = 0;
+	*bufp = '[';
+	bufp++;
+	for (int i = 0; i < v->size; i++)
+	{
+		l = sprintf(bufp, "%lf, ", v->entry[i]);
+		bufp += l;
+	}
+	*bufp = '}';
+	bufp++;
+	*bufp = '\0';
+	log_i(buf);
+	return;
+}
+
+void matrix_log(const Matrix *mat)
+{
+	char buf[BUFSIZ];
+	char *bufp = buf;
+	int l = 0;
+	for (int i = 0; i < mat->row_size; i++)
+	{
+		for (int j = 0; j < mat->col_size; j++)
+		{
+			l = sprintf(bufp, "%lf, ", mat->matrix_entry[i][j]);
+			bufp += l;
+		}
+		l = sprintf(bufp, "; ");
+		bufp += l;
+	}
+	log_i(buf);
 	return;
 }

@@ -4,6 +4,7 @@
 #include "util.h"
 #include "vector.h"
 #include "assert.h"
+#include "matrix.h"
 #include <stdlib.h>
 
 #define LOG_TAG "util"
@@ -38,3 +39,4 @@ int vector_any_bigger_equal_than_const(const Vector *v, double a)
     }
     return 1;
 }
+
