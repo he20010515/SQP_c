@@ -75,6 +75,7 @@ void optimize_sqp(const NdsclaFunction *fun,
     Matrix *Bk_1 = matrix_alloc(n, n);
 
     Vector *lambdak = vector_alloc(m); //*传给拉格朗日函数的lambda
+    Vector *lambdak_1 = vector_alloc(m);
     Vector *plambda = vector_alloc(m); //* lambda 步长
     Vector *lambdahat = vector_alloc(m);
 
@@ -128,7 +129,14 @@ void optimize_sqp(const NdsclaFunction *fun,
         log_i("subcon:");
         matrix_print(subcon->A);
         vector_print(subcon->b);
-        optimize_qp_active_set(Bk, gradfk, subcon, xk, p, lambdahat);
+        log_i("subproble start point");
+        vector_log(xk);
+        optimize_qp_active_set(Bk, gradfk, subcon, xk_1, p, lambdahat); // 用上一步的结束值当做这一阶段的初值
+        log_i("subproblem ans P:");
+        vector_log(p);
+        log_i("subproblem lambdahat");
+        vector_log(lambdahat);
+
         vector_free(_ck);
 
         // plambda = lambdahat-lambdak
@@ -142,20 +150,19 @@ void optimize_sqp(const NdsclaFunction *fun,
         double miu = (vector_inner_product(gradfk, p) + 0.5 * vector_inner_product(temp, p)) / ((1 - rho) * vector_1norm(ck));
         vector_free(temp);
         double alphak = 0.01;
-        // alpha = 1
-        // while (__check_inner_loop(xk, p, aita, miu, alphak, con, fun))
-        // {
-        //     // update alphak
-        //     alphak = alphak * tao;
-        // }
+        while (__check_inner_loop(xk, p, aita, miu, alphak, con, fun))
+        {
+            // update alphak
+            alphak = alphak * tao;
+        }
         // update xk,lambdak
         vector_add_vector(xk, p, xk_1);
+        vector_add_vector(lambdak, plambda, lambdak_1);
+
         ndscla_central_grad(fun, NUMERICAL_DIFF_STEP, xk_1, gradfk_1);
         ndVectorfunction_call(con->c, xk_1, ck_1);
         ndVectorfunction_jacobian(con->c, xk_1, NUMERICAL_DIFF_STEP, Ak_1);
         __BFGS_update(Bk, _lambdak, xk, xk_1, Bk_1, lagrange_function);
-        //构建子问题
-        //  如果采用拟牛顿近似 更新bk
 
         // swap
         vector_copy(xk_1, xk);
@@ -163,8 +170,6 @@ void optimize_sqp(const NdsclaFunction *fun,
         vector_copy(ck_1, ck);
         matrix_copy(Ak_1, Ak);
         matrix_copy(Bk_1, Bk);
-
-        break;
     }
     // // free workspace
 
