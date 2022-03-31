@@ -213,3 +213,13 @@ double vector_1norm(const Vector *v)
     return m;
 }
 
+void vector_fillna(Vector *v)
+{
+    for (int i = 0; i < v->size; i++)
+    {
+        if (isnan(v->entry[i]))
+        {
+            v->entry[i] = 0.0;
+        }
+    }
+}

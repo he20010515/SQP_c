@@ -4,6 +4,7 @@
 #include "function.h"
 #include "sqp.h"
 #include "elog.h"
+#include <math.h>
 
 #define LOG_TAG "SQP"
 
@@ -80,6 +81,9 @@ void optimize_sqp(const NdsclaFunction *fun,
     Vector *lambdahat = vector_alloc(m);
 
     // init varlable
+    vector_copy(x0, xk);
+    vector_copy(x0, xk_1);
+
     ndscla_central_grad(fun, NUMERICAL_DIFF_STEP, x0, gradf0);
     vector_copy(gradf0, gradfk);
     vector_copy(gradf0, gradfk_1);
@@ -121,6 +125,8 @@ void optimize_sqp(const NdsclaFunction *fun,
         Vector *_ck = vector_multiply_const(ck, -1., 1);
         LinearConstraints *subcon = constraints_alloc(n, m, con->e, con->i, Ak, _ck);
         log_i("=========iter k = %d =========", k);
+        log_i("Xk = ");
+        vector_log(xk);
         log_i("subproblem :");
         log_i("B:");
         matrix_log(Bk);
@@ -130,11 +136,12 @@ void optimize_sqp(const NdsclaFunction *fun,
         matrix_print(subcon->A);
         vector_print(subcon->b);
         log_i("subproble start point");
-        vector_log(xk);
+        vector_log(xk_1);
         optimize_qp_active_set(Bk, gradfk, subcon, xk_1, p, lambdahat); // 用上一步的结束值当做这一阶段的初值
         log_i("subproblem ans P:");
         vector_log(p);
         log_i("subproblem lambdahat");
+        vector_fillna(lambdahat);
         vector_log(lambdahat);
 
         vector_free(_ck);
@@ -149,7 +156,7 @@ void optimize_sqp(const NdsclaFunction *fun,
         vector_mutiply_matrix(p, Bk, temp);
         double miu = (vector_inner_product(gradfk, p) + 0.5 * vector_inner_product(temp, p)) / ((1 - rho) * vector_1norm(ck));
         vector_free(temp);
-        double alphak = 0.01;
+        double alphak = 1;
         while (__check_inner_loop(xk, p, aita, miu, alphak, con, fun))
         {
             // update alphak
@@ -157,12 +164,19 @@ void optimize_sqp(const NdsclaFunction *fun,
         }
         // update xk,lambdak
         vector_add_vector(xk, p, xk_1);
+
+        log_i("xk_1:");
+        vector_log(xk_1);
         vector_add_vector(lambdak, plambda, lambdak_1);
+        log_i("lambdak_1");
+        vector_log(lambdak_1);
 
         ndscla_central_grad(fun, NUMERICAL_DIFF_STEP, xk_1, gradfk_1);
         ndVectorfunction_call(con->c, xk_1, ck_1);
         ndVectorfunction_jacobian(con->c, xk_1, NUMERICAL_DIFF_STEP, Ak_1);
         __BFGS_update(Bk, _lambdak, xk, xk_1, Bk_1, lagrange_function);
+        log_i("Bk_1");
+        matrix_print(Bk_1);
 
         // swap
         vector_copy(xk_1, xk);
@@ -285,6 +299,8 @@ int __check_inner_loop(const Vector *xk, const Vector *pk, double aita, double m
     double r = __phi_1(xk, miu, con, fun) + aita * __D(xk, pk, miu, fun, con);
     vector_free(alphapk);
     vector_free(xk_add_alphapk);
+
+    log_i("abs(l-r)%lf", fabs(l - r));
     return l > r;
 }
 

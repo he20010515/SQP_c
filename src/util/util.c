@@ -8,6 +8,7 @@
 #include <stdlib.h>
 
 #define LOG_TAG "util"
+
 void terminate(char *string)
 {
     log_a("%s\n", string);
@@ -39,4 +40,3 @@ int vector_any_bigger_equal_than_const(const Vector *v, double a)
     }
     return 1;
 }
-

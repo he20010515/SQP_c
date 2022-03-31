@@ -1,6 +1,8 @@
 import numpy as np
 import scipy
 
+NUMERICAL_DIFF_STEP = 0.001
+
 
 def targetfunction(X: np.ndarray):
     x = X[0]
@@ -16,8 +18,23 @@ def con(X: np.ndarray):
     return np.array([x**2 + y**2 + z**2 - 9, x-1, y-1, z-1])
 
 
-def SQP():
-    scipy.
+def grad(f, X: np.ndarray):
+    g = np.ones_like(X)
+    for i in range(X.shape[0]):
+        temp = X
+        temp[i] += NUMERICAL_DIFF_STEP
+        fah = f(temp)
+        temp = X
+        temp[i] -= NUMERICAL_DIFF_STEP
+        fsh = f(temp)
+        g[i] = (fah-fsh)/(2*NUMERICAL_DIFF_STEP)
+    return g
+
+
+def SQP(fun, con, x0, lambda0):
+    rho = 0.5
+    aita = 0.25
+    tao = 0.5
     pass
 
 
