@@ -43,11 +43,13 @@ ctest
 3. 数值微分             
     1. 中心梯度        done
     2. 中心Hession矩阵 done
-4. 二次优化
+4. 线性规划
+    1. **两阶段单纯形法** <- here!!! 
+5. 二次规划
     1. 二次线性约束优化问题 done
     2. 二次不等式约束优化问题 ←  done
     3. 二次混合约束优化问题   ←  done
-5. SQP   ← HERE
+6. SQP   ← HERE
    1. 分解为子问题 done
    2. 求解子问题 done
    3. BFGS update doing
