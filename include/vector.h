@@ -21,3 +21,4 @@ double vector_inner_product(const Vector *u, const Vector *v);
 double vector_min(const Vector *v);
 double vector_1norm(const Vector *v);
 void vector_fillna(Vector *v);
+int vector_argmax(const Vector *v);

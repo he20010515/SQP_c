@@ -9,6 +9,7 @@
 
 #define LOG_TAG "util"
 
+
 void terminate(char *string)
 {
     log_a("%s\n", string);

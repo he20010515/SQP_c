@@ -164,6 +164,32 @@ int vector_argmin(const Vector *v)
     return flag;
 }
 
+int vector_argmax(const Vector *v)
+{
+    double min = NAN;
+    int flag = 0;
+    int iswaitfirstnumber = 1;
+    for (int i = 0; i < v->size; i++)
+    {
+        if (!(isnan(v->entry[i]))AND iswaitfirstnumber) // 遇到的第一个非NAN的数设置0
+        {
+            min = v->entry[i];
+            flag = i;
+            iswaitfirstnumber = 0;
+        }
+
+        if (isnan(v->entry[i]))
+            continue;
+
+        if (v->entry[i] > min)
+        {
+            flag = i;
+            min = v->entry[i];
+        }
+    }
+    return flag;
+}
+
 double vector_inner_product(const Vector *u, const Vector *v)
 {
     if (!(u->size == v->size))

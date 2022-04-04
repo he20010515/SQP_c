@@ -18,3 +18,5 @@ LinearConstraints *constraints_alloc(int dim, int size, int e, int i, Matrix *A,
 void constrains_subconstrains(const LinearConstraints *con, const Index_set *set, Matrix *A, Vector *b);
 void constraints_free(LinearConstraints *con, int recursion);
 void *constraints_verification(const LinearConstraints *con, const Vector *x, Index_set *set);
+
+void optimize_lp_standard_type(const Vector *c, const Vector *b, const Matrix *A, const Vector *x0, Vector *xstar);
