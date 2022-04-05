@@ -98,7 +98,7 @@ void constrains_subconstrains(const LinearConstraints *con, const Index_set *set
 }
 
 //求解线性规划标准形式,需要初始基集合
-void optimize_lp_standard_type(const Vector *c, const Vector *b, const Matrix *A, const Vector *x0, Vector *xstar)
+void optimize_lp_standard_type(const Vector *c, const Vector *b, const Matrix *A, const Vector *x0, const int *init_base, Vector *xstar)
 {
     // see: https://blog.csdn.net/qq_47723068/article/details/109537450
     // Solve Problem:
@@ -123,12 +123,34 @@ void optimize_lp_standard_type(const Vector *c, const Vector *b, const Matrix *A
 
     int *vect = (int *)malloc(sizeof(int) * A->row_size);
     // TODO initVect
-    vect[0] = 3;
-    vect[1] = 4;
-    vect[2] = 5;
+    for (int i = 0; i < A->row_size; i++)
+        vect[i] = init_base[i];
     while (__judge(mat))
     {
         __trans(mat, vect);
+    }
+
+    // return answer:
+    for (int i = 0; i < A->col_size; i++)
+    {
+        int flag = -1;
+        for (int j = 0; j < A->row_size; j++)
+        {
+            if (vect[j] == i)
+            {
+                flag = j;
+                break;
+            }
+            else
+
+                flag = -1;
+        }
+        // if i in vect:
+        if (flag != -1)
+            xstar->entry[i] = mat->matrix_entry[flag][mat->col_size - 1];
+        // else
+        else
+            xstar->entry[i] = 0.0;
     }
 }
 
@@ -172,9 +194,7 @@ int __trans(Matrix *mat, int *vect)
                 mat->matrix_entry[i][j] = mat->matrix_entry[i][j] - k * mat->matrix_entry[out_base][j];
         }
     }
-
     vect[out_base] = in_base;
-    matrix_print(mat);
 }
 //求解线性规划标准形式,不需要初始解
 void optimize_lp_two_stage_method()

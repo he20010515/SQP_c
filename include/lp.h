@@ -19,4 +19,4 @@ void constrains_subconstrains(const LinearConstraints *con, const Index_set *set
 void constraints_free(LinearConstraints *con, int recursion);
 void *constraints_verification(const LinearConstraints *con, const Vector *x, Index_set *set);
 
-void optimize_lp_standard_type(const Vector *c, const Vector *b, const Matrix *A, const Vector *x0, Vector *xstar);
+void optimize_lp_standard_type(const Vector *c, const Vector *b, const Matrix *A, const Vector *x0, const int *init_base, Vector *xstar);
