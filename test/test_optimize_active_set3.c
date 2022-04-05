@@ -37,7 +37,7 @@ int main(int argc, char const *argv[])
     };
     array_2_matrix((double *)A_array, 2, 3, A);
 
-    LinearConstraints *con = constraints_alloc(3, 2, 1, 1, A, b);
+    LinearConstraints *con = linearconstraints_alloc(3, 2, 1, 1, A, b);
     // 3 问题维度
     // 2 约束数量
     // 1 等式约束数量

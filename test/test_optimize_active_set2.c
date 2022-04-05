@@ -35,7 +35,7 @@ int main(int argc, char const *argv[])
         {0, 1},
     };
     array_2_matrix((double *)A_array, 5, 2, A);
-    LinearConstraints *con = constraints_alloc(2, 5, 1, 4, A, b);
+    LinearConstraints *con = linearconstraints_alloc(2, 5, 1, 4, A, b);
     Vector *x0 = vector_alloc(2);
     Vector *lambda = vector_alloc(5);
     Vector *xstar = vector_alloc(2);

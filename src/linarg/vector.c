@@ -11,13 +11,11 @@ Vector *vector_alloc(int size)
     Vector *v = (Vector *)malloc(sizeof(Vector));
     v->entry = (double *)malloc(sizeof(double) * size);
     v->size = size;
-    log_v("vector alloc %lx", (unsigned int)v);
     return v;
 };
 
 Vector *vector_free(Vector *v)
 {
-    log_v("vector free %lx", (unsigned int)v);
     free(v->entry);
     free(v);
 }

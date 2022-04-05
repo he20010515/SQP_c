@@ -124,7 +124,7 @@ void optimize_sqp(const NdsclaFunction *fun,
     {
         // 计算子问题
         Vector *_ck = vector_multiply_const(ck, -1., 1);
-        LinearConstraints *subcon = constraints_alloc(n, m, con->e, con->i, Ak, _ck);
+        LinearConstraints *subcon = linearconstraints_alloc(n, m, con->e, con->i, Ak, _ck);
         log_i("=========iter k = %d =========", k);
         log_i("Xk = ");
         vector_log(xk);

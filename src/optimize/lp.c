@@ -11,7 +11,7 @@ int __judge(const Matrix *mat);
 int __trans(Matrix *mat, int *vect);
 
 //线性约束
-LinearConstraints *constraints_alloc(int dim, int size, int e, int i, Matrix *A, Vector *b)
+LinearConstraints *linearconstraints_alloc(int dim, int size, int e, int i, Matrix *A, Vector *b)
 {
     LinearConstraints *con = (LinearConstraints *)malloc(sizeof(LinearConstraints));
     if (!(size == e + i AND dim == A->col_size AND size == A->row_size))
@@ -27,7 +27,7 @@ LinearConstraints *constraints_alloc(int dim, int size, int e, int i, Matrix *A,
     return con;
 }
 
-void *constraints_verification(const LinearConstraints *con, const Vector *x, Index_set *set)
+void *linearconstraints_verification(const LinearConstraints *con, const Vector *x, Index_set *set)
 {
     // 验证解x是否满足约束,将满足的约束编号添加到约束集合mat上
     if (!(con->dim == x->size AND set->index_range == con->A->row_size))
@@ -56,7 +56,7 @@ void *constraints_verification(const LinearConstraints *con, const Vector *x, In
     vector_free(b_);
 }
 
-void constraints_free(LinearConstraints *con, int recursion)
+void linearconstraints_free(LinearConstraints *con, int recursion)
 {
     if (recursion)
     {
@@ -70,7 +70,7 @@ void constraints_free(LinearConstraints *con, int recursion)
     }
 }
 
-void constrains_subconstrains(const LinearConstraints *con, const Index_set *set, Matrix *A, Vector *b)
+void linearconstrains_subconstrains(const LinearConstraints *con, const Index_set *set, Matrix *A, Vector *b)
 {
     // 通过给定的指标集和指定的约束构建子等式约束
     // A矩阵应为与G相等的方阵,b应与其匹配的列向量
@@ -99,7 +99,7 @@ void constrains_subconstrains(const LinearConstraints *con, const Index_set *set
 }
 
 //求解线性规划标准形式,需要初始基集合
-void optimize_lp_standard_type(const Vector *c, const Vector *b, const Matrix *A, const Vector *x0, const int *init_base, Vector *xstar)
+double optimize_lp_standard_type(const Vector *c, const Vector *b, const Matrix *A, const int *init_base, Vector *xstar)
 {
     // see: https://blog.csdn.net/qq_47723068/article/details/109537450
     // Solve Problem:
@@ -126,9 +126,14 @@ void optimize_lp_standard_type(const Vector *c, const Vector *b, const Matrix *A
     // TODO initVect
     for (int i = 0; i < A->row_size; i++)
         vect[i] = init_base[i];
+    matrix_print(mat);
+    __trans(mat, vect);
+    matrix_print(mat);
+
     while (__judge(mat))
     {
         __trans(mat, vect);
+        matrix_print(mat);
     }
 
     // return answer:
@@ -154,6 +159,7 @@ void optimize_lp_standard_type(const Vector *c, const Vector *b, const Matrix *A
             xstar->entry[i] = 0.0;
     }
     matrix_free(mat);
+    return vector_inner_product(c, xstar);
 }
 
 int __judge(const Matrix *mat)
@@ -198,7 +204,58 @@ int __trans(Matrix *mat, int *vect)
     }
     vect[out_base] = in_base;
 }
+
 //求解线性规划标准形式,不需要初始解
-void optimize_lp_two_stage_method()
+void optimize_lp_2stage(const Vector *c, const Vector *b, const Matrix *A, Vector *xstar)
 {
+    // see: https://baike.baidu.com/item/%E4%B8%A4%E9%98%B6%E6%AE%B5%E6%B3%95/9302919
+    // Solve Problem:
+    //  max z = c^Tx
+    //  Ax = b
+    //  x_i >=0  i = 1,2,...,n
+    int m = A->row_size;
+    int n = A->col_size;
+    // step1 : 添加人工变量
+    //  min w = 0^Tx + 1^T xr
+    //  Ax + Exr = b
+    //  x_i >=0  i = 1,2,...,n
+    Vector *xxr = vector_alloc(m + n);   //原维度+约束数量
+    Matrix *AA = matrix_alloc(m, m + n); // step1约束矩阵
+    const Vector *bb = b;
+    Vector *cc = vector_alloc(m + n);
+    for (int i = 0; i < m + n; i++) // fill cc
+    {
+        if (i < n)
+            cc->entry[i] = 0.0;
+        else
+            cc->entry[i] = -1.0;
+    }
+    for (int i = 0; i < m; i++) // fill AA
+    {
+        for (int j = 0; j < m + n; j++)
+        {
+            if (j < m)
+            {
+                AA->matrix_entry[i][j] = A->matrix_entry[i][j];
+            }
+            else
+            {
+                if (i == j - n)
+                    AA->matrix_entry[i][j] = 1.0;
+                else
+                    AA->matrix_entry[i][j] = 0.0;
+            }
+        }
+    }
+
+    int *vect = (int *)malloc(sizeof(int) * m); // 初始基
+    for (int i = 0; i < m; i++)
+        vect[i] = n + i;
+    vector_print(cc);
+    matrix_print(AA);
+    double f = optimize_lp_standard_type(cc, bb, AA, vect, xxr);
+    vector_print(xxr);
+
+    // step2 计算解
+    free(vect);
 }

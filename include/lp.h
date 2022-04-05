@@ -14,9 +14,10 @@ struct linearconstraints
 };
 typedef struct linearconstraints LinearConstraints;
 
-LinearConstraints *constraints_alloc(int dim, int size, int e, int i, Matrix *A, Vector *b);
-void constrains_subconstrains(const LinearConstraints *con, const Index_set *set, Matrix *A, Vector *b);
-void constraints_free(LinearConstraints *con, int recursion);
-void *constraints_verification(const LinearConstraints *con, const Vector *x, Index_set *set);
+LinearConstraints *linearconstraints_alloc(int dim, int size, int e, int i, Matrix *A, Vector *b);
+void linearconstrains_subconstrains(const LinearConstraints *con, const Index_set *set, Matrix *A, Vector *b);
+void linearconstraints_free(LinearConstraints *con, int recursion);
+void *linearconstraints_verification(const LinearConstraints *con, const Vector *x, Index_set *set);
 
-void optimize_lp_standard_type(const Vector *c, const Vector *b, const Matrix *A, const Vector *x0, const int *init_base, Vector *xstar);
+double optimize_lp_standard_type(const Vector *c, const Vector *b, const Matrix *A, const int *init_base, Vector *xstar);
+void optimize_lp_2stage(const Vector *c, const Vector *b, const Matrix *A, Vector *xstar);

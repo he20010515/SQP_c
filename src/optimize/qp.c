@@ -25,7 +25,7 @@ void __qp_compute_subproblem(const Index_set *W_k, const LinearConstraints *cons
     //子问题约束矩阵
     Matrix *sub_A = matrix_alloc(index_set_size(W_k), cons->dim); // 约束个行,dim个列
     Vector *sub_b = vector_alloc(index_set_size(W_k));
-    constrains_subconstrains(cons, W_k, sub_A, sub_b);
+    linearconstrains_subconstrains(cons, W_k, sub_A, sub_b);
     vector_fill_const(sub_b, 0);
     //计算子问题得到p
     optimize_qp_linear_constraints(G, Gxk_c, sub_A, sub_b, p, y);
@@ -228,7 +228,7 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const LinearConstra
     //* first compute 首次计算
     // 计算一个初始点以及其对应的工作集
     vector_copy(x0, x_k);
-    constraints_verification(cons, x_k, W_k); // 获取工作集
+    linearconstraints_verification(cons, x_k, W_k); // 获取工作集
 
     // begin compute
     while (1)
