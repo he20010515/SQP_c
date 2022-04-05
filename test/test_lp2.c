@@ -42,7 +42,7 @@ int main(int argc, char const *argv[])
     int init_base[3] = {2, 3, 4};
     Vector *x0 = vector_alloc(5);
     Vector *xstat = vector_alloc(5);
-    optimize_lp_standard_type(c, b, A, x0, init_base, xstat);
+    optimize_lp_standard_type(c, b, A, init_base, xstat);
     vector_print(xstat);
     return 0;
 }

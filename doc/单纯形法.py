@@ -12,7 +12,7 @@ def getinput():
     # 例三：8 2 4 1 0 0 1;2 6 6 0 1 0 1;6 4 4 0 0 1 1;1 1 1 0 0 0 0
     # 前m行表示m个约束的增广矩阵，最后一行表示检验数[价值向量]
     # 输入：''')
-    string = "2 1 0 1 0 0 8;-4 -2 3 0 1 0 14;1 -2 1 0 0 1 18;6 -3 1 0 0 0 0"
+    string = "1 0 -1 0 0 1 0 0 0;0 1 0 -1 0 0 1 0 0;1 1 1 0 1 0 0 1 1;0 0 0 0 0 -1 -1 -1 0"
     a = [list(map(eval, row.split())) for row in string.split(';')]
     matrix = np.array(a)
     m, n = matrix.shape
