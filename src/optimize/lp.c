@@ -126,16 +126,10 @@ double optimize_lp_standard_type(const Vector *c, const Vector *b, const Matrix 
     // TODO initVect
     for (int i = 0; i < A->row_size; i++)
         vect[i] = init_base[i];
-    matrix_print(mat);
-    __trans(mat, vect);
-    matrix_print(mat);
-
     while (__judge(mat))
     {
         __trans(mat, vect);
-        matrix_print(mat);
     }
-
     // return answer:
     for (int i = 0; i < A->col_size; i++)
     {
