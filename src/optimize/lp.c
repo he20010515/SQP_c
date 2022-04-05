@@ -24,6 +24,7 @@ LinearConstraints *constraints_alloc(int dim, int size, int e, int i, Matrix *A,
     con->i = i;
     con->A = A;
     con->b = b;
+    return con;
 }
 
 void *constraints_verification(const LinearConstraints *con, const Vector *x, Index_set *set)
@@ -152,6 +153,7 @@ void optimize_lp_standard_type(const Vector *c, const Vector *b, const Matrix *A
         else
             xstar->entry[i] = 0.0;
     }
+    matrix_free(mat);
 }
 
 int __judge(const Matrix *mat)
@@ -168,7 +170,7 @@ int __judge(const Matrix *mat)
 int __trans(Matrix *mat, int *vect)
 {
     Vector *temp = vector_alloc(mat->col_size - 1);
-    for (int i = 0; i < mat->col_size; i++)
+    for (int i = 0; i < mat->col_size - 1; i++)
         temp->entry[i] = mat->matrix_entry[mat->row_size - 1][i];
     int in_base = vector_argmax(temp); // 入基变量
 

@@ -37,6 +37,7 @@ void optimize_sqp(const NdsclaFunction *fun,
                   const Vector *lambda0,
                   Vector *xstar)
 {
+    int iternum = 0;
     if (__check_input(fun, con, x0, xstar))
     {
         terminate("Please check input shape");
@@ -184,6 +185,12 @@ void optimize_sqp(const NdsclaFunction *fun,
         vector_copy(ck_1, ck);
         matrix_copy(Ak_1, Ak);
         matrix_copy(Bk_1, Bk);
+        iternum++;
+        if (iternum >= 100)
+        {
+            log_e("iter overflow");
+            break;
+        }
     }
     // // free workspace
 
