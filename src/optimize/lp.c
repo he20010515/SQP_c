@@ -98,9 +98,10 @@ void linearconstrains_subconstrains(const LinearConstraints *con, const Index_se
     }
 }
 
-//求解线性规划标准形式,需要初始基集合
+
 double optimize_lp_standard_type(const Vector *c, const Vector *b, const Matrix *A, const int *init_base, Vector *xstar)
 {
+    // 求解线性规划标准形式,需要初始基集合,初始基集合必须为单位阵
     // see: https://blog.csdn.net/qq_47723068/article/details/109537450
     // Solve Problem:
     //  max z = c^Tx
@@ -126,9 +127,11 @@ double optimize_lp_standard_type(const Vector *c, const Vector *b, const Matrix 
     // TODO initVect
     for (int i = 0; i < A->row_size; i++)
         vect[i] = init_base[i];
+    matrix_print(mat);
     while (__judge(mat))
     {
         __trans(mat, vect);
+        matrix_print(mat);
     }
     // return answer:
     for (int i = 0; i < A->col_size; i++)
@@ -199,7 +202,7 @@ int __trans(Matrix *mat, int *vect)
     vect[out_base] = in_base;
 }
 
-//求解线性规划标准形式,不需要初始解
+//求解线性规划标准形式, 不需要初始解
 void optimize_lp_2stage(const Vector *c, const Vector *b, const Matrix *A, Vector *xstar)
 {
     // see: https://baike.baidu.com/item/%E4%B8%A4%E9%98%B6%E6%AE%B5%E6%B3%95/9302919
@@ -222,7 +225,7 @@ void optimize_lp_2stage(const Vector *c, const Vector *b, const Matrix *A, Vecto
         if (i < n)
             cc->entry[i] = 0.0;
         else
-            cc->entry[i] = -1.0;
+            cc->entry[i] = 1.0;
     }
     for (int i = 0; i < m; i++) // fill AA
     {
@@ -241,15 +244,165 @@ void optimize_lp_2stage(const Vector *c, const Vector *b, const Matrix *A, Vecto
             }
         }
     }
-
     int *vect = (int *)malloc(sizeof(int) * m); // 初始基
     for (int i = 0; i < m; i++)
         vect[i] = n + i;
     vector_print(cc);
     matrix_print(AA);
-    double f = optimize_lp_standard_type(cc, bb, AA, vect, xxr);
+    optimize_simplex_method(cc, bb, AA, xxr, vect);
     vector_print(xxr);
-
     // step2 计算解
     free(vect);
+}
+
+int __find_swap_in_base(int n, Vector *sigma);
+int __find_swap_out_base(int a, Matrix *A, Vector *seta, Vector *b, int *num, Vector *CB, Vector *C);
+int __iterate(int p, int q, Matrix *A, Vector *b, Vector *sigma);
+
+void optimize_simplex_method(const Vector *_c, const Vector *_b, const Matrix *_A, Vector *xstar, int *init_base)
+{
+    // see :https://blog.csdn.net/weixin_47000625/article/details/109341360
+    // Solve Problem
+    //  min   c^Tx
+    //  s.t.  Ax = b
+    if (!(_c->size == _A->col_size AND _A->row_size == _b->size))
+        terminate("optimize_lp_standard_type: input don't fit");
+    int m = _A->row_size;
+    int n = _A->col_size;
+    // alloc workspace
+    Matrix *A = matrix_alloc(m, n);  //约束矩阵
+    Vector *C = vector_alloc(n);     //目标函数价值系数
+    Vector *b = vector_alloc(m);     //资源系数
+    Vector *CB = vector_alloc(m);    //基变量系数矩阵
+    Vector *seta = vector_alloc(m);  //存放出基和入基的变化情况
+    Vector *sigma = vector_alloc(n); //检验数
+    Vector *x = vector_alloc(n);     //决策变量
+    double z = 0;                    //目标函数值
+    int *num = (int *)malloc(m * sizeof(int));
+    // init variable
+    matrix_copy((Matrix *)_A, A);
+    vector_copy(_c, C);
+    vector_copy(_b, b);
+    vector_fill_const(x, 0.0);
+    for (int i = 0; i < m; i++)
+        num[i] = init_base[i];
+    vector_copy(C, sigma);
+    for (int i = 0; i < m; i++)
+        CB->entry[i] = C->entry[num[i]];
+    int p, q; // q是换入变量
+    while (TRUE)
+    {
+        q = __find_swap_in_base(n, sigma);
+        if (q == -1)
+        {
+            for (int j = 0; j < m; j++)
+                x->entry[num[j]] = b->entry[j];
+            vector_copy(x, xstar);
+            z = vector_inner_product(x, C);
+            printf("z = === %lf", z);
+            break;
+        }
+        p = __find_swap_out_base(q, A, seta, b, num, CB, C);
+        __iterate(p, q, A, b, sigma);
+    }
+}
+
+int __find_swap_in_base(int n, Vector *sigma)
+{
+    int i, k = 0;
+    int flag = 1;
+    double min = 0.0;
+    for (i = 0; i < n; i++)
+    {
+        if (sigma->entry[i] < 0)
+        {
+            flag = 0;
+            break;
+        }
+    }
+    if (flag == 1)
+        return -1;
+    for (i = 0; i < n; i++)
+    {
+        if (sigma->entry[i] < min)
+        {
+            min = sigma->entry[i];
+            k = i;
+        }
+    }
+    return k;
+}
+
+int __find_swap_out_base(int a, Matrix *A, Vector *seta, Vector *b, int *num, Vector *CB, Vector *C)
+{
+    const double M = 1e10;
+    int i, j;
+    int m = A->row_size;
+    int flag = 1;
+    int k = a;              // a入基变量
+    for (i = 0; i < m; i++) //如果某个数小于0的检验数，对应的列向量中所有元素≤0 该问题有无界解
+    {
+        if (A->matrix_entry[i][k] > 0)
+        {
+            flag = 0;
+            break;
+        }
+    }
+    if (flag == 1)
+    {
+        printf("该线性规划问题有无界解、无最优解！\n");
+        return -1;
+    }
+    for (i = 0; i < m; i++)
+    {
+        if (A->matrix_entry[i][k] > 0)
+            seta->entry[i] = b->entry[i] / A->matrix_entry[i][k];
+        else
+            seta->entry[i] = M; //当A[i][k]≤0的时候是不需要考虑的
+                                //然而是根据比值最小原则整的 所以给对应的卡一个很大的M
+    }
+    double min = M;
+    for (i = 0; i < m; i++) //得到换出变量
+    {
+        if (min >= seta->entry[i])
+        {
+            min = seta->entry[i];
+            j = i;
+        }
+    }
+    num[j] = k;
+    CB->entry[j] = C->entry[k];
+    return j;
+}
+
+int __iterate(int p, int q, Matrix *A, Vector *b, Vector *sigma)
+{
+    int i, j, r, c; // row行 column列（r,l)就是转轴元
+    r = p;          //行号		p是出基变量
+    c = q;          //列号		q是入基变量
+    int n = A->col_size;
+    int m = A->row_size;
+    double temp1 = A->matrix_entry[r][c];
+    double temp2, temp3;
+    //标准化该行
+    b->entry[r] /= temp1;
+    for (j = 0; j < n; j++)
+        A->matrix_entry[r][j] /= temp1;
+    for (i = 0; i < m; i++) //标准化其他行
+    {
+        if (i != r)
+            if (!double_equal(A->matrix_entry[i][c], 0.0))
+            {
+                temp2 = A->matrix_entry[i][c];
+                b->entry[i] -= temp2 * b->entry[r]; // b[r]转轴元对应b
+                for (j = 0; j < n; j++)
+                    A->matrix_entry[i][j] -= temp2 * A->matrix_entry[r][j]; // A[r][j]是转轴元对应行
+            }
+    }
+    //σ的迭代计算
+    temp3 = sigma->entry[c];
+    for (i = 0; i < n; i++)
+    {
+        sigma->entry[i] -= A->matrix_entry[r][i] * temp3;
+    }
 }
