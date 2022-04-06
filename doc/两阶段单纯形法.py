@@ -98,6 +98,7 @@ class Simplex(object):
             # 第一阶段求解
             print("phase 1")
             self.solve()
+            print(self.T)
             # 消去人工变量列
             self.change()
             # 第二阶段求解

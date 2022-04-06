@@ -14,6 +14,7 @@ int main(int argc, char const *argv[])
     Vector *b = vector_alloc(5);
     c->entry[0] = -4.;
     c->entry[1] = -12.;
+
     b->entry[0] = 2.;
     b->entry[1] = -2.;
     b->entry[2] = -3.;

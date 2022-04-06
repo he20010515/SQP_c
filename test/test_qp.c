@@ -8,9 +8,9 @@ int main(int argc, char const *argv[])
     // s.t. Ax = b
     const int N1 = 3;
     double A_2darray[3][3] = {
-        {0., 0., 0.},
-        {0., 0., 0.},
-        {0., 0., 0.},
+        {1., 1., 1.},
+        {0., 2., 3.},
+        {0., 0., 1.},
     };
     Matrix *A = matrix_alloc(N1, N1);
     array_2_matrix((double *)A_2darray, N1, N1, A);
