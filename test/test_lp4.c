@@ -1,11 +1,9 @@
 #include "lp.h"
 #include "matrix.h"
 #include "vector.h"
-#include "util.h"
 
 int main(int argc, char const *argv[])
 {
-    sqp_init();
     Matrix *A = matrix_alloc(3, 6);
     double A_array[3][6] = {{
                                 2,
@@ -39,6 +37,10 @@ int main(int argc, char const *argv[])
     int init_base[3] = {3, 4, 5};
     Vector *x0 = vector_alloc(6);
     Vector *xstat = vector_alloc(6);
-    // optimize_lp_2stage(c, b, A, xstat);
+    // optimize_simplex_method(c, b, A, xstat, init_base);
+    // vector_print(xstat);
+    // optimize_lp_standard_type(c, b, A, init_base, xstat);
+    // vector_print(xstat);
+    optimize_lp_2stage(c, b, A, xstat);
     return 0;
 }

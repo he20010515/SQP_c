@@ -1,3 +1,4 @@
+from telnetlib import X3PAD
 import numpy as np
 import scipy
 
@@ -39,4 +40,10 @@ def SQP(fun, con, x0, lambda0):
 
 
 if __name__ == "__main__":
+    A = set([(1, 2), (1, 3), (2, 1), (2, 2), (3, 1)])
+
+    X = list(set([x for x, y in A]))
+    Y = [sum([b for (a, b) in A if a == x])
+         for x in X]
+    print(X, Y)
     pass

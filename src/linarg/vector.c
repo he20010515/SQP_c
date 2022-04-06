@@ -11,6 +11,7 @@ Vector *vector_alloc(int size)
     Vector *v = (Vector *)malloc(sizeof(Vector));
     v->entry = (double *)malloc(sizeof(double) * size);
     v->size = size;
+    vector_fill_const(v, NAN);
     return v;
 };
 

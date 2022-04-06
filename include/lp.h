@@ -21,3 +21,4 @@ void *linearconstraints_verification(const LinearConstraints *con, const Vector 
 
 double optimize_lp_standard_type(const Vector *c, const Vector *b, const Matrix *A, const int *init_base, Vector *xstar);
 void optimize_lp_2stage(const Vector *c, const Vector *b, const Matrix *A, Vector *xstar);
+void optimize_simplex_method(const Vector *_c, const Vector *_b, const Matrix *_A, Vector *xstar, int *init_base);
