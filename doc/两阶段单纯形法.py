@@ -1,3 +1,7 @@
+from codecs import BOM_UTF16_BE
+from lib2to3.pgen2.token import ATEQUAL
+from sre_constants import AT_UNI_BOUNDARY
+from matplotlib.image import NonUniformImage
 import numpy as np
 import time
 
@@ -131,25 +135,38 @@ if __name__ == '__main__':
         0.3*x1+0.1*x2<=2.7          #A_ub*x1<=b_ub
     '''
 
-    c = np.array([0.4, 0.5, 0])
-    # 不等式约束<=
-    A_ub = np.array([[0.3, 0.1, 0]])
-    b_ub = np.array([2.7])
-    # 等式约束
-    A_eq = np.array([[0.5, 0.5, 0],
-                     [0.6, 0.4, -1]])
-    b_eq = np.array([6, 6])
-    '''
-    x=4000                                        
-    y=5*x                                        
-    c = np.random.randint(-10, 10, (y))          
-    # 不等式约束<=
+    # c = np.array([0.4, 0.5, 0])
+    # # 不等式约束<=
+    # A_ub = np.array([[0.3, 0.1, 0]])
+    # b_ub = np.array([-2.7])
+    # # 等式约束
+    # A_eq = np.array([[0.5, 0.5, 0],
+    #                  [0.6, 0.4, -1]])
+    # b_eq = np.array([6, 6])
+
+    # A_ub = np.array([[1, -1, 0],
+    #                  [2, 0, -1]])
+    # b_ub = np.array([-1, -3])
+    # c = np.array([1, -1, 0])
+    # A_eq = np.array([1, 0, -1])
+    # b_eq = np.array([0.0])
+
+    # x = 4000
+    # y = 5*x
+    # c = np.random.randint(-10, 10, (y))
+    # # 不等式约束<=
+    # A_ub = np.array([])
+    # b_ub = np.array([])
+    # # 等式约束
+    # A_eq = np.random.randint(0, 20, (x, y))
+    # b_eq = np.random.randint(0, 50, (x))
+
+    A_eq = np.array([[1, 2, 1, 0], [2, 1, 0, 1]])
+    b_eq = np.array([1, 1])
     A_ub = np.array([])
     b_ub = np.array([])
-    # 等式约束
-    A_eq = np.random.randint(0, 20, (x, y))
-    b_eq = np.random.randint(0, 50, (x))
-    '''
+    c = np.array([-1, -1, 0, 0])
+
     # 输出小数位数
     time.perf_counter()
     digit = 2

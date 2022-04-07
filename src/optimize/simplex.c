@@ -131,6 +131,7 @@ void simplex_solve(Simplex *self)
     {
         // 直至所有非基变量检验数小于等于0;
         //合并多个解的情况,即时非基变量检验数等于0也停止迭代
+        matrix_print(self->T);
         Vector *temp = vector_alloc(self->T->col_size - 1);
         for (int i = 0; i < temp->size; i++)
             temp->entry[i] = self->T->matrix_entry[self->T->row_size - 1][i];
@@ -228,11 +229,13 @@ void simplex_main(Simplex *self, Vector *xstar)
     simplex_inital_value(self);
     if (self->meq > 0)
     {
+        matrix_print(self->T);
         log_i("phase 1");
         simplex_solve(self);
         //消除人工变量
         simplex_change(self);
         log_i("pahse 2");
+        matrix_print(self->T);
         simplex_solve(self);
         matrix_print(self->T);
     }
