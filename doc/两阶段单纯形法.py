@@ -5,6 +5,8 @@ from matplotlib.image import NonUniformImage
 import numpy as np
 import time
 
+from scipy.optimize import linprog
+
 
 class Simplex(object):
     def __init__(self, c, A_ub, b_ub, A_eq, b_eq):  # 初始化函数
@@ -72,6 +74,7 @@ class Simplex(object):
     def calculate(self):
         H = list(self.T[-1, :-1])
         j_num = H.index(max(H))
+        H
         D = []
         for i in range(0, self.m):
             if self.T[i][j_num] == 0:
@@ -161,12 +164,19 @@ if __name__ == '__main__':
     # A_eq = np.random.randint(0, 20, (x, y))
     # b_eq = np.random.randint(0, 50, (x))
 
-    A_eq = np.array([[1, 2, 1, 0], [2, 1, 0, 1]])
-    b_eq = np.array([1, 1])
+    A_eq = np.array([[-1, 2, 1, 2, 1, 0, 0, 0, 0],
+                     [1, 2, -1, -2, 0, 1, 0, 0, 0],
+                     [1, -2, -1, 2, 0, 0, 1, 0, 0],
+                     [1, 0, -1, 0, 0, 0, 0, -1, 0],
+                     [0, 1, 0, -1, 0, 0, 0, 0, -1]])
+
+    b_eq = np.array([2, 6, 2, 0, 0])
     A_ub = np.array([])
     b_ub = np.array([])
-    c = np.array([-1, -1, 0, 0])
-
+    c = np.array([-2, -5, 2, 5, 0, 0, 0, 0, 0])
+    print(np.linalg.matrix_rank(A_eq))
+    res = linprog(c, None, None, A_eq, b_eq,method='simplex')
+    print(res)
     # 输出小数位数
     time.perf_counter()
     digit = 2

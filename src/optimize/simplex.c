@@ -5,6 +5,8 @@
 #include "math.h"
 #include "simplex.h"
 
+#define LOG_TAG "simplex"
+
 /*
 Solve Problem :
     min         z = c^T x
@@ -147,10 +149,13 @@ void simplex_solve(Simplex *self)
 {
     int num = 0;
     int flag = true;
+    int iternum = 0;
     while (flag)
     {
+
         // 直至所有非基变量检验数小于等于0;
-        //合并多个解的情况,即时非基变量检验数等于0也停止迭代
+        // 合并多个解的情况,即时非基变量检验数等于0也停止迭代
+        // TODO use hack method to optimize speed here
         Vector *temp = vector_alloc(self->T->col_size - 1);
         for (int i = 0; i < temp->size; i++)
             temp->entry[i] = self->T->matrix_entry[self->T->row_size - 1][i];
@@ -165,6 +170,12 @@ void simplex_solve(Simplex *self)
         }
         if (self->F == 0)
             break;
+        iternum++;
+        if (iternum >= 100)
+        {
+            log_w("iter overflow");
+            break;
+        }
     }
 }
 

@@ -214,6 +214,18 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const LinearConstra
     //                   (when i = m+1,m+2,...,m+k is '<=')
 
     // alloc workspace
+    int x0_give = true;
+    if (x0 == NULL)
+    {
+        // use simplex method to find a start fesable solution
+        x0 = vector_alloc(cons->dim);
+        Vector *tempc = vector_alloc(c->size);
+        vector_fill_const(tempc, 5.0);
+        optimize_lp(cons, c, (Vector *)x0);
+        vector_free(tempc);
+        x0_give = false;
+    }
+
     int m = cons->size;
     Index_set *W_k = index_set_alloc(m); // 工作集
     Index_set *index_set_I = index_set_alloc(m);
@@ -314,6 +326,10 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const LinearConstra
     vector_free(x_k);
     vector_free(x_k_1);
     free(y);
+    if (!x0_give)
+    {
+        vector_free(x0);
+    }
 
     return 0;
 }

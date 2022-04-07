@@ -42,7 +42,7 @@ int main(int argc, char const *argv[])
     x0->entry[0] = 2;
     x0->entry[1] = 0;
     Vector *lambda = vector_alloc(5);
-    optimize_qp_active_set(G, c, con, x0, xstar,lambda);
+    optimize_qp_active_set(G, c, con, NULL, xstar, lambda);
     vector_print(xstar);
     vector_print(lambda);
     return 0;
