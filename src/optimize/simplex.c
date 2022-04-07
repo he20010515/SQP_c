@@ -213,6 +213,7 @@ int simplex_calculate(Simplex *self)
         else
             continue;
     }
+    vector_free(D);
     return 1;
 }
 
