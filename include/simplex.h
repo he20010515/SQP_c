@@ -24,4 +24,4 @@ void simplex_free(Simplex *self);
 void simplex_solve(Simplex *self);
 int simplex_calculate(Simplex *self);
 void simplex_change(Simplex *self);
-void simplex_main(Simplex *self, Vector *xstar);
+int simplex_main(Simplex *self, Vector *xstar);

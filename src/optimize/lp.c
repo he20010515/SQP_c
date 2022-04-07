@@ -3,6 +3,10 @@
 #include "lp.h"
 #include "util.h"
 #include "math.h"
+#include "simplex.h"
+#include "elog.h"
+
+#define LOG_TAG "lp"
 /*
 求解线性规划(LP)问题的程序,主要用于计算QP问题中的初始值
 */
@@ -201,55 +205,99 @@ int __trans(Matrix *mat, int *vect)
     vect[out_base] = in_base;
 }
 
-//求解线性规划标准形式, 不需要初始解
-void optimize_lp_2stage(const Vector *c, const Vector *b, const Matrix *A, Vector *xstar)
+int optimize_lp(const LinearConstraints *con, const Vector *c, Vector *x0)
 {
-    // see: https://baike.baidu.com/item/%E4%B8%A4%E9%98%B6%E6%AE%B5%E6%B3%95/9302919
-    // Solve Problem:
-    //  max z = c^Tx
-    //  Ax = b
-    //  x_i >=0  i = 1,2,...,n
-    int m = A->row_size;
-    int n = A->col_size;
-    // step1 : 添加人工变量
-    //  min w = 0^Tx + 1^T xr
-    //  Ax + Exr = b
-    //  x_i >=0  i = 1,2,...,n
-    Vector *xxr = vector_alloc(m + n);   //原维度+约束数量
-    Matrix *AA = matrix_alloc(m, m + n); // step1约束矩阵
-    const Vector *bb = b;
-    Vector *cc = vector_alloc(m + n);
-    for (int i = 0; i < m + n; i++) // fill cc
+    // Trans Problem From:
+    // min c^T x
+    // s.t. Ax == b (i < e    )
+    //      Ax >= b (e <=i < m)
+    // TO:
+    // min c^T (x-x') + 0^T *xs
+    // s.t.   A(x-x')      == b
+    //        A(x-x') - xs == b
+    // Use simplex method to solve this problem
+
+    // matrixA' :
+    // [        [ 0 ]]
+    // [A  -A   [ E ]]
+    // [        [ E ]]
+    // X" = [x0',x1',...,xn-1',x0",x1",...,xn-1",xs1,xs2,..,xsm];
+    int n = con->dim;  //维度
+    int m = con->size; //原约束大小
+    int k = con->e;    //等式数量
+    Matrix *mat = matrix_alloc(m, 2 * n + m - k);
+    for (int i = 0; i < mat->row_size; i++)
     {
-        if (i < n)
-            cc->entry[i] = 0.0;
-        else
-            cc->entry[i] = 1.0;
-    }
-    for (int i = 0; i < m; i++) // fill AA
-    {
-        for (int j = 0; j < m + n; j++)
+        for (int j = 0; j < mat->col_size; j++)
         {
-            if (j < m)
+            if (j < 2 * n)
             {
-                AA->matrix_entry[i][j] = A->matrix_entry[i][j];
+                // A -A
+                if (j < n)
+                    mat->matrix_entry[i][j] = con->A->matrix_entry[i][j];
+                if (n <= j AND j < 2 * n)
+                    mat->matrix_entry[i][j] = -con->A->matrix_entry[i][j - n];
             }
-            else
+            else // j>=2*n
             {
-                if (i == j - n)
-                    AA->matrix_entry[i][j] = 1.0;
+                if (i < k)
+                    mat->matrix_entry[i][j] = 0.0;
                 else
-                    AA->matrix_entry[i][j] = 0.0;
+                {
+                    if (i - k == j - 2 * n)
+                        mat->matrix_entry[i][j] = -1;
+                    else
+                        mat->matrix_entry[i][j] = 0;
+                }
             }
         }
     }
-    int *vect = (int *)malloc(sizeof(int) * m); // 初始基
-    for (int i = 0; i < m; i++)
-        vect[i] = n + i;
-    vector_print(cc);
-    matrix_print(AA);
-    optimize_simplex_method(cc, bb, AA, xxr, vect);
-    vector_print(xxr);
-    // step2 计算解
-    free(vect);
+    Vector *b = vector_alloc(con->b->size);
+    for (int i = 0; i < mat->row_size; i++)
+    {
+        if (con->b->entry[i] < 0)
+        {
+            b->entry[i] = -con->b->entry[i];
+            for (int j = 0; j < mat->col_size; j++)
+                mat->matrix_entry[i][j] *= -1;
+        }
+        else
+            b->entry[i] = con->b->entry[i];
+    }
+    Vector *tempc = vector_alloc(mat->col_size);
+    for (int i = 0; i < mat->col_size; i++)
+    {
+        if (i < 2 * n)
+        {
+            if (i < n)
+                tempc->entry[i] = c->entry[i];
+            else
+                tempc->entry[i] = -c->entry[i - con->dim];
+        }
+        else
+            tempc->entry[i] = 0.;
+    }
+    Simplex *problem = simplex_alloc(tempc, NULL, NULL, mat, b);
+    Vector *temp_x0 = vector_alloc(2 * n + m - k);
+    int flag = simplex_main(problem, temp_x0);
+
+    if (flag == 1)
+    {
+        // case optional solution found
+        for (int i = 0; i < con->dim; i++)
+            x0->entry[i] = temp_x0->entry[i] - temp_x0->entry[i + con->dim];
+    }
+    else
+    {
+        // case infity solution
+        for (int i = 0; i < con->dim; i++)
+            x0->entry[i] = INFINITY;
+    }
+
+    simplex_free(problem);
+    matrix_free(mat);
+    vector_free(b);
+    vector_free(tempc);
+    vector_free(temp_x0);
+    return flag;
 }

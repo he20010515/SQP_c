@@ -5,6 +5,21 @@
 #include "math.h"
 #include "simplex.h"
 
+/*
+Solve Problem :
+    min         z = c^T x
+    s.t.   A_eq x = b_eq
+           A_ub x = b_ub
+           x>=0,b_eq>=0,c_eq>=0;
+Method:
+Simplex *problem = simplex_alloc(c,A_ub,b_ub,A_eq,B_eq);
+int flag = simplex_main(problem,xstar);
+    //* flag 1 Optimal solution found
+    //* flag 0 infity solution
+    //*
+simplex_free(problem)
+*/
+
 Simplex *simplex_alloc(const Vector *c, const Matrix *A_ub, const Vector *b_ub, const Matrix *A_eq, const Vector *b_eq)
 {
     Simplex *self = (Simplex *)malloc(sizeof(Simplex));
@@ -112,10 +127,15 @@ void simplex_inital_value(Simplex *self)
 void simplex_free(Simplex *self)
 {
     vector_free(self->c);
-    matrix_free(self->A_ub);
-    vector_free(self->b_ub);
-    matrix_free(self->A_eq);
-    vector_free(self->b_eq);
+    if (self->b_ub != NULL)
+        vector_free(self->b_ub);
+    if (self->A_ub != NULL)
+        matrix_free(self->A_ub);
+
+    if (self->b_eq != NULL)
+        vector_free(self->b_eq);
+    if (self->A_eq != NULL)
+        matrix_free(self->A_eq);
     if (self->T != NULL)
         matrix_free(self->T);
     if (self->T != NULL)
@@ -131,7 +151,6 @@ void simplex_solve(Simplex *self)
     {
         // 直至所有非基变量检验数小于等于0;
         //合并多个解的情况,即时非基变量检验数等于0也停止迭代
-        matrix_print(self->T);
         Vector *temp = vector_alloc(self->T->col_size - 1);
         for (int i = 0; i < temp->size; i++)
             temp->entry[i] = self->T->matrix_entry[self->T->row_size - 1][i];
@@ -217,27 +236,23 @@ void simplex_change(Simplex *self)
         Vector *temp = vector_alloc(self->T->col_size);
         for (int j = 0; j < temp->size; j++)
             temp->entry[j] = self->T->matrix_entry[i][j] * self->T->matrix_entry[self->T->row_size - 1][self->sign[i]];
-        vector_print(temp);
         for (int j = 0; j < self->T->col_size; j++)
             self->T->matrix_entry[self->T->row_size - 1][j] -= temp->entry[j];
         vector_free(temp);
     }
 }
 
-void simplex_main(Simplex *self, Vector *xstar)
+int simplex_main(Simplex *self, Vector *xstar)
 {
     simplex_inital_value(self);
     if (self->meq > 0)
     {
-        matrix_print(self->T);
         log_i("phase 1");
         simplex_solve(self);
         //消除人工变量
         simplex_change(self);
         log_i("pahse 2");
-        matrix_print(self->T);
         simplex_solve(self);
-        matrix_print(self->T);
     }
     else
     {
@@ -274,4 +289,5 @@ void simplex_main(Simplex *self, Vector *xstar)
     {
         log_v("infity solution");
     }
+    return self->F;
 }
