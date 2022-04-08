@@ -9,14 +9,9 @@ int main(int argc, char const *argv[])
     // f = (x-1)^2 + (y-2)^2 + (z-3)^2 // 这个例子的目标函数
     // s.t. x   == y                   // 等式约束
     //      x+z >= 2                   // 不等式约束
-
     Matrix *G = matrix_alloc(3, 3); // 申请二次型矩阵的存储空间 G
     double G_array[3][3] = {        // G的元素
-                            {
-                                2,
-                                0,
-                                0,
-                            },
+                            {2, 0, 0,},
                             {0, 2, 0},
                             {0, 0, 2}};
     array_2_matrix((double *)G_array, 3, 3, G); //赋值
