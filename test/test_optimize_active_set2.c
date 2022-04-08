@@ -42,7 +42,7 @@ int main(int argc, char const *argv[])
     Vector *xstar = vector_alloc(2);
     x0->entry[0] = 1.2;
     x0->entry[1] = 0.8;
-    optimize_qp_active_set(G, c, con, x0, xstar, lambda);
+    optimize_qp_active_set(G, c, con, NULL, xstar, lambda);
     vector_print(xstar);
     return 0;
 }

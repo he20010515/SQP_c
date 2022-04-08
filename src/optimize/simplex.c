@@ -171,7 +171,7 @@ void simplex_solve(Simplex *self)
         if (self->F == 0)
             break;
         iternum++;
-        if (iternum >= 100)
+        if (iternum >= 5000)
         {
             log_w("iter overflow");
             break;

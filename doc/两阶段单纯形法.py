@@ -174,12 +174,12 @@ if __name__ == '__main__':
     A_ub = np.array([])
     b_ub = np.array([])
     c = np.array([-2, -5, 2, 5, 0, 0, 0, 0, 0])
-    print(np.linalg.matrix_rank(A_eq))
-    res = linprog(c, None, None, A_eq, b_eq,method='simplex')
+    # print(np.linalg.matrix_rank(A_eq))
+    res = linprog(c, None, None, A_eq, b_eq, method='simplex')
     print(res)
     # 输出小数位数
-    time.perf_counter()
-    digit = 2
-    Problem = Simplex(c, A_ub, b_ub, A_eq, b_eq)
-    Problem.Main()
-    print('Running time: %s Seconds', time.perf_counter())
+    # time.perf_counter()
+    # digit = 2
+    # Problem = Simplex(c, A_ub, b_ub, A_eq, b_eq)
+    # Problem.Main()
+    # print('Running time: %s Seconds', time.perf_counter())

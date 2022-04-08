@@ -280,9 +280,9 @@ int optimize_lp(const LinearConstraints *con, const Vector *c, Vector *x0)
     Simplex *problem = simplex_alloc(tempc, NULL, NULL, mat, b);
     Vector *temp_x0 = vector_alloc(2 * n + m - k);
 
-    matrix_print(mat);
-    vector_print(tempc);
-    vector_print(b);
+    // matrix_print(mat);
+    // vector_print(tempc);
+    // vector_print(b);
 
     int flag = simplex_main(problem, temp_x0);
 
