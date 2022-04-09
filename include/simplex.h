@@ -25,3 +25,4 @@ void simplex_solve(Simplex *self);
 int simplex_calculate(Simplex *self);
 void simplex_change(Simplex *self);
 int simplex_main(Simplex *self, Vector *xstar);
+int _linprog_simplex(const Vector *c, const Matrix *A, const Vector *b, int maxiter, double tol, int bland, Vector *x);
