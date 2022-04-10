@@ -24,8 +24,8 @@ int main(int argc, char const *argv[])
     b_eq->entry[0] = 6.0;
     b_eq->entry[1] = 6.0;
     Vector *xstar = vector_alloc(3);
-    Simplex *problem = simplex_alloc(c, A_ub, b_ub, A_eq, b_eq);
-    simplex_main(problem, xstar);
+    _linprog_simplex(c, A_eq, b_eq, 100, 1e-8, FALSE, xstar);
+
     vector_print(xstar);
 
     return 0;

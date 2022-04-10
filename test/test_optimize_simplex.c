@@ -29,8 +29,7 @@ int main(int argc, char const *argv[])
         c->entry[0] = -3;
         c->entry[1] = 1;
         c->entry[2] = 1;
-        optimize_lp(con, c, x0);
-
+        optimize_lp(con, c, x0, 100, 1e-7, FALSE);
         vector_print(x0);
 
         matrix_free(A);

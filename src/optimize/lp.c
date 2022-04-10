@@ -11,9 +11,6 @@
 求解线性规划(LP)问题的程序,主要用于计算QP问题中的初始值
 */
 
-int __judge(const Matrix *mat);
-int __trans(Matrix *mat, int *vect);
-
 //线性约束
 LinearConstraints *linearconstraints_alloc(int dim, int size, int e, int i, Matrix *A, Vector *b)
 {
@@ -102,110 +99,7 @@ void linearconstrains_subconstrains(const LinearConstraints *con, const Index_se
     }
 }
 
-double optimize_lp_standard_type(const Vector *c, const Vector *b, const Matrix *A, const int *init_base, Vector *xstar)
-{
-    // 求解线性规划标准形式,需要初始基集合,初始基集合必须为单位阵
-    // see: https://blog.csdn.net/qq_47723068/article/details/109537450
-    // Solve Problem:
-    //  max z = c^Tx
-    //  Ax = b
-    //  x_i >=0  i = 1,2,...,n
-    // check input
-    if (!(c->size == A->col_size AND A->row_size == b->size))
-        terminate("optimize_lp_standard_type: input don't fit");
-
-    // 申请单纯形表矩阵
-    Matrix *mat = matrix_alloc(A->row_size + 1, A->col_size + 1);
-    // init
-    for (int i = 0; i < A->row_size; i++)
-        for (int j = 0; j < A->col_size; j++)
-            mat->matrix_entry[i][j] = A->matrix_entry[i][j];
-    for (int i = 0; i < b->size; i++)
-        mat->matrix_entry[i][mat->col_size - 1] = b->entry[i];
-    for (int i = 0; i < c->size; i++)
-        mat->matrix_entry[mat->row_size - 1][i] = c->entry[i];
-    mat->matrix_entry[mat->row_size - 1][mat->col_size - 1] = 0;
-
-    int *vect = (int *)malloc(sizeof(int) * A->row_size);
-    // TODO initVect
-    for (int i = 0; i < A->row_size; i++)
-        vect[i] = init_base[i];
-    matrix_print(mat);
-    while (__judge(mat))
-    {
-        __trans(mat, vect);
-        matrix_print(mat);
-    }
-    // return answer:
-    for (int i = 0; i < A->col_size; i++)
-    {
-        int flag = -1;
-        for (int j = 0; j < A->row_size; j++)
-        {
-            if (vect[j] == i)
-            {
-                flag = j;
-                break;
-            }
-            else
-
-                flag = -1;
-        }
-        // if i in vect:
-        if (flag != -1)
-            xstar->entry[i] = mat->matrix_entry[flag][mat->col_size - 1];
-        // else
-        else
-            xstar->entry[i] = 0.0;
-    }
-    matrix_free(mat);
-    return vector_inner_product(c, xstar);
-}
-
-int __judge(const Matrix *mat)
-{
-    double m = mat->matrix_entry[mat->row_size - 1][0];
-    for (int i = 0; i < mat->col_size - 1; i++)
-        m = MAX(m, mat->matrix_entry[mat->row_size - 1][i]);
-    if (m <= 0.0)
-        return FALSE;
-    else
-        return TRUE;
-}
-
-int __trans(Matrix *mat, int *vect)
-{
-    Vector *temp = vector_alloc(mat->col_size - 1);
-    for (int i = 0; i < mat->col_size - 1; i++)
-        temp->entry[i] = mat->matrix_entry[mat->row_size - 1][i];
-    int in_base = vector_argmax(temp); // 入基变量
-
-    vector_free(temp);
-    Vector *temp_2 = vector_alloc(mat->row_size - 1);
-    vector_fill_const(temp_2, NAN);
-    for (int i = 0; i < mat->row_size - 1; i++) // 不遍历最后一行
-        if (mat->matrix_entry[i][in_base] > 0.0)
-            temp_2->entry[i] = mat->matrix_entry[i][mat->col_size - 1] / mat->matrix_entry[i][in_base];
-    int out_base = vector_argmin(temp_2); //出基变量的角标;
-    vector_free(temp_2);
-
-    double k = (mat->matrix_entry[out_base][in_base]);
-    for (int i = 0; i < mat->col_size; i++) // out_base[pivot][index]
-        mat->matrix_entry[out_base][i] = ((mat->matrix_entry[out_base][i]) / k);
-    for (int i = 0; i < mat->row_size; i++)
-    {
-        if (i != out_base)
-        {
-            // matrix的第i行等于 matrix的第i行减去 matrix[i][index] *matrix[prvot]
-            k = mat->matrix_entry[i][in_base];
-            for (int j = 0; j < mat->col_size; j++)
-                mat->matrix_entry[i][j] = mat->matrix_entry[i][j] - k * mat->matrix_entry[out_base][j];
-        }
-    }
-    vect[out_base] = in_base;
-}
-
-int optimize_lp(const LinearConstraints *con, const Vector *c, Vector *x0)
+int optimize_lp(const LinearConstraints *con, const Vector *c, Vector *x0, int maxiter, double tol, int bland)
 {
     // Trans Problem From:
     // min c^T x
@@ -277,29 +171,17 @@ int optimize_lp(const LinearConstraints *con, const Vector *c, Vector *x0)
         else
             tempc->entry[i] = 0.;
     }
-    Simplex *problem = simplex_alloc(tempc, NULL, NULL, mat, b);
     Vector *temp_x0 = vector_alloc(2 * n + m - k);
-
     // matrix_print(mat);
     // vector_print(tempc);
     // vector_print(b);
-
-    int flag = simplex_main(problem, temp_x0);
-
-    if (flag == 1)
+    int flag = _linprog_simplex(tempc, mat, b, maxiter, tol, bland, temp_x0);
+    if (flag == 0)
     {
         // case optional solution found
         for (int i = 0; i < con->dim; i++)
             x0->entry[i] = temp_x0->entry[i] - temp_x0->entry[i + con->dim];
     }
-    else
-    {
-        // case infity solution
-        for (int i = 0; i < con->dim; i++)
-            x0->entry[i] = INFINITY;
-    }
-
-    simplex_free(problem);
     matrix_free(mat);
     vector_free(b);
     vector_free(tempc);

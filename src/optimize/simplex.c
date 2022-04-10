@@ -1,305 +1,552 @@
 #include "matrix.h"
 #include "vector.h"
+
 #include "elog.h"
-#include "lp.h"
 #include "math.h"
-#include "simplex.h"
 
-#define LOG_TAG "simplex"
+#define LOG_TAG "scipy_simplex"
 
-/*
-Solve Problem :
-    min         z = c^T x
-    s.t.   A_eq x = b_eq
-           A_ub x = b_ub
-           x>=0,b_eq>=0,c_eq>=0;
-Method:
-Simplex *problem = simplex_alloc(c,A_ub,b_ub,A_eq,B_eq);
-int flag = simplex_main(problem,xstar);
-    //* flag 1 Optimal solution found
-    //* flag 0 infity solution
-    //*
-simplex_free(problem)
-*/
-
-Simplex *simplex_alloc(const Vector *c, const Matrix *A_ub, const Vector *b_ub, const Matrix *A_eq, const Vector *b_eq)
+int _pivot_col(Matrix *T, int bland, double tol)
 {
-    Simplex *self = (Simplex *)malloc(sizeof(Simplex));
-    self->c = vector_alloc(c->size);
-    vector_copy(c, self->c);
-    if (A_ub == NULL OR b_ub == NULL)
+    // 给定一个线性规划单纯形表，确定要输入基础的变量列。
+
+    // 参数
+    // ----------
+    // T : 二维数组
+    //     表示单纯形表 T 的二维数组，对应于
+    //     线性规划问题。它应该具有以下形式：
+
+    //     [[A[0, 0], A[0, 1], ..., A[0, n_total], b[0]],
+    //      [A[1, 0], A[1, 1], ..., A[1, n_total], b[1]],
+    //      .
+    //      .
+    //      .
+    //      [A[m, 0], A[m, 1], ..., A[m, n_total], b[m]],
+    //      [c[0], c[1], ..., c[n_total], 0]]
+
+    //     对于第 2 阶段的问题，或形式：
+
+    //     [[A[0, 0], A[0, 1], ..., A[0, n_total], b[0]],
+    //      [A[1, 0], A[1, 1], ..., A[1, n_total], b[1]],
+    //      .
+    //      .
+    //      .
+    //      [A[m, 0], A[m, 1], ..., A[m, n_total], b[m]],
+    //      [c[0], c[1], ..., c[n_total], 0],
+    //      [c'[0], c'[1], ..., c'[n_total], 0]]
+
+    //      对于第 1 阶段问题（在最大化实际目标之前寻求基本可行解决方案的问题。``T`` 由``_solve_simplex`` 修改。
+    // tol : 浮动
+    //     目标行中大于 -tol 的元素将不考虑进行旋转。名义上这个值是零，但数值问题导致零公差是必要的。
+    // Bland：布尔
+    //     如果为 True，则使用 Bland 规则选择列（选择目标行中具有负系数的第一列，无论大小如何）。
+
+    // return
+    // --------
+    // 状态：布尔
+    //     如果找到合适的数据透视列，则为 True，否则为 False。返回 False 表示线性规划单纯形算法已完成。
+    // col：整数
+    //     枢轴元素的列的索引。
+    //     如果 status 为 False，col 将返回为 -1;
+    int flag = -1;
+    int *ma = malloc(sizeof(int) * (T->col_size - 1));
+    double *mma = malloc(sizeof(double) * (T->col_size - 1));
+    for (int i = 0; i < T->col_size - 1; i++)
+        if (T->matrix_entry[T->row_size - 1][i] < -tol)
+        {
+            ma[i] = true;
+            mma[i] = T->matrix_entry[T->row_size - 1][i];
+        }
+        else
+        {
+            ma[i] = false;
+            mma[i] = NAN;
+        }
+    int sum = 0;
+    for (int i = 0; i < T->col_size - 1; i++)
+        sum += ma[i];
+    if (sum == 0)
     {
-        self->A_ub = NULL;
-        self->b_ub = NULL;
+        free(ma);
+        free(mma);
+        return -1;
+    }
+    if (bland) // blad 法则,返回第一个小于-tol 的数
+    {
+        for (int i = 0; i < T->col_size; i++)
+            if (!ma[i])
+            {
+                flag = i;
+                break;
+            }
     }
     else
     {
-        self->A_ub = matrix_alloc(A_ub->row_size, A_ub->col_size);
-        matrix_copy((Matrix *)A_ub, self->A_ub);
-        self->b_ub = vector_alloc(b_ub->size);
-        vector_copy(b_ub, self->b_ub);
-        assert((A_ub->row_size == b_ub->size) AND(A_ub->col_size == c->size))
+        Vector V;
+        V.entry = mma;
+        V.size = T->col_size - 1;
+        flag = vector_argmin(&V);
     }
-    if (A_eq == NULL OR b_eq == NULL)
-    {
-        self->A_eq = NULL;
-        self->b_eq = NULL;
-    }
+    free(ma);
+    free(mma);
+    return flag;
+}
+
+int _pivot_row(Matrix *T, int *basis, int basis_size, int pivcol, int phase, double tol, int bland)
+{
+    // 给定一个线性规划单纯形表，确定枢轴操作的行。
+
+    // 参数
+    // ----------
+    // T : 二维数组
+    //     一个表示单纯形表 T 的二维数组，对应于线性规划问题。它应该具有以下形式：
+
+    //     [[A[0, 0], A[0, 1], ..., A[0, n_total], b[0]],
+    //      [A[1, 0], A[1, 1], ..., A[1, n_total], b[1]],
+    //      .
+    //      .
+    //      .
+    //      [A[m, 0], A[m, 1], ..., A[m, n_total], b[m]],
+    //      [c[0], c[1], ..., c[n_total], 0]]
+
+    //     对于第 2 阶段的问题，或形式：
+
+    //     [[A[0, 0], A[0, 1], ..., A[0, n_total], b[0]],
+    //      [A[1, 0], A[1, 1], ..., A[1, n_total], b[1]],
+    //      .
+    //      .
+    //      .
+    //      [A[m, 0], A[m, 1], ..., A[m, n_total], b[m]],
+    //      [c[0], c[1], ..., c[n_total], 0],
+    //      [c'[0], c'[1], ..., c'[n_total], 0]]
+
+    //      对于第一阶段问题（在最大化实际目标之前寻求基本可行解决方案的问题。“T”由“_solve_simplex”修改。
+    // 基础：数组
+    //     当前基本变量的列表。
+    // pivcol : 整数
+    //     数据透视列的索引。
+    // 阶段：int
+    //     单纯形算法的阶段（1 或 2）。
+    // tol : 浮动
+    //     枢轴列中小于 tol 的元素将不被考虑进行枢轴。名义上这个值是零，但数值问题导致零公差是必要的。
+    // 平淡无奇：布尔
+    //     如果为 True，则使用 Bland 规则选择行（如果可以使用多行，则选择具有最低变量索引的行）。
+
+    // 退货
+    // --------
+    // 状态：布尔
+    //     如果找到合适的数据透视行，则为 True，否则为 False。返回 False 表示线性规划问题是无界的。
+    // 行：int
+    //     枢轴元素所在行的索引。如果 status 为 False，则 row 将返回为 nan。
+    // """
+    int k;
+    if (phase == 1)
+        k = 2;
     else
-    {
-        self->A_eq = matrix_alloc(A_eq->row_size, A_eq->col_size);
-        matrix_copy((Matrix *)A_eq, self->A_eq);
-        self->b_eq = vector_alloc(b_eq->size);
-        vector_copy(b_eq, self->b_eq);
-        assert((A_eq->row_size == b_eq->size) AND(A_eq->col_size == c->size))
-    }
-
-    if (self->A_eq == NULL AND self->A_ub == NULL)
-    {
-        log_e("must have linearconstraints");
-        exit(-1);
-    }
-
-    self->N_x = 0;
-    self->meq = 0;
-    self->mub = 0;
-    self->m = 0;
-    self->T = NULL;
-    self->sign = NULL;
-    self->F = 1;
-}
-
-void simplex_inital_value(Simplex *self)
-{
-    self->N_x = self->c->size;
-    // 按照约束类型求解
-    if (self->A_eq != NULL) //判断等式约束有无
-        self->meq = self->A_eq->row_size;
-    if (self->A_ub != NULL) //判断不等式约束有无
-        self->mub = self->A_ub->row_size;
-    self->m = self->mub + self->meq; //所有约束的行数
-    // 建立第一阶段单纯形表
-    self->T = matrix_alloc(self->m + 1, self->N_x + self->m + 1);
-    matrix_fill_const(self->T, 0.0);
-    // 判断两种约束的有无
-    // T矩阵上半部分为等式约束，下半部分为不等式约束
-    // b = self.T[:-1,-1]
-    if (self->meq > 0)
-    {
-        // self.T[:self.meq, :self.N_x] = self.A_eq
-        for (int i = 0; i < self->meq; i++)
-            for (int j = 0; j < self->N_x; j++)
-                self->T->matrix_entry[i][j] = self->A_eq->matrix_entry[i][j];
-        // b[:self.meq] = self.b_eq
-        for (int i = 0; i < self->meq; i++)
-            self->T->matrix_entry[i][self->T->col_size - 1] = self->b_eq->entry[i];
-    }
-
-    if (self->mub > 0)
-    {
-        // self.T[self.meq:self.m, :self.N_x] = self.A_ub
-        for (int i = self->meq; i < self->m; i++)
-            for (int j = 0; j < self->N_x; j++)
-                self->T->matrix_entry[i][j] = self->A_ub->matrix_entry[i - self->meq][j];
-        // b[self.meq:self.m] = self.b_ub
-        for (int i = self->meq; i < self->m; i++)
-            self->T->matrix_entry[i][self->T->col_size - 1] = self->b_ub->entry[i - self->meq];
-    }
-
-    //人工变量与松弛变量系数设置为1
-    for (int i = 0; i < self->m; i++)
-        for (int j = self->N_x; j < self->N_x + self->m; j++)
-            if (i == j - self->N_x)
-                self->T->matrix_entry[i][j] = 1.0;
-
-    // T矩阵最后一行表示-c;
-    // 第一阶段:
-    for (int j = self->N_x; j < self->N_x + self->meq; j++)
-        self->T->matrix_entry[self->T->row_size - 1][j] = -1.;
-    // for i in range(0, self.meq):
-    //     self.T[-1] += self.T[i]
-    for (int i = 0; i < self->meq; i++)
-        for (int j = 0; j < self->T->col_size; j++)
-            self->T->matrix_entry[self->T->row_size - 1][j] += self->T->matrix_entry[i][j];
-    self->sign = (int *)malloc(sizeof(int) * (self->m));
-    for (int i = 0; i < self->m; i++)
-        self->sign[i] = self->N_x + i;
-}
-
-void simplex_free(Simplex *self)
-{
-    vector_free(self->c);
-    if (self->b_ub != NULL)
-        vector_free(self->b_ub);
-    if (self->A_ub != NULL)
-        matrix_free(self->A_ub);
-
-    if (self->b_eq != NULL)
-        vector_free(self->b_eq);
-    if (self->A_eq != NULL)
-        matrix_free(self->A_eq);
-    if (self->T != NULL)
-        matrix_free(self->T);
-    if (self->T != NULL)
-        free(self->sign);
-    free(self);
-}
-
-void simplex_solve(Simplex *self)
-{
-    int num = 0;
-    int flag = true;
-    int iternum = 0;
-    while (flag)
-    {
-
-        // 直至所有非基变量检验数小于等于0;
-        // 合并多个解的情况,即时非基变量检验数等于0也停止迭代
-        // TODO use hack method to optimize speed here
-        Vector *temp = vector_alloc(self->T->col_size - 1);
-        for (int i = 0; i < temp->size; i++)
-            temp->entry[i] = self->T->matrix_entry[self->T->row_size - 1][i];
-        double t = vector_max(temp);
-        vector_free(temp);
-        if (t <= 0)
-            flag = false;
-        else
+        k = 1;
+    int flag = -1;
+    int *ma = malloc(sizeof(int) * (T->row_size - k));
+    double *mma = malloc(sizeof(double) * (T->row_size - k));
+    for (int i = 0; i < T->row_size - k; i++)
+        if (T->matrix_entry[i][pivcol] > tol)
         {
-            num += 1;
-            self->F = simplex_calculate(self);
-        }
-        if (self->F == 0)
-            break;
-        iternum++;
-        if (iternum >= 5000)
-        {
-            log_w("iter overflow");
-            break;
-        }
-    }
-}
-
-int simplex_calculate(Simplex *self)
-{
-    //**Hack;
-    Vector H;
-    H.entry = self->T->matrix_entry[self->T->row_size - 1];
-    H.size = self->T->col_size - 1;
-    int j_num = vector_argmax(&H);
-    //
-    Vector *D = vector_alloc(self->m);
-    for (int i = 0; i < self->m; i++)
-    {
-        if (self->T->matrix_entry[i][j_num] == 0.0)
-            D->entry[i] = INFINITY;
-        else
-            D->entry[i] = self->T->matrix_entry[i][self->T->col_size - 1] / self->T->matrix_entry[i][j_num];
-    }
-    if (vector_max(D) <= 0.0)
-        return 0;
-    //  i_num = D.index(min([x for x in D if x >= 0]))
-    for (int i = 0; i < D->size; i++)
-        if (D->entry[i] < 0)
-            D->entry[i] = NAN;
-    int i_num = vector_argmin(D);
-    self->sign[i_num] = j_num;
-    double t = self->T->matrix_entry[i_num][j_num];
-    //  self.T[i_num] /= t
-    for (int j = 0; j < self->T->col_size; j++)
-        self->T->matrix_entry[i_num][j] /= t;
-    // for i in [x for x in range(0, self.m + 1) if x != i_num]:
-    //     self.T[i] -= self.T[i_num] * self.T[i][j_num]
-    // TODO fix me DONE
-    for (int i = 0; i < self->m + 1; i++)
-    {
-        if (i != i_num)
-        {
-            Vector *temp = vector_alloc(self->T->col_size);
-            for (int j = 0; j < temp->size; j++)
-                temp->entry[j] = self->T->matrix_entry[i_num][j] * self->T->matrix_entry[i][j_num];
-            for (int j = 0; j < self->T->col_size; j++)
-                self->T->matrix_entry[i][j] -= temp->entry[j];
-            vector_free(temp);
+            ma[i] = true;
+            mma[i] = T->matrix_entry[i][pivcol];
         }
         else
-            continue;
-    }
-    vector_free(D);
-    return 1;
-}
-
-void simplex_change(Simplex *self)
-{
-    // 人工变量所在列变为0,替换上第二阶段的c
-    // self.T[:, self.N_x:self.N_x + self.meq] = 0
-    // self.T[-1, 0:self.N_x] = -self.c
-    // for i in range(0, self.m):
-    //    self.T[-1] -= self.T[i] * self.T[-1][int(self.sign[i])]
-
-    for (int i = 0; i < self->T->row_size; i++)
-        for (int j = self->N_x; j < self->N_x + self->meq; j++)
-            self->T->matrix_entry[i][j] = 0.0;
-    for (int j = 0; j < self->N_x - 1; j++)
-    {
-        self->T->matrix_entry[self->T->row_size - 1][j] = -self->c->entry[j];
-    }
-    for (int i = 0; i < self->m; i++)
-    {
-        Vector *temp = vector_alloc(self->T->col_size);
-        for (int j = 0; j < temp->size; j++)
-            temp->entry[j] = self->T->matrix_entry[i][j] * self->T->matrix_entry[self->T->row_size - 1][self->sign[i]];
-        for (int j = 0; j < self->T->col_size; j++)
-            self->T->matrix_entry[self->T->row_size - 1][j] -= temp->entry[j];
-        vector_free(temp);
-    }
-}
-
-int simplex_main(Simplex *self, Vector *xstar)
-{
-    simplex_inital_value(self);
-    if (self->meq > 0)
-    {
-        log_i("phase 1");
-        simplex_solve(self);
-        //消除人工变量
-        simplex_change(self);
-        log_i("pahse 2");
-        simplex_solve(self);
-    }
-    else
-    {
-        log_i("simple");
-        simplex_change(self);
-        simplex_solve(self);
-    }
-
-    if (self->F == 1)
-    {
-        log_v("optional solution found");
-        int j = 0;
-        for (int i = 0; i < self->N_x; i++)
         {
-            int flag = false;
-            for (int k = 0; k < self->m; k++) // if i in
-                if (self->sign[k] == i)
+            ma[i] = false;
+            mma[i] = NAN;
+        }
+    int sum = 0;
+    for (int i = 0; i < T->row_size - k; i++)
+        sum += ma[i];
+    if (sum == 0)
+    {
+        free(ma);
+        free(mma);
+        return -1;
+    }
+
+    double *mmb = malloc(sizeof(double) * (T->row_size - k));
+    for (int i = 0; i < T->row_size - k; i++)
+    {
+        if (ma[i])
+            mmb[i] = T->matrix_entry[i][T->col_size - 1];
+        else
+            mmb[i] = NAN;
+    }
+
+    double *q = malloc(sizeof(double) * (T->row_size - k));
+    for (int i = 0; i < T->row_size - k; i++)
+    {
+        if (ma[i])
+            q[i] = mmb[i] / mma[i];
+        else
+            q[i] = NAN;
+    }
+
+    Vector b;
+    b.size = T->row_size - k;
+    b.entry = q;
+    double qmin = vector_min(&b);
+    int *min_rows = malloc(sizeof(int) * T->row_size - 1);
+    int len = 0;
+    for (int i = 0; i < b.size; i++)
+    {
+        if (b.entry[i] == qmin)
+        {
+            min_rows[len] = i;
+            len++;
+        }
+    }
+
+    if (bland)
+    {
+        // return True, min_rows[np.argmin(np.take(basis, min_rows))]
+        for (int i = 0; i < len; i++)
+        {
+            // if i in basis break;
+            int i_in_basis = false;
+            for (int j = 0; j < basis_size; j++)
+            {
+                if (basis[j] == i)
                 {
-                    flag = true;
+                    i_in_basis = true;
                     break;
                 }
-            if (flag)
+            }
+            if (i_in_basis)
             {
-                xstar->entry[i] = self->T->matrix_entry[j][self->T->col_size - 1];
-                j++;
+                flag = i;
+                break;
+            }
+        }
+    }
+    else
+        flag = min_rows[0];
+
+    free(ma);
+    free(mma);
+    free(mmb);
+    free(q);
+    return flag;
+}
+
+void _apply_pivot(Matrix *T, int *basis, int basis_size, int pivrow, int pivcol, double tol)
+{
+    basis[pivrow] = pivcol;
+    double pivval = T->matrix_entry[pivrow][pivcol];
+    for (int j = 0; j < T->col_size; j++)
+        T->matrix_entry[pivrow][j] /= pivval;
+    for (int irow = 0; irow < T->row_size; irow++)
+    {
+        if (irow != pivrow)
+        {
+            Vector *temp = vector_alloc(T->col_size);
+            for (int i = 0; i < T->col_size; i++)
+                temp->entry[i] = T->matrix_entry[pivrow][i] * T->matrix_entry[irow][pivcol];
+            for (int i = 0; i < T->col_size; i++)
+                T->matrix_entry[irow][i] -= temp->entry[i];
+            vector_free(temp);
+        }
+    }
+    if (fabs(pivval - tol) <= 1e-4 * tol)
+    {
+        log_w("The pivot operation produces a pivot value of %lf ,which is only slightly greater than the specified tolerance %lf. This may lead to issues regarding the numerical stability of the simplex method. Removing redundant constraints, changing the pivot strategy via Bland's rule or increasing the tolerance may help reduce the issue.", pivval, tol);
+    }
+}
+
+int _solve_simplex(Matrix *T, int n, int *basis, int basis_size, int maxiter, double tol, int phase, int bland, int nit0, int *out_nit)
+{
+    int nit = nit0;
+    int status = 0;
+    char *message = "";
+    int complete = false;
+    int m = 0;
+    if (phase == 1)
+        m = T->col_size - 2;
+    else
+        m = T->col_size - 1;
+
+    if (phase == 2)
+    {
+        // # Check if any artificial variables are still in the basis.
+        // # If yes, check if any coefficients from this row and a column
+        // # corresponding to one of the non-artificial variable is non-zero.
+        // # If found, pivot at this term. If not, start phase 2.
+        // # Do this for all artificial variables in the basis.
+        // # Ref: "An Introduction to Linear Programming and Game Theory"
+        // # by Paul R. Thie, Gerard E. Keough, 3rd Ed,
+        // # Chapter 3.7 Redundant Systems (pag 102)
+        int *pivrows = malloc(sizeof(int) * basis_size);
+        int pivrows_len = 0;
+        for (int i = 0; i < basis_size; i++)
+        {
+            if (basis[i] > T->col_size - 2)
+            {
+                pivrows[pivrows_len] = i;
+                pivrows_len++;
+            }
+        }
+        for (int i = 0; i < pivrows_len; i++) // for pivrow in temprows
+        {
+            int *non_zero_row = malloc(sizeof(int) * (T->col_size - 1));
+            int non_zero_row_size = 0;
+            for (int j = 0; j < T->col_size - 1; j++)
+            {
+                if (fabs(T->matrix_entry[pivrows[i]][j]) > tol)
+                {
+                    non_zero_row[non_zero_row_size] = j;
+                    non_zero_row_size++;
+                }
+            }
+            if (non_zero_row_size > 0)
+            {
+                int pivcol = non_zero_row[0];
+                _apply_pivot(T, basis, basis_size, pivrows[i], pivcol, tol);
+                nit++;
+            }
+        }
+    }
+    Vector *solution = NULL;
+    if (m == 0)
+    {
+        solution = vector_alloc(T->col_size - 1);
+    }
+    else
+    {
+        int maxbasis_m = -1;
+        for (int i = 0; i < m; i++)
+        {
+            if (basis[i] >= maxbasis_m)
+                maxbasis_m = basis[i];
+        }
+        int a = T->col_size - 1;
+        int b = maxbasis_m + 1;
+        solution = vector_alloc(MAX(a, b));
+    }
+    int pivcol;
+    int pivrow;
+
+    while (!complete)
+    {
+        pivcol = _pivot_col(T, tol, bland);
+        if (pivcol == -1)
+        {
+            pivcol = -1;
+            pivrow = -1;
+            status = 0;
+            complete = true;
+        }
+        else
+        {
+            pivrow = _pivot_row(T, basis, basis_size, pivcol, phase, tol, bland);
+            if (pivrow == -1)
+            {
+                status = 3;
+                complete = true;
+            }
+        }
+
+        if (!complete)
+        {
+            if (nit >= maxiter)
+            {
+                // iteration limit exceeded
+                status = 1;
+                complete = true;
             }
             else
             {
-                xstar->entry[i] = 0.0;
+                _apply_pivot(T, basis, basis_size, pivrow, pivcol, tol);
+                nit++;
             }
         }
     }
+    *out_nit = nit;
+    return status;
+}
+
+int _linprog_simplex(const Vector *c, const Matrix *A, const Vector *b, int maxiter, double tol, int bland, Vector *x)
+{
+    // Minimize a linear objective function subject to linear equality and
+    // non-negativity constraints using the two phase simplex method.
+    // Linear programming is intended to solve problems of the following form:
+
+    // Minimize::
+
+    //     c @ x
+
+    // Subject to::
+
+    //     A @ x == b
+    //         x >= 0
+
+    // User-facing documentation is in _linprog_doc.py.
+
+    // Parameters
+    // ----------
+    // c : 1-D array
+    //     Coefficients of the linear objective function to be minimized.
+    // c0 : float
+    //     Constant term in objective function due to fixed (and eliminated)
+    //     variables. (Purely for display.)
+    // A : 2-D array
+    //     2-D array such that ``A @ x``, gives the values of the equality
+    //     constraints at ``x``.
+    // b : 1-D array
+    //     1-D array of values representing the right hand side of each equality
+    //     constraint (row) in ``A``.
+    // Options
+    // -------
+    // maxiter : int
+    //    The maximum number of iterations to perform.
+    // tol : float
+    //     The tolerance which determines when a solution is "close enough" to
+    //     zero in Phase 1 to be considered a basic feasible solution or close
+    //     enough to positive to serve as an optimal solution.
+    // bland : bool
+    //     If True, use Bland's anti-cycling rule [3]_ to choose pivots to
+    //     prevent cycling. If False, choose pivots which should lead to a
+    //     converged solution more quickly. The latter method is subject to
+    //     cycling (non-convergence) in rare instances.
+
+    // Returns
+    // -------
+    // x : 1-D array
+    //     Solution vector.
+    // status : int
+    //     An integer representing the exit status of the optimization::
+
+    //      0 : Optimization terminated successfully
+    //      1 : Iteration limit reached
+    //      2 : Problem appears to be infeasible
+    //      3 : Problem appears to be unbounded
+    //      4 : Serious numerical difficulties encountered
+
+    // message : str
+    //     A string descriptor of the exit status of the optimization.
+    // iteration : int
+    //     The number of iterations taken to solve the problem.
+
+    // References
+    // ----------
+    // .. [1] Dantzig, George B., Linear programming and extensions. Rand
+    //        Corporation Research Study Princeton Univ. Press, Princeton, NJ,
+    //        1963
+    // .. [2] Hillier, S.H. and Lieberman, G.J. (1995), "Introduction to
+    //        Mathematical Programming", McGraw-Hill, Chapter 4.
+    // .. [3] Bland, Robert G. New finite pivoting rules for the simplex method.
+    //        Mathematics of Operations Research (2), 1977: pp. 103-107.
+
+    // Notes
+    // -----
+    // The expected problem formulation differs between the top level ``linprog``
+    // module and the method specific solvers. The method specific solvers expect a
+    // problem in standard form:
+
+    // Minimize::
+
+    //     c @ x
+
+    // Subject to::
+
+    //     A @ x == b
+    //         x >= 0
+
+    // Whereas the top level ``linprog`` module expects a problem of form:
+
+    const char *messages[] = {
+        "Optimization terminated successfully.",
+        "Iteration limit reached.",
+        "Optimization failed. Unable to find a feasible starting point",
+        "Optimization failed. The problem appears to be unbounded."
+        "Optimization failed. Singular matrix encountered."};
+    int n = A->row_size;
+    int m = A->col_size;
+    int *av = malloc(sizeof(int) * n);
+    for (int i = 0; i < n; i++)
+        av[i] = i + m;
+    int *basis = malloc(sizeof(int) * n);
+
+    for (int i = 0; i < n; i++)
+        basis[i] = i + m;
+    // fill T
+    Matrix *T = matrix_alloc(n + 2, n + m + 1);
+    for (int i = 0; i < T->row_size; i++)
+    {
+        for (int j = 0; j < T->col_size; j++)
+        {
+            if (i < n AND j < m) // A
+                T->matrix_entry[i][j] = A->matrix_entry[i][j];
+            if (i < n AND m <= j AND j < 2 * m) // E
+                if (i == j - m)
+                    T->matrix_entry[i][j] = 1.0;
+                else
+                    T->matrix_entry[i][j] = 0.0;
+            if (j == T->col_size - 1) // b
+                T->matrix_entry[i][j] = b->entry[i];
+            if (i == n)
+                if (j < c->size)
+                    T->matrix_entry[i][j] = c->entry[j];
+                else
+                    T->matrix_entry[i][j] = 0.0;
+            if (i == n + 1)
+            {
+                if (j >= m AND j != T->col_size - 1)
+                {
+                    T->matrix_entry[i][j] = 0.0;
+                }
+                else
+                {
+                    double sum = 0.0;
+                    for (int k = 0; k < n; k++)
+                        sum = sum + T->matrix_entry[k][j];
+                    T->matrix_entry[i][j] = -sum;
+                }
+            }
+        }
+    }
+    int nit1;
+    int status = _solve_simplex(T, n, basis, n, maxiter, tol, 1, bland, 0, &nit1);
+    int nit2 = nit1;
+    if (fabs(T->matrix_entry[T->row_size - 1][T->col_size - 1]) < tol)
+    {
+        // # Remove the pseudo-objective row from the tableau
+        // T = T[:-1, :] //去掉最后一行
+        // # Remove the artificial variable columns from the tableau
+        // T = np.delete(T, av, 1) // 去掉av[0]到av[n-1]列,共n列
+        Matrix *T2 = matrix_alloc(T->row_size - 1, T->col_size - n);
+        for (int i = 0; i < T2->row_size; i++)
+            for (int j = 0; j < T2->col_size; j++)
+                if (j == T2->col_size - 1)
+                    T2->matrix_entry[i][j] = T->matrix_entry[i][T->col_size - 1];
+
+                else
+                    T2->matrix_entry[i][j] = T->matrix_entry[i][j];
+
+        matrix_free(T);
+        T = T2;
+    }
     else
     {
-        log_v("infity solution");
+        status = 2;
+        log_e("Phase 1 of the simplex method failed to find a frasible solution");
+        log_e(messages[2]);
     }
-    return self->F;
+
+    if (status == 0)
+        status = _solve_simplex(T, n, basis, n, maxiter, tol, 2, bland, nit1, &nit2);
+    Vector *solution = vector_alloc(n + m);
+    vector_fill_const(solution, 0);
+    for (int i = 0; i < n; i++)
+        solution->entry[basis[i]] = T->matrix_entry[i][T->col_size - 1];
+    for (int j = 0; j < m; j++)
+        x->entry[j] = solution->entry[j];
+    log_i("simplex optimize complete");
+    log_i(messages[status]);
+    vector_free(solution);
+    matrix_free(T);
+    return status;
 }

@@ -2,6 +2,7 @@
 #include "matrix.h"
 #include "vector.h"
 #include "util.h"
+#include "simplex.h"
 
 int main(int argc, char const *argv[])
 {
@@ -41,8 +42,7 @@ int main(int argc, char const *argv[])
     c->entry[4] = 0;
     int init_base[3] = {2, 3, 4};
     Vector *x0 = vector_alloc(5);
-    Vector *xstat = vector_alloc(5);
-    optimize_lp_standard_type(c, b, A, init_base, xstat);
-    vector_print(xstat);
+    _linprog_simplex(c, A, b, 100, 1e-7, FALSE, x0);
+    vector_print(x0);
     return 0;
 }

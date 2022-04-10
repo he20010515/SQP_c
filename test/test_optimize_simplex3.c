@@ -33,7 +33,7 @@ int main(int argc, char const *argv[])
         {
             b->entry[i] = rand_int(0, 50);
         }
-        optimize_lp(con, c, x0);
+        optimize_lp(con, c, x0,100,1e-7,FALSE);
         // vector_print(x0);
         matrix_free(A);
         vector_free(c);

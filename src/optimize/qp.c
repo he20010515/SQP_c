@@ -221,7 +221,7 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const LinearConstra
         x0 = vector_alloc(cons->dim);
         Vector *tempc = vector_alloc(c->size);
         vector_fill_const(tempc, 5.0);
-        optimize_lp(cons, c, (Vector *)x0);
+        optimize_lp(cons, c, (Vector *)x0, 300, 1e-7, false);
         vector_free(tempc);
         x0_give = false;
     }
@@ -327,9 +327,7 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const LinearConstra
     vector_free(x_k_1);
     free(y);
     if (!x0_give)
-    {
-        vector_free(x0);
-    }
+        vector_free((Vector *)x0);
 
     return 0;
 }

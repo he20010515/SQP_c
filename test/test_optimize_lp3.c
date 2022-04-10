@@ -2,7 +2,7 @@
 #include "matrix.h"
 #include "vector.h"
 #include "util.h"
-
+#include "simplex.h"
 int main(int argc, char const *argv[])
 {
     sqp_init();
@@ -39,6 +39,7 @@ int main(int argc, char const *argv[])
     int init_base[3] = {3, 4, 5};
     Vector *x0 = vector_alloc(6);
     Vector *xstat = vector_alloc(6);
-    // optimize_lp_2stage(c, b, A, xstat);
+    _linprog_simplex(c, A, b, 100, 1e-7, FALSE, xstat);
+    vector_print(xstat);
     return 0;
 }
