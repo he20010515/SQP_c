@@ -6,8 +6,7 @@
 
 #define LOG_TAG "scipy_simplex"
 
-
-int _pivot_col(Matrix *T, bool bland, double tol)
+int _pivot_col(Matrix *T, int bland, double tol)
 {
     // 给定一个线性规划单纯形表，确定要输入基础的变量列。
 
@@ -50,10 +49,10 @@ int _pivot_col(Matrix *T, bool bland, double tol)
     //     枢轴元素的列的索引。
     //     如果 status 为 False，col 将返回为 -1;
     int flag = -1;
-    int *ma = malloc(sizeof(bool) * (T->col_size - 1));
+    int *ma = malloc(sizeof(int) * (T->col_size - 1));
     double *mma = malloc(sizeof(double) * (T->col_size - 1));
     for (int i = 0; i < T->col_size - 1; i++)
-        if (T->matrix_entry[T->row_size - 1][i] >= -tol)
+        if (T->matrix_entry[T->row_size - 1][i] < -tol)
         {
             ma[i] = true;
             mma[i] = T->matrix_entry[T->row_size - 1][i];
@@ -146,10 +145,10 @@ int _pivot_row(Matrix *T, int *basis, int basis_size, int pivcol, int phase, dou
     else
         k = 1;
     int flag = -1;
-    int *ma = malloc(sizeof(bool) * (T->row_size - k));
+    int *ma = malloc(sizeof(int) * (T->row_size - k));
     double *mma = malloc(sizeof(double) * (T->row_size - k));
     for (int i = 0; i < T->row_size - k; i++)
-        if (T->matrix_entry[i][pivcol] <= tol)
+        if (T->matrix_entry[i][pivcol] > tol)
         {
             ma[i] = true;
             mma[i] = T->matrix_entry[i][pivcol];
@@ -160,7 +159,7 @@ int _pivot_row(Matrix *T, int *basis, int basis_size, int pivcol, int phase, dou
             mma[i] = NAN;
         }
     int sum = 0;
-    for (int i = 0; i < T->col_size - 1; i++)
+    for (int i = 0; i < T->row_size - k; i++)
         sum += ma[i];
     if (sum == 0)
     {
@@ -173,7 +172,7 @@ int _pivot_row(Matrix *T, int *basis, int basis_size, int pivcol, int phase, dou
     for (int i = 0; i < T->row_size - k; i++)
     {
         if (ma[i])
-            mmb[i] = T->matrix_entry[i][pivcol];
+            mmb[i] = T->matrix_entry[i][T->col_size - 1];
         else
             mmb[i] = NAN;
     }
@@ -225,7 +224,7 @@ int _pivot_row(Matrix *T, int *basis, int basis_size, int pivcol, int phase, dou
         }
     }
     else
-        flag = vector_argmin(&b);
+        flag = min_rows[0];
 
     free(ma);
     free(mma);
@@ -310,10 +309,10 @@ int _solve_simplex(Matrix *T, int n, int *basis, int basis_size, int maxiter, do
             }
         }
     }
-
+    Vector *solution = NULL;
     if (m == 0)
     {
-        Vector *solution = vector_alloc(T->col_size - 1);
+        solution = vector_alloc(T->col_size - 1);
     }
     else
     {
@@ -325,7 +324,7 @@ int _solve_simplex(Matrix *T, int n, int *basis, int basis_size, int maxiter, do
         }
         int a = T->col_size - 1;
         int b = maxbasis_m + 1;
-        Vector *solution = vector_alloc(MAX(a, b));
+        solution = vector_alloc(MAX(a, b));
     }
     int pivcol;
     int pivrow;
@@ -458,7 +457,7 @@ int _linprog_simplex(const Vector *c, const Matrix *A, const Vector *b, int maxi
 
     // Whereas the top level ``linprog`` module expects a problem of form:
 
-    char *messages[] = {
+    const char *messages[] = {
         "Optimization terminated successfully.",
         "Iteration limit reached.",
         "Optimization failed. Unable to find a feasible starting point",
@@ -468,53 +467,65 @@ int _linprog_simplex(const Vector *c, const Matrix *A, const Vector *b, int maxi
     int m = A->col_size;
     int *av = malloc(sizeof(int) * n);
     for (int i = 0; i < n; i++)
-        av[i] += m;
-
+        av[i] = i + m;
     int *basis = malloc(sizeof(int) * n);
-    for (int i = 0; i < n; i++)
-        basis[i] += m;
 
+    for (int i = 0; i < n; i++)
+        basis[i] = i + m;
     // fill T
-    Matrix *T = matrix_alloc(n + 2, 2 * m + 1);
-    for (int i = 0; i < T->col_size; i++)
+    Matrix *T = matrix_alloc(n + 2, n + m + 1);
+    for (int i = 0; i < T->row_size; i++)
     {
-        for (int j = 0; j < T->row_size; j++)
+        for (int j = 0; j < T->col_size; j++)
         {
-            if (i < n AND j < m)
+            if (i < n AND j < m) // A
                 T->matrix_entry[i][j] = A->matrix_entry[i][j];
-            if (i < n AND m <= j AND j < 2 * m)
+            if (i < n AND m <= j AND j < 2 * m) // E
                 if (i == j - m)
                     T->matrix_entry[i][j] = 1.0;
                 else
                     T->matrix_entry[i][j] = 0.0;
-            if (j == 2 * m)
+            if (j == T->col_size - 1) // b
                 T->matrix_entry[i][j] = b->entry[i];
             if (i == n)
-                T->matrix_entry[i][j] = c->entry[j];
+                if (j < c->size)
+                    T->matrix_entry[i][j] = c->entry[j];
+                else
+                    T->matrix_entry[i][j] = 0.0;
             if (i == n + 1)
             {
-                int sum = 0;
-                for (int k = 0; k < n; k++)
-                    sum = sum + A->matrix_entry[k][j];
-                T->matrix_entry[i][j] = -sum;
+                if (j >= m AND j != T->col_size - 1)
+                {
+                    T->matrix_entry[i][j] = 0.0;
+                }
+                else
+                {
+                    double sum = 0.0;
+                    for (int k = 0; k < n; k++)
+                        sum = sum + T->matrix_entry[k][j];
+                    T->matrix_entry[i][j] = -sum;
+                }
             }
         }
     }
     int nit1;
-
     int status = _solve_simplex(T, n, basis, n, maxiter, tol, 1, bland, 0, &nit1);
-
     int nit2 = nit1;
     if (fabs(T->matrix_entry[T->row_size - 1][T->col_size - 1]) < tol)
     {
         // # Remove the pseudo-objective row from the tableau
-        // T = T[:-1, :]
+        // T = T[:-1, :] //去掉最后一行
         // # Remove the artificial variable columns from the tableau
-        // T = np.delete(T, av, 1)
-        Matrix *T2 = matrix_alloc(T->row_size, T->col_size - 1 - n);
+        // T = np.delete(T, av, 1) // 去掉av[0]到av[n-1]列,共n列
+        Matrix *T2 = matrix_alloc(T->row_size - 1, T->col_size - n);
         for (int i = 0; i < T2->row_size; i++)
-            for (int j = 0; j < T2->row_size; j++)
-                T2->matrix_entry[i][j] = T->matrix_entry[i][j];
+            for (int j = 0; j < T2->col_size; j++)
+                if (j == T2->col_size - 1)
+                    T2->matrix_entry[i][j] = T->matrix_entry[i][T->col_size - 1];
+
+                else
+                    T2->matrix_entry[i][j] = T->matrix_entry[i][j];
+
         matrix_free(T);
         T = T2;
     }
@@ -528,9 +539,14 @@ int _linprog_simplex(const Vector *c, const Matrix *A, const Vector *b, int maxi
     if (status == 0)
         status = _solve_simplex(T, n, basis, n, maxiter, tol, 2, bland, nit1, &nit2);
     Vector *solution = vector_alloc(n + m);
+    vector_fill_const(solution, 0);
     for (int i = 0; i < n; i++)
         solution->entry[basis[i]] = T->matrix_entry[i][T->col_size - 1];
     for (int j = 0; j < m; j++)
         x->entry[j] = solution->entry[j];
+    log_i("simplex optimize complete");
+    log_i(messages[status]);
+    vector_free(solution);
+    matrix_free(T);
     return status;
 }

@@ -2,6 +2,7 @@
 
 int main(int argc, char const *argv[])
 {
+    sqp_init();
     double A_array[5][9] = {
         {-1, 2, 1, 2, 1, 0, 0, 0, 0},
         {1, 2, -1, -2, 0, 1, 0, 0, 0},
@@ -23,5 +24,6 @@ int main(int argc, char const *argv[])
     cc.size = 9;
     Vector *x = vector_alloc(9);
     _linprog_simplex(&cc, mat, &b, 30, 1e-5, FALSE, x);
+    vector_print(x);
     return 0;
 }
