@@ -5,6 +5,9 @@
 #include "vector.h"
 #include "index_set.h"
 #include "elog.h"
+
+#define LOG_TAG "matrix"
+
 void matrix_print(const Matrix *matrix)
 {
 	int i, j;

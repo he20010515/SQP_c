@@ -8,7 +8,7 @@
 #include "math.h"
 #include "elog.h"
 #define min(a, b) (((a) < (b)) ? (a) : (b))
-#define LOG_TAG "QP"
+#define LOG_TAG "qp"
 #define MAX_ITER 200
 
 void __qp_compute_subproblem(const Index_set *W_k, const LinearConstraints *cons, const Matrix *G, const Vector *c, Vector *xk, Vector *p, double *y)
@@ -48,14 +48,24 @@ Vector *__qp_compute_lambda(const Index_set *W_k, const LinearConstraints *cons,
     int m = cons->size;
     Vector *Gxk = vector_alloc(cons->dim);
     matrix_mutiply_vector(G, xk, Gxk);
-    Vector *Gxk_c = vector_alloc(cons->dim);
-    vector_add_vector(Gxk, c, Gxk_c);
-    Matrix *sub_Ai = matrix_alloc(index_set_size(W_k), cons->dim);
-    Matrix *sub_AiT = matrix_alloc(cons->dim, index_set_size(W_k));
-    matrix_submatrix_by_rowindex_set(cons->A, W_k, sub_Ai);
-    matrix_transpose(sub_Ai, sub_AiT);
-    Vector *sub_lambda = vector_alloc(index_set_size(W_k));           // wk大小的lambda
-    linear_equation_gaussian_elimination(sub_AiT, Gxk_c, sub_lambda); //小的lambda
+    Vector *b = vector_alloc(cons->dim);
+    vector_add_vector(Gxk, c, b);
+    Matrix *R_T = matrix_alloc(index_set_size(W_k), cons->dim);
+    Matrix *R = matrix_alloc(cons->dim, index_set_size(W_k));
+    matrix_submatrix_by_rowindex_set(cons->A, W_k, R_T);
+    matrix_transpose(R_T, R);
+    Vector *sub_lambda = vector_alloc(index_set_size(W_k)); // wk大小的lambda
+
+    //求解超定方程组 // min ||Rx-b||
+    // x = (R^T *R)^{-1} *RT *y;
+    Matrix *RTR = matrix_multiply(R_T, R);
+    Matrix *RTR_1 = matrix_alloc(RTR->row_size, RTR->col_size);
+    matrix_inverse(RTR, RTR_1);
+    Matrix *RTR_1RT = matrix_multiply(RTR_1, R_T);
+    matrix_mutiply_vector(RTR_1RT, b, sub_lambda);
+    matrix_free(RTR);
+    matrix_free(RTR_1);
+    matrix_free(RTR_1RT);
     //将lambda 放大到和activeset一样大
     int temp = 0;
     for (int i = 0; i < W_k->index_range; i++)
@@ -81,9 +91,9 @@ Vector *__qp_compute_lambda(const Index_set *W_k, const LinearConstraints *cons,
         }
     }
     vector_free(Gxk);
-    vector_free(Gxk_c);
-    matrix_free(sub_Ai);
-    matrix_free(sub_AiT);
+    vector_free(b);
+    matrix_free(R_T);
+    matrix_free(R);
     vector_free(sub_lambda);
     index_set_free(W_k_inter_I);
     return subsublambda;
@@ -219,10 +229,23 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const LinearConstra
     {
         // use simplex method to find a start fesable solution
         x0 = vector_alloc(cons->dim);
-        Vector *tempc = vector_alloc(c->size);
-        vector_fill_const(tempc, 5.0);
-        optimize_lp(cons, c, (Vector *)x0, 300, 1e-7, false);
-        vector_free(tempc);
+        int flag = optimize_lp(cons, c, (Vector *)x0, 300, 1e-7, false);
+        if (flag == 3)
+        {
+            Vector *tempc = vector_alloc(c->size);
+            for (int i = 0; i < c->size; i++)
+                tempc->entry[i] = -c->entry[i];
+            flag = optimize_lp(cons, tempc, (Vector *)x0, 300, 1e-7, false);
+            vector_print(x0);
+            if (flag != 0)
+            {
+                log_i("ERROR : can't find a start fesable point");
+                vector_free((Vector *)x0);
+                vector_free(tempc);
+                return -1;
+            }
+        }
+
         x0_give = false;
     }
 
@@ -247,11 +270,16 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const LinearConstra
     {
         //*计算子问题得到pk
         for (int i = 0; i < cons->e; i++) //确保添加进去等式约束
-            index_set_append(W_k, i);
+            if (index_set_is_in(W_k, i))
+                continue;
+            else
+                index_set_append(W_k, i);
+
         log_i("========iter k = %d=========", k);
+        log_i("xk =");
+        vector_log(x_k);
         Vector *p = vector_alloc(cons->dim);
         __qp_compute_subproblem(W_k, cons, G, c, x_k, p, y);
-        // vector_print(p);
         if (double_equal(vector_2norm(p), 0.0)) // if p_k = 0
         {
             //*计算lambda
@@ -285,7 +313,10 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const LinearConstra
             //*计算alphak
             //更新xk
             Vector *alphas = vector_alloc(cons->size);
-            double alphak = __qp_compute_alphak(W_k, cons, x_k, p, alphas);
+            double alphak = 0.0;
+            alphak = __qp_compute_alphak(W_k, cons, x_k, p, alphas);
+            if (isnan(alphak))
+                alphak = 1;
             alphak = min(1, alphak);
             Vector *alphapk = vector_multiply_const(p, alphak, 1); // copy = 1
             int j = vector_argmin(alphas);

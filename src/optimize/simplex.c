@@ -4,7 +4,7 @@
 #include "elog.h"
 #include "math.h"
 
-#define LOG_TAG "scipy_simplex"
+#define LOG_TAG "simplex"
 
 int _pivot_col(Matrix *T, int bland, double tol)
 {
