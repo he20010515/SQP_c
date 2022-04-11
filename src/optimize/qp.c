@@ -236,12 +236,11 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const LinearConstra
             for (int i = 0; i < c->size; i++)
                 tempc->entry[i] = -c->entry[i];
             flag = optimize_lp(cons, tempc, (Vector *)x0, 300, 1e-7, false);
-            vector_print(x0);
+            vector_free(tempc);
             if (flag != 0)
             {
-                log_i("ERROR : can't find a start fesable point");
+                log_e("ERROR : can't find a start fesable point");
                 vector_free((Vector *)x0);
-                vector_free(tempc);
                 return -1;
             }
         }
@@ -253,9 +252,8 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const LinearConstra
     Index_set *W_k = index_set_alloc(m); // 工作集
     Index_set *index_set_I = index_set_alloc(m);
     for (int i = cons->e; i < m; i++)
-    {
         index_set_append(index_set_I, i);
-    }
+
     Vector *x_k = vector_alloc(cons->dim);
     Vector *x_k_1 = vector_alloc(cons->dim);
     double *y = (double *)malloc(sizeof(double));

@@ -225,7 +225,7 @@ int _pivot_row(Matrix *T, int *basis, int basis_size, int pivcol, int phase, dou
     }
     else
         flag = min_rows[0];
-
+    free(min_rows);
     free(ma);
     free(mma);
     free(mmb);
@@ -307,7 +307,11 @@ int _solve_simplex(Matrix *T, int n, int *basis, int basis_size, int maxiter, do
                 _apply_pivot(T, basis, basis_size, pivrows[i], pivcol, tol);
                 nit++;
             }
+
+            free(non_zero_row);
         }
+
+        free(pivrows);
     }
     Vector *solution = NULL;
     if (m == 0)
@@ -546,6 +550,9 @@ int _linprog_simplex(const Vector *c, const Matrix *A, const Vector *b, int maxi
         x->entry[j] = solution->entry[j];
     log_i("simplex optimize complete");
     log_i(messages[status]);
+
+    free(av);
+    free(basis);
     vector_free(solution);
     matrix_free(T);
     return status;
