@@ -138,7 +138,7 @@ void optimize_sqp(const NdsclaFunction *fun,
         vector_print(subcon->b);
         log_i("subproble start point");
         vector_log(xk_1);
-        optimize_qp_active_set(Bk, gradfk, subcon, xk_1, p, lambdahat); // 用上一步的结束值当做这一阶段的初值
+        optimize_qp_active_set(Bk, gradfk, subcon, NULL, p, lambdahat); // 用上一步的结束值当做这一阶段的初值
         log_i("subproblem ans P:");
         vector_log(p);
         log_i("subproblem lambdahat");

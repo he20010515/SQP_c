@@ -20,3 +20,4 @@ void linearconstraints_free(LinearConstraints *con, int recursion);
 void *linearconstraints_verification(const LinearConstraints *con, const Vector *x, Index_set *set);
 
 int optimize_lp(const LinearConstraints *con, const Vector *c, Vector *x0, int maxiter, double tol, int bland);
+int optimize_get_start_feasable_point(const LinearConstraints *con, Vector *x0, int maxiter, double tol, int bland);

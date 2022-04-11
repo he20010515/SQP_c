@@ -537,7 +537,7 @@ int _linprog_simplex(const Vector *c, const Matrix *A, const Vector *b, int maxi
     else
     {
         status = 2;
-        log_e("Phase 1 of the simplex method failed to find a frasible solution");
+        log_e("Phase 1 of the simplex method failed to find a fesible solution");
         log_e(messages[2]);
     }
 
@@ -558,3 +558,4 @@ int _linprog_simplex(const Vector *c, const Matrix *A, const Vector *b, int maxi
     matrix_free(T);
     return status;
 }
+

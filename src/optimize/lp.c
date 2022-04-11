@@ -188,3 +188,85 @@ int optimize_lp(const LinearConstraints *con, const Vector *c, Vector *x0, int m
     vector_free(temp_x0);
     return flag;
 }
+
+int optimize_get_start_feasable_point(const LinearConstraints *con, Vector *x0, int maxiter, double tol, int bland)
+{
+    // Trans Problem From:
+    // min c^T x
+    // s.t. Ax == b (i < e    )
+    //      Ax >= b (e <=i < m)
+    // TO:
+    // min c^T (x-x') + 0^T *xs
+    // s.t.   A(x-x')      == b
+    //        A(x-x') - xs == b
+    // Use simplex method to solve this problem
+
+    // matrixA' :
+    // [        [ 0 ]]
+    // [A  -A   [ E ]]
+    // [        [ E ]]
+    // X" = [x0',x1',...,xn-1',x0",x1",...,xn-1",xs1,xs2,..,xsm];
+    int n = con->dim;  //维度
+    int m = con->size; //原约束大小
+    int k = con->e;    //等式数量
+    Matrix *mat = matrix_alloc(m, 2 * n + m - k);
+    for (int i = 0; i < mat->row_size; i++)
+    {
+        for (int j = 0; j < mat->col_size; j++)
+        {
+            if (j < 2 * n)
+            {
+                // A -A
+                if (j < n)
+                    mat->matrix_entry[i][j] = con->A->matrix_entry[i][j];
+                if (n <= j AND j < 2 * n)
+                    mat->matrix_entry[i][j] = -con->A->matrix_entry[i][j - n];
+            }
+            else // j>=2*n
+            {
+                if (i < k)
+                    mat->matrix_entry[i][j] = 0.0;
+                else
+                {
+                    if (i - k == j - 2 * n)
+                        mat->matrix_entry[i][j] = -1;
+                    else
+                        mat->matrix_entry[i][j] = 0;
+                }
+            }
+        }
+    }
+    Vector *b = vector_alloc(con->b->size);
+    for (int i = 0; i < mat->row_size; i++)
+    {
+        if (con->b->entry[i] < 0)
+        {
+            b->entry[i] = -con->b->entry[i];
+            for (int j = 0; j < mat->col_size; j++)
+                mat->matrix_entry[i][j] *= -1;
+        }
+        else
+            b->entry[i] = con->b->entry[i];
+    }
+    Vector *tempc = vector_alloc(mat->col_size);
+    for (int i = 0; i < mat->col_size; i++)
+    {
+        tempc->entry[i] = 1.0;
+    }
+    Vector *temp_x0 = vector_alloc(2 * n + m - k);
+    // matrix_print(mat);
+    // vector_print(tempc);
+    // vector_print(b);
+    int flag = _linprog_simplex(tempc, mat, b, maxiter, tol, bland, temp_x0);
+    if (flag == 0)
+    {
+        // case optional solution found
+        for (int i = 0; i < con->dim; i++)
+            x0->entry[i] = temp_x0->entry[i] - temp_x0->entry[i + con->dim];
+    }
+    matrix_free(mat);
+    vector_free(b);
+    vector_free(tempc);
+    vector_free(temp_x0);
+    return flag;
+}

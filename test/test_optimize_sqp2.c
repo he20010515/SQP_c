@@ -42,8 +42,7 @@ int main(int argc, char const *argv[])
     lambda0->entry[3] = 0;
 
     Vector *xstar = vector_alloc(3);
-    log_i("hello elog");
-    // optimize_sqp(f, con, x0, lambda0, xstar);
+    optimize_sqp(f, con, x0, lambda0, xstar);
 
     return 0;
 }
