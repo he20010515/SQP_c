@@ -229,23 +229,7 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const LinearConstra
     {
         // use simplex method to find a start fesable solution
         x0 = vector_alloc(cons->dim);
-        int flag = optimize_lp(cons, c, (Vector *)x0, 300, 1e-7, false);
-        if (flag == 3)
-        {
-            Vector *tempc = vector_alloc(c->size);
-            for (int i = 0; i < c->size; i++)
-                tempc->entry[i] = -c->entry[i];
-            flag = optimize_lp(cons, tempc, (Vector *)x0, 300, 1e-7, false);
-            vector_free(tempc);
-            if (flag != 0)
-            {
-                log_e("ERROR : can't find a start fesable point");
-                vector_free((Vector *)x0);
-                return -1;
-            }
-        }
-
-        x0_give = false;
+        optimize_get_start_feasable_point(cons, (Vector *)x0, 100, 1e-8, FALSE);
     }
 
     int m = cons->size;
