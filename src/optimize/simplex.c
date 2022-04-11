@@ -369,6 +369,7 @@ int _solve_simplex(Matrix *T, int n, int *basis, int basis_size, int maxiter, do
         }
     }
     *out_nit = nit;
+    vector_free(solution);
     return status;
 }
 

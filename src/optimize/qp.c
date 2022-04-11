@@ -293,6 +293,7 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const LinearConstra
                 vector_copy(lambda, lam);
                 vector_free(lambda);
                 vector_free(subsublambda);
+                vector_free(p);
                 break;
             }
             else
@@ -344,7 +345,6 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const LinearConstra
             log_e("Iteration overflow ,Please check inputs. qp is Break");
             break;
         }
-
         vector_copy(x_k_1, x_k);
         vector_free(p);
     }
