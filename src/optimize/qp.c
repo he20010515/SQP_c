@@ -266,6 +266,12 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const LinearConstra
         log_i("========iter k = %d=========", k);
         log_i("xk =");
         vector_log(x_k);
+
+        if (vector_have_na(x_k))
+        {
+            terminate("have nan find");
+        }
+
         Vector *p = vector_alloc(cons->dim);
         __qp_compute_subproblem(W_k, cons, G, c, x_k, p, y);
         if (double_equal(vector_2norm(p), 0.0)) // if p_k = 0
@@ -277,7 +283,7 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const LinearConstra
             // vector_print(lambda);
             if (vector_any_bigger_equal_than_const(subsublambda, 0)) //若lambda i >0 (激活不等式约束集) (\any i \in Wk)
             {
-                log_i("case: iter done\n");
+                log_i("case: iter done");
                 vector_copy(x_k, x_star);
                 // vector_print(x_star);
                 vector_copy(lambda, lam);

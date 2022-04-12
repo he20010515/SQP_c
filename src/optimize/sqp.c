@@ -69,9 +69,6 @@ void optimize_sqp(const NdsclaFunction *fun,
     Vector *ck = vector_alloc(m);
     Vector *ck_1 = vector_alloc(m);
 
-    // Matrix *HxxL0 = matrix_alloc(n, n);
-    // Matrix *HxxLk = matrix_alloc(n, n);
-    // Matrix *HxxLk_1 = matrix_alloc(n, n);
     Matrix *B0 = matrix_alloc(n, n);
     Matrix *Bk = matrix_alloc(n, n);
     Matrix *Bk_1 = matrix_alloc(n, n);
@@ -122,10 +119,11 @@ void optimize_sqp(const NdsclaFunction *fun,
     //  mainloop
     while (1)
     {
+        k++;
         // 计算子问题
         Vector *_ck = vector_multiply_const(ck, -1., 1);
         LinearConstraints *subcon = linearconstraints_alloc(n, m, con->e, con->i, Ak, _ck);
-        log_i("=========iter k = %d =========", k);
+        log_i("=============================iter k = %d ============================", k);
         log_i("Xk = ");
         vector_log(xk);
         log_i("subproblem :");
@@ -134,10 +132,8 @@ void optimize_sqp(const NdsclaFunction *fun,
         log_i("gradfk");
         vector_log(gradfk);
         log_i("subcon:");
-        matrix_print(subcon->A);
-        vector_print(subcon->b);
-        log_i("subproble start point");
-        vector_log(xk_1);
+        matrix_log(subcon->A);
+        vector_log(subcon->b);
         optimize_qp_active_set(Bk, gradfk, subcon, NULL, p, lambdahat); // 用上一步的结束值当做这一阶段的初值
         log_i("subproblem ans P:");
         vector_log(p);
@@ -183,8 +179,6 @@ void optimize_sqp(const NdsclaFunction *fun,
         ndVectorfunction_call(con->c, xk_1, ck_1);
         ndVectorfunction_jacobian(con->c, xk_1, NUMERICAL_DIFF_STEP, Ak_1);
         __BFGS_update(Bk, _lambdak, xk, xk_1, Bk_1, lagrange_function);
-        log_i("Bk_1");
-        matrix_print(Bk_1);
 
         // swap
         vector_copy(xk_1, xk);
@@ -272,6 +266,10 @@ void __BFGS_update(const Matrix *Bk, const Vector *lambdak_1, const Vector *xk, 
     //*update Bk
     matrix_add(tempmat, _BssTB_SBS, rrt_st);
     matrix_add(Bk_1, (Matrix *)Bk, (Matrix *)tempmat);
+    if (matrix_have_na(Bk_1) OR matrix_have_na(Bk))
+    {
+        terminate("ERROR");
+    }
 
     vector_free(sk);
     vector_free(_xk);

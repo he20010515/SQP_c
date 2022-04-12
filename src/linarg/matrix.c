@@ -704,3 +704,30 @@ void matrix_log(const Matrix *mat)
 	log_i(buf);
 	return;
 }
+
+int matrix_have_na(const Matrix *mat)
+{
+	for (int i = 0; i < mat->row_size; i++)
+	{
+		for (int j = 0; j < mat->col_size; j++)
+		{
+			if (isnan(mat->matrix_entry[i][j]))
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+int vector_have_na(const Vector *v)
+{
+	for (int i = 0; i < v->size; i++)
+	{
+		if (isnan(v->entry[i]))
+		{
+			return true;
+		}
+	}
+	return false;
+}

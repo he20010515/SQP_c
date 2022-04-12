@@ -232,3 +232,6 @@ void matrix_mutiply_const(const Matrix *A, double k, Matrix *kA);
 
 void vector_log(const Vector *v);
 void matrix_log(const Matrix *mat);
+
+int matrix_have_na(const Matrix *mat);
+int vector_have_na(const Vector *v);

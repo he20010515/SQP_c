@@ -6,13 +6,13 @@ double _fun(Vector *x)
     double xx = x->entry[0];
     double yy = x->entry[1];
     double zz = x->entry[2];
-    double temp = expl((xx - 1) * (xx - 1) + (yy - 2) * (yy - 2) + (zz - 3) * (zz - 3));
+    double temp = xx * xx + yy * yy + zz * zz;
     return temp;
 }
 
 void _c(const Vector *x, Vector *y)
 {
-    y->entry[0] = x->entry[0] * x->entry[0] + x->entry[1] * x->entry[1] + x->entry[2] * x->entry[2] - 9;
+    y->entry[0] = x->entry[1] + x->entry[2] - 9; // y+z-9 ==0;
     y->entry[1] = x->entry[0] - 1;
     y->entry[2] = x->entry[1] - 1;
     y->entry[3] = x->entry[2] - 1;
@@ -28,9 +28,9 @@ int main(int argc, char const *argv[])
     NdsclaFunction *f = ndscla_function_alloc(_fun, 3);
     Vector *x0 = vector_alloc(3);
 
-    x0->entry[0] = 1;
-    x0->entry[1] = 1;
-    x0->entry[2] = sqrtl(7.);
+    x0->entry[0] = 0;
+    x0->entry[1] = 0;
+    x0->entry[2] = 0;
     Vector *lambda0 = vector_alloc(4);
     lambda0->entry[0] = 0;
     lambda0->entry[1] = 0;
@@ -39,7 +39,7 @@ int main(int argc, char const *argv[])
 
     Vector *xstar = vector_alloc(3);
     log_i("hello elog");
-    // optimize_sqp(f, con, x0, lambda0, xstar);
+    optimize_sqp(f, con, x0, lambda0, xstar);
 
     return 0;
 }
