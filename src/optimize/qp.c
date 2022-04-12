@@ -224,12 +224,18 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const LinearConstra
     //                   (when i = m+1,m+2,...,m+k is '<=')
 
     // alloc workspace
+    Vector *start_point = NULL;
     int x0_give = true;
     if (x0 == NULL)
     {
         // use simplex method to find a start fesable solution
-        x0 = vector_alloc(cons->dim);
-        optimize_get_start_feasable_point(cons, (Vector *)x0, 100, 1e-8, FALSE);
+        start_point = vector_alloc(cons->dim);
+        optimize_get_start_feasable_point(cons, (Vector *)start_point, 100, 1e-8, FALSE);
+        x0_give = FALSE;
+    }
+    else
+    {
+        start_point = (Vector *)x0;
     }
 
     int m = cons->size;
@@ -244,7 +250,7 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const LinearConstra
     int k = 0;
     //* first compute 首次计算
     // 计算一个初始点以及其对应的工作集
-    vector_copy(x0, x_k);
+    vector_copy(start_point, x_k);
     linearconstraints_verification(cons, x_k, W_k); // 获取工作集
 
     // begin compute
@@ -340,7 +346,7 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const LinearConstra
     vector_free(x_k_1);
     free(y);
     if (!x0_give)
-        vector_free((Vector *)x0);
+        vector_free((Vector *)start_point);
 
     return 0;
 }
