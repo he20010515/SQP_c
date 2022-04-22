@@ -123,7 +123,7 @@ void optimize_sqp(const NdsclaFunction *fun,
         // 计算子问题
         Vector *_ck = vector_multiply_const(ck, -1., 1);
         LinearConstraints *subcon = linearconstraints_alloc(n, m, con->e, con->i, Ak, _ck);
-        log_v("=============================iter k = %d ============================", k);
+        log_w("=============================iter k = %d ============================", k);
         log_i("Xk = ");
         vector_log(xk);
         log_i("subproblem :");
@@ -140,9 +140,9 @@ void optimize_sqp(const NdsclaFunction *fun,
         log_i("subproblem ans P:");
         vector_log(p);
         log_i("subproblem lambdahat");
-        if (vector_2norm(p) <= 1e-8)
+        if (vector_2norm(p) <= 1e-14)
         {
-            log_a("compute successfully ,return");
+            log_d("compute successfully ,return");
             // vector_print(xk);
             vector_copy(xk, xstar);
             goto finally;

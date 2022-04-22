@@ -6,7 +6,7 @@ double _fun(Vector *x)
     double xx = x->entry[0];
     double yy = x->entry[1];
     double zz = x->entry[2];
-    double temp = xx * xx + yy * yy + 5 * zz * zz + sin(xx);
+    double temp = xx * xx - yy * yy - 5 * zz * zz + sin(xx) + cos(yy) - xx * yy * zz - expl(sin(xx) - cos(xx));
     return temp;
 }
 
@@ -15,7 +15,7 @@ void _c(const Vector *x, Vector *y)
     y->entry[0] = x->entry[1] + x->entry[2] - 9; // y+z-9 ==0;
     y->entry[1] = x->entry[0] - 1;
     y->entry[2] = x->entry[1] - 1;
-    y->entry[3] = x->entry[2] - 1;
+    y->entry[3] = x->entry[2] - 7;
 }
 
 int main(int argc, char const *argv[])
