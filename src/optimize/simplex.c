@@ -493,7 +493,7 @@ int _linprog_simplex(const Vector *c, const Matrix *A, const Vector *b, int maxi
                     T->matrix_entry[i][j] = 1.0;
                 else
                     T->matrix_entry[i][j] = 0.0;
-            if (j == T->col_size - 1 AND i < T->row_size - 2) // b
+            if (j == T->col_size - 1 AND i < T->row_size - 1) // b
                 T->matrix_entry[i][j] = b->entry[i];
             if (i == n)
                 if (j < c->size)
