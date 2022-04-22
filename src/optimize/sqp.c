@@ -61,7 +61,7 @@ void optimize_sqp(const NdsclaFunction *fun,
     Vector *gradfk = vector_alloc(n);
     Vector *gradfk_1 = vector_alloc(n);
 
-    Matrix *A0 = matrix_alloc(m, n); // TODO ensure size of jacobi c;
+    Matrix *A0 = matrix_alloc(m, n);
     Matrix *Ak = matrix_alloc(m, n);
     Matrix *Ak_1 = matrix_alloc(m, n);
 
@@ -123,7 +123,7 @@ void optimize_sqp(const NdsclaFunction *fun,
         // 计算子问题
         Vector *_ck = vector_multiply_const(ck, -1., 1);
         LinearConstraints *subcon = linearconstraints_alloc(n, m, con->e, con->i, Ak, _ck);
-        log_i("=============================iter k = %d ============================", k);
+        log_v("=============================iter k = %d ============================", k);
         log_i("Xk = ");
         vector_log(xk);
         log_i("subproblem :");
@@ -138,6 +138,13 @@ void optimize_sqp(const NdsclaFunction *fun,
         log_i("subproblem ans P:");
         vector_log(p);
         log_i("subproblem lambdahat");
+        if (vector_2norm(p) <= 1e-8)
+        {
+            log_a("compute successfully ,return");
+            vector_print(xk);
+            return;
+        }
+
         vector_fillna(lambdahat);
         vector_log(lambdahat);
 
@@ -154,15 +161,16 @@ void optimize_sqp(const NdsclaFunction *fun,
         double miu = (vector_inner_product(gradfk, p) + 0.5 * vector_inner_product(temp, p)) / ((1 - rho) * vector_1norm(ck));
         vector_free(temp);
         double alphak = 1;
+        int innerloop = 0;
         while (__check_inner_loop(xk, p, aita, miu, alphak, con, fun))
         {
             // update alphak
-            if (iternum >= 100)
+            if (innerloop >= 100)
             {
-                iternum++;
                 log_e("iter overflow");
-                break;
+                terminate("iter overflow");
             }
+            innerloop++;
 
             alphak = alphak * tao;
         }
@@ -221,9 +229,9 @@ void __BFGS_update(const Matrix *Bk, const Vector *lambdak_1, const Vector *xk, 
     vector_add_vector(xk_1, _xk, sk); // sk = xK+1-xk;
 
     Vector *gradxk_1 = vector_alloc(xk->size);
-    ndscla_central_grad(lagrange, NUMERICAL_DIFF_STEP, xk, gradxk_1);
+    ndscla_central_grad(lagrange, NUMERICAL_DIFF_STEP, xk_1, gradxk_1);
     Vector *gradxk = vector_alloc(xk->size);
-    ndscla_central_grad(lagrange, NUMERICAL_DIFF_STEP, xk_1, gradxk);
+    ndscla_central_grad(lagrange, NUMERICAL_DIFF_STEP, xk, gradxk);
     Vector *yk = vector_alloc(xk->size);
     Vector *_gradxk = vector_multiply_const(gradxk, -1., 1);
     vector_add_vector(gradxk_1, _gradxk, yk);
@@ -235,7 +243,7 @@ void __BFGS_update(const Matrix *Bk, const Vector *lambdak_1, const Vector *xk, 
     vector_mutiply_matrix(sk, Bk, temp);
     double SBS = vector_inner_product(temp, sk);
     vector_free(temp);
-    if (skyk >= SBS)
+    if (skyk >= 0.2 * SBS)
         thetak = 1;
     else
         thetak = SBS * 0.8 / (SBS - skyk);
@@ -307,12 +315,12 @@ int __check_inner_loop(const Vector *xk, const Vector *pk, double aita, double m
     Vector *xk_add_alphapk = vector_alloc(xk->size);
     Vector *alphapk = vector_multiply_const(pk, alphak, 1);
     vector_add_vector(alphapk, xk, xk_add_alphapk);
-    double l = __phi_1(xk_add_alphapk, miu, con, fun);
-    double r = __phi_1(xk, miu, con, fun) + aita * __D(xk, pk, miu, fun, con);
+    double l = __phi_1(xk_add_alphapk, miu, con, fun) - __phi_1(xk, miu, con, fun);
+    double r = aita * alphak * __D(xk, pk, miu, fun, con);
     vector_free(alphapk);
     vector_free(xk_add_alphapk);
 
-    log_i("abs(l-r)%lf", fabs(l - r));
+    log_i("left = %lf,right = %lf,left-right = %lf", l, r, l - r);
     return l > r;
 }
 

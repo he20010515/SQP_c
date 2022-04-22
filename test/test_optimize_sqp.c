@@ -6,7 +6,7 @@ double _fun(Vector *x)
     double xx = x->entry[0];
     double yy = x->entry[1];
     double zz = x->entry[2];
-    double temp = xx * xx + yy * yy + zz * zz;
+    double temp = xx * xx + yy * yy + 5*zz * zz + sin(xx);
     return temp;
 }
 
