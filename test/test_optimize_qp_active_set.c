@@ -21,7 +21,7 @@ int main(int argc, char const *argv[])
         {1, 0},
         {0, 1},
     };
-    for (int i = 0; i < 100; i++)
+    for (int i = 0; i < 5; i++)
     {
         Matrix *G = matrix_alloc(2, 2);
         array_2_matrix((double *)G_array, 2, 2, G);

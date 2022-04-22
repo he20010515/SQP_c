@@ -135,6 +135,8 @@ void optimize_sqp(const NdsclaFunction *fun,
         matrix_log(subcon->A);
         vector_log(subcon->b);
         optimize_qp_active_set(Bk, gradfk, subcon, NULL, p, lambdahat);
+        linearconstraints_free(subcon, 0);
+        vector_free(_ck);
         log_i("subproblem ans P:");
         vector_log(p);
         log_i("subproblem lambdahat");
@@ -143,13 +145,11 @@ void optimize_sqp(const NdsclaFunction *fun,
             log_a("compute successfully ,return");
             // vector_print(xk);
             vector_copy(xk, xstar);
-            return;
+            goto finally;
         }
 
         vector_fillna(lambdahat);
         vector_log(lambdahat);
-
-        vector_free(_ck);
 
         // plambda = lambdahat-lambdak
         Vector *_lambdak = vector_multiply_const(lambdak, -1., 1);
@@ -202,8 +202,34 @@ void optimize_sqp(const NdsclaFunction *fun,
             break;
         }
     }
-    // // free workspace
+    // free workspace
+finally:
+    ndscla_function_free(lagrange_function);
+    vector_free(xk);
+    vector_free(xk_1);
 
+    vector_free(p);
+
+    vector_free(gradf0);
+    vector_free(gradfk);
+    vector_free(gradfk_1);
+
+    matrix_free(A0);
+    matrix_free(Ak);
+    matrix_free(Ak_1);
+
+    vector_free(c0);
+    vector_free(ck);
+    vector_free(ck_1);
+
+    matrix_free(B0);
+    matrix_free(Bk);
+    matrix_free(Bk_1);
+
+    vector_free(lambdak);
+    vector_free(lambdak_1);
+    vector_free(plambda);
+    vector_free(lambdahat);
     return;
 }
 
@@ -331,7 +357,9 @@ double __phi_1(const Vector *x, const double miu, const Nonlinearconstraints *co
     ndVectorfunction_call(con->c, x, cx);
     Vector *xw = (Vector *)x;
     double fx = ndscla_function_call(fun, xw);
-    return fx + miu * vector_1norm(cx);
+    double temp = fx + miu * vector_1norm(cx);
+    vector_free(cx);
+    return temp;
 }
 
 double __D(const Vector *xk, const Vector *pk, const double miu, const NdsclaFunction *fun, const Nonlinearconstraints *con)
@@ -350,7 +378,9 @@ double __lagrange_function(Vector *xk, const Vector *lambda, const NdsclaFunctio
 {
     Vector *cx = vector_alloc(con->c->outputdim);
     ndVectorfunction_call(con->c, xk, cx);
-    return ndscla_function_call(fun, xk) - vector_inner_product(lambda, cx);
+    double temp = ndscla_function_call(fun, xk) - vector_inner_product(lambda, cx);
+    vector_free(cx);
+    return temp;
 }
 
 double __lagrange_wrapper(Vector *x)

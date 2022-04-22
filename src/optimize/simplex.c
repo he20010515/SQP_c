@@ -177,7 +177,7 @@ int _pivot_row(Matrix *T, int *basis, int basis_size, int pivcol, int phase, dou
             mmb[i] = NAN;
     }
 
-    double *q = malloc(sizeof(double) * (T->row_size - k));
+    double *q = (double *)malloc(sizeof(double) * (T->row_size - k));
     for (int i = 0; i < T->row_size - k; i++)
     {
         if (ma[i])
@@ -191,6 +191,9 @@ int _pivot_row(Matrix *T, int *basis, int basis_size, int pivcol, int phase, dou
     b.entry = q;
     double qmin = vector_min(&b);
     int *min_rows = malloc(sizeof(int) * T->row_size - 1);
+    for (int i = 0; i < T->row_size - 1; i++)
+        min_rows[i] = 0;
+
     int len = 0;
     for (int i = 0; i < b.size; i++)
     {
@@ -321,7 +324,7 @@ int _solve_simplex(Matrix *T, int n, int *basis, int basis_size, int maxiter, do
     else
     {
         int maxbasis_m = -1;
-        for (int i = 0; i < m; i++)
+        for (int i = 0; i < basis_size; i++)
         {
             if (basis[i] >= maxbasis_m)
                 maxbasis_m = basis[i];
@@ -330,8 +333,8 @@ int _solve_simplex(Matrix *T, int n, int *basis, int basis_size, int maxiter, do
         int b = maxbasis_m + 1;
         solution = vector_alloc(MAX(a, b));
     }
-    int pivcol;
-    int pivrow;
+    int pivcol = 0;
+    int pivrow = 0;
 
     while (!complete)
     {
@@ -490,7 +493,7 @@ int _linprog_simplex(const Vector *c, const Matrix *A, const Vector *b, int maxi
                     T->matrix_entry[i][j] = 1.0;
                 else
                     T->matrix_entry[i][j] = 0.0;
-            if (j == T->col_size - 1) // b
+            if (j == T->col_size - 1 AND i < T->row_size - 2) // b
                 T->matrix_entry[i][j] = b->entry[i];
             if (i == n)
                 if (j < c->size)
@@ -558,4 +561,3 @@ int _linprog_simplex(const Vector *c, const Matrix *A, const Vector *b, int maxi
     matrix_free(T);
     return status;
 }
-

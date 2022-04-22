@@ -42,5 +42,12 @@ int main(int argc, char const *argv[])
     optimize_sqp(f, con, x0, lambda0, xstar);
     vector_print(xstar);
 
+    ndVectorfunction_free(c);
+    nonlinearconstraints_free(con);
+    ndscla_function_free(f);
+    vector_free(x0);
+    vector_free(lambda0);
+    vector_free(xstar);
+
     return 0;
 }

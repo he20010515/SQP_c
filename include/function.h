@@ -23,3 +23,4 @@ NdVectorfunction *ndVectorfunction_alloc(void (*function)(const Vector *, Vector
 void ndVectorfunction_free(NdVectorfunction *function);
 void ndVectorfunction_call(const NdVectorfunction *function, const Vector *input, Vector *output);
 void ndVectorfunction_jacobian(const NdVectorfunction *function, const Vector *x0, double h, Matrix *jacobian);
+void ndscla_function_free(NdsclaFunction *function);

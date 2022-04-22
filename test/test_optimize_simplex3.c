@@ -10,10 +10,10 @@ int main(int argc, char const *argv[])
         {-2, 0, 1},
         {-4, 1, 2},
         {-1, 2, -1}};
-    const int x = 4000;
+    const int x = 100;
     const int y = 5 * x;
     sqp_init();
-    for (int i = 0; i < 1; i++)
+    for (int i = 0; i < 5; i++)
     {
         Vector *b = vector_alloc(x);
         Matrix *A = matrix_alloc(x, y);

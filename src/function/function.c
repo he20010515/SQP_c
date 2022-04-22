@@ -16,6 +16,11 @@ NdsclaFunction *ndscla_function_alloc(double (*function)(Vector *), int inputsiz
     return f;
 }
 
+void ndscla_function_free(NdsclaFunction *function)
+{
+    free(function);
+}
+
 void ndscla_central_grad(const NdsclaFunction *function, double h, const Vector *x0, Vector *grad)
 {
 
