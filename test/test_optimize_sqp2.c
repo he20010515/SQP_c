@@ -12,7 +12,7 @@ double _fun(Vector *x)
 
 void _c(const Vector *x, Vector *y)
 {
-    y->entry[0] = x->entry[0] * x->entry[0] + x->entry[1] * x->entry[1] + x->entry[2] * x->entry[2] - 4;
+    y->entry[0] = x->entry[0] - 4;
     y->entry[1] = x->entry[0];
     y->entry[2] = x->entry[1];
     y->entry[3] = x->entry[2];

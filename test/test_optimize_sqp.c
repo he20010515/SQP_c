@@ -6,7 +6,7 @@ double _fun(Vector *x)
     double xx = x->entry[0];
     double yy = x->entry[1];
     double zz = x->entry[2];
-    double temp = xx * xx + yy * yy + 5*zz * zz + sin(xx);
+    double temp = xx * xx + yy * yy + 5 * zz * zz + sin(xx);
     return temp;
 }
 
@@ -40,6 +40,7 @@ int main(int argc, char const *argv[])
     Vector *xstar = vector_alloc(3);
     log_i("hello elog");
     optimize_sqp(f, con, x0, lambda0, xstar);
+    vector_print(xstar);
 
     return 0;
 }

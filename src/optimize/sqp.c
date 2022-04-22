@@ -134,14 +134,15 @@ void optimize_sqp(const NdsclaFunction *fun,
         log_i("subcon:");
         matrix_log(subcon->A);
         vector_log(subcon->b);
-        optimize_qp_active_set(Bk, gradfk, subcon, NULL, p, lambdahat); // 用上一步的结束值当做这一阶段的初值
+        optimize_qp_active_set(Bk, gradfk, subcon, NULL, p, lambdahat);
         log_i("subproblem ans P:");
         vector_log(p);
         log_i("subproblem lambdahat");
         if (vector_2norm(p) <= 1e-8)
         {
             log_a("compute successfully ,return");
-            vector_print(xk);
+            // vector_print(xk);
+            vector_copy(xk, xstar);
             return;
         }
 
@@ -276,7 +277,7 @@ void __BFGS_update(const Matrix *Bk, const Vector *lambdak_1, const Vector *xk, 
     matrix_add(Bk_1, (Matrix *)Bk, (Matrix *)tempmat);
     if (matrix_have_na(Bk_1) OR matrix_have_na(Bk))
     {
-        terminate("ERROR");
+        terminate("have nan when BFGS update");
     }
 
     vector_free(sk);
