@@ -28,7 +28,7 @@ LinearConstraints *linearconstraints_alloc(int dim, int size, int e, int i, Matr
     return con;
 }
 
-void *linearconstraints_verification(const LinearConstraints *con, const Vector *x, Index_set *set)
+void linearconstraints_verification(const LinearConstraints *con, const Vector *x, Index_set *set)
 {
     // 验证解x是否满足约束,将满足的约束编号添加到约束集合mat上
     if (!(con->dim == x->size AND set->index_range == con->A->row_size))
@@ -99,7 +99,7 @@ void linearconstrains_subconstrains(const LinearConstraints *con, const Index_se
     }
 }
 
-int optimize_lp(const LinearConstraints *con, const Vector *c, Vector *x0, int maxiter, double tol, int bland)
+int optimize_lp(const LinearConstraints *con, const Vector *c, Vector *x, int maxiter, double tol, int bland)
 {
     // Trans Problem From:
     // min c^T x
@@ -180,7 +180,7 @@ int optimize_lp(const LinearConstraints *con, const Vector *c, Vector *x0, int m
     {
         // case optional solution found
         for (int i = 0; i < con->dim; i++)
-            x0->entry[i] = temp_x0->entry[i] - temp_x0->entry[i + con->dim];
+            x->entry[i] = temp_x0->entry[i] - temp_x0->entry[i + con->dim];
     }
     matrix_free(mat);
     vector_free(b);
