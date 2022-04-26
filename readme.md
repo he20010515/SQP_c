@@ -1,3 +1,13 @@
+<!--
+ * @Author: HeYuwei
+ * @Date: 2022-03-13 09:13:40
+ * @LastEditors: Heyuwei
+ * @LastEditTime: 2022-04-26 12:19:23
+ * @FilePath: \SQP_c\readme.md
+ * @Description: 
+ * 
+ * Copyright (c) 2022 by Heyuwei, All Rights Reserved. 
+-->
 # 基于C语言的SQP算法库
 
 ## 目录
@@ -44,7 +54,8 @@ ctest
     1. 中心梯度        done
     2. 中心Hession矩阵 done
 4. 线性规划
-    1. **两阶段单纯形法** <- here!!! 
+    1. **两阶段单纯形法** done
+    2. 初始解算法 done
 5. 二次规划
     1. 二次线性约束优化问题 done
     2. 二次不等式约束优化问题 ←  done
@@ -52,5 +63,5 @@ ctest
 6. SQP   ← HERE
    1. 分解为子问题 done
    2. 求解子问题 done
-   3. BFGS update doing
+   3. BFGS update done
    4. 验证结果,写测试
