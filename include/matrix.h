@@ -33,20 +33,18 @@ struct _Matrix
 typedef struct _Matrix Matrix;
 
 /**
- * Print  whole entire matrix  to stdout
- *
- * @param matrix  Pointer to the matrix to be printed to stdout
+ * @description: 打印matrix所指向的矩阵  
+ * @param {Matrix} *matrix
+ * @return {*}
  */
-
 void matrix_print(const Matrix *matrix);
 
 /**
- *  Printing some columns of a matrix
- *
- * @param matrix       The matrix whose part is to be printed
- * @param start_index   The  column number to start printing from
+ * @description: 
+ * @param {Matrix} *matrix
+ * @param {int} start_index
+ * @return {*}
  */
-
 void matrix_print_part(Matrix *matrix, int start_index);
 
 /**
