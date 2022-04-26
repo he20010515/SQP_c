@@ -256,56 +256,6 @@ void row_operation(Matrix *multiplier_matrix, Matrix *matrix, int pivot, int row
 	}
 }
 
-void matrix_row_reduce(Matrix *matrix, int zero_control)
-{
-	int pivot, row_index;
-	double multiplier;
-	for (pivot = 0; pivot < matrix->row_size; pivot++)
-	{
-
-		error_zeros(matrix, zero_control); // Function checks if there are too many zeros in a single row
-		if ((matrix->matrix_entry[pivot][pivot] != 1) && (matrix->matrix_entry[pivot][pivot] != 0))
-		{
-			row_divide(matrix, pivot);
-		}
-
-		for (row_index = pivot + 1; row_index < matrix->row_size; row_index++)
-		{
-			if (matrix->matrix_entry[pivot][pivot] != 0)
-			{
-				row_operation(NULL, matrix, pivot, row_index);
-			}
-		}
-
-		for (row_index = pivot - 1; row_index >= 0; row_index--)
-		{
-			if (matrix->matrix_entry[pivot][pivot] != 0)
-			{
-				row_operation(NULL, matrix, pivot, row_index);
-			}
-		}
-	}
-}
-
-void matrix_subtract(Matrix *result, Matrix *matrix1, Matrix *matrix2)
-{
-	int i, j;
-
-	if (!(matrix_equal_size(matrix1, matrix2)) ||
-		!(matrix_equal_size(matrix2, result)))
-	{
-		terminate("ERROR: The matrices you are trying to subtract have different sizes");
-	}
-
-	for (i = 0; i < matrix1->row_size; i += 1)
-	{
-		for (j = 0; j < matrix1->col_size; j += 1)
-		{
-			result->matrix_entry[i][j] = matrix1->matrix_entry[i][j] - matrix2->matrix_entry[i][j];
-		}
-	}
-}
-
 void matrix_add(Matrix *result, Matrix *matrix1, Matrix *matrix2)
 {
 	int i, j;

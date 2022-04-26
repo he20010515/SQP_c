@@ -1,3 +1,13 @@
+/*
+ * @Author: HeYuwei
+ * @Date: 2022-03-27 19:10:22
+ * @LastEditors: Heyuwei
+ * @LastEditTime: 2022-04-26 18:09:02
+ * @FilePath: \SQP_c\include\matrix.h
+ * @Description: 矩阵/向量联合运算头文件
+ *
+ * Copyright (c) 2022 by Heyuwei, All Rights Reserved.
+ */
 #include <stdio.h>
 #include <malloc.h>
 #include <stdlib.h>
@@ -33,14 +43,14 @@ struct _Matrix
 typedef struct _Matrix Matrix;
 
 /**
- * @description: 打印matrix所指向的矩阵  
+ * @description: 打印matrix所指向的矩阵
  * @param {Matrix} *matrix
  * @return {*}
  */
 void matrix_print(const Matrix *matrix);
 
 /**
- * @description: 
+ * @description: 打印matrix的一部分
  * @param {Matrix} *matrix
  * @param {int} start_index
  * @return {*}
@@ -48,82 +58,63 @@ void matrix_print(const Matrix *matrix);
 void matrix_print_part(Matrix *matrix, int start_index);
 
 /**
- * This fills the entire matrix with values which are  gotten form
- * stdin.
- *
- * @param matrix  Pointer to the matrix structure which is to
- * be filled.
+ * @description: 通过scanf手动填充矩阵
+ * @param {Matrix} *matrix
+ * @return {*}
  */
-
 void matrix_fill(Matrix *matrix);
 
 /**
- * Creates an identity matrix that is all the diagonal entries are
- * initialised to 1 and all other entries to zero).
- *
- * @param matrix_size    The number of rows and columns in the
- *                                        identity matrix.
- * @return                        A pointer to the new identity matrix just
- *                                        created
+ * @description: 申请一个单位阵
+ * @param {int} matrix_size
+ * @return {*}
  */
-
 Matrix *matrix_callalloc(int matrix_size);
 
 /**
- * Allocates memory for a new matrix
- *
- * @param row_size       The number of rows in the matrix
- * @param col_size         The number of columns in the matrix
- * @return                      The location of the memory block that was
- *                                       allocated to hold the matrix
+ * @description: 申请一个矩阵并分配存储空间
+ * @param {int} row_size 行
+ * @param {int} col_size 列
+ * @return {*}
  */
-
 Matrix *matrix_alloc(int row_size, int col_size);
 
 /**
- * Copies the content of one matrix1 into matrix2
- *
- * @param matrix1       Pointer  the matrix to be copied
- * @param matrix2       Pointer to the matrix to which the other is to
- *                                   be copied into
+ * @description: 矩阵复制,将matrix1复制到matrix2
+ * @param {Matrix} *matrix1 源 矩阵指针
+ * @param {Matrix} *matrix2 目标矩阵指针
+ * @return {*}
  */
-
 void matrix_copy(Matrix *matrix1, Matrix *matrix2);
 
 /**
- * Multiplies two matrices
- *
- * @param matrix1     Pointer to the first matrix for the multiplication
- * @param matrix2     The second matrix for the multiplication
- * @return                  The location of a matrix which holds the result
- *                                of the multiplication
+ * @description: 矩阵乘法,将matrix1与matrix2相乘,返回一个指向结果的指针
+ * @param {Matrix} *matrix1
+ * @param {Matrix} *matrix2
+ * @return {*} 乘法运算结果,需要调用者手动释放
  */
 Matrix *matrix_multiply(const Matrix *matrix1, const Matrix *matrix2);
 
 /**
- * Multiplies a matrix by itself 'n' times
- *
- * @param matrix       The matrix which is to self multiplied 'n' times
- * @param index         The number of times the matrix is to be multiplied to
- *                                 itself
- * @return                  The location of the matrix which holds the results
- *                                    of the multiplications
+ * @description: 矩阵求幂
+ * @param {Matrix} *matrix
+ * @param {int} index
+ * @return {*} 求幂运算的结果,需要调用者手动释放
  */
-
 Matrix *matrix_pow(Matrix *matrix, int index);
 
 /**
- * Free an entire matrix
- *
- * @param matrix       The matrix to free.
+ * @description: 释放存储空间
+ * @param {Matrix} *matrix
+ * @return {*}
  */
 void matrix_free(Matrix *matrix);
 
 /**
- * Divides an entire row of a matrix by a value of the pivot position
- *
- * @param matrix       The matrix whose row is to be divided
- * @param pivot          The pivot position of the matrix to do the division
+ * @description: 矩阵的第i行除以第i行,第pivot列的值
+ * @param {Matrix} *matrix
+ * @param {int} pivot 列坐标
+ * @return {*}
  */
 void row_divide(Matrix *matrix, int pivot);
 
@@ -138,29 +129,15 @@ void row_divide(Matrix *matrix, int pivot);
  * @param  row_index   The row number on which to carry out row operations
  */
 
+/**
+ * @description: 对矩阵的行进行操作
+ * @param {Matrix} *multiplier_matrix
+ * @param {Matrix} *matrix
+ * @param {int} pivot
+ * @param {int} row_index
+ * @return {*}
+ */
 void row_operation(Matrix *multiplier_matrix, Matrix *matrix, int pivot, int row_index);
-
-/**
- * Row echelon reduction a matrix
- *
- * @param matrix     The matrix on which to carry out row reduction
- * @param zero_control      Maximum amount of zeros that can be found on a
- *                                        row
- */
-
-void matrix_row_reduce(Matrix *matrix, int zero_control);
-
-/**
- * This function performs the  LU decomposition of a matrix
- *
- * @param upper_triangular        A pointer to the matrix on which to perform
- *                                                 LU decomposition.
- * @param lower_triangular          A pointer to the lower triangular matrix
- * @note You should allocate memory for the lower_triangular matrix with
- * @ref matrix_callalloc before passing it to this function
- */
-
-void matrix_subtract(Matrix *result, Matrix *matrix1, Matrix *matrix2);
 
 /**
  * Adds one matrix to another
@@ -180,7 +157,6 @@ void matrix_add(Matrix *result, Matrix *matrix1, Matrix *matrix2);
  * @return          Non-zero if the matrix row and columns  are equal, zero if they
  *                        are not equal.
  */
-
 int matrix_equal_size(Matrix *matrix1, Matrix *matrix2);
 
 /**
