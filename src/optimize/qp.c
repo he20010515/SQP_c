@@ -294,9 +294,9 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const LinearConstra
             }
             else
             {
-                log_i("case: remove con");
+                // log_i("case: remove con");
                 int j = vector_argmin(lambda);
-                log_i("remove cons %d", j);
+                // log_i("remove cons %d", j);
                 index_set_remove(W_k, j);
                 vector_copy(x_k, x_k_1);
                 vector_free(lambda);
@@ -316,24 +316,24 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const LinearConstra
             Vector *alphapk = vector_multiply_const(p, alphak, 1); // copy = 1
             int j = vector_argmin(alphas);
             vector_add_vector(x_k, alphapk, x_k_1);
-            log_i("alpha k:%lf", alphak);
+            // log_i("alpha k:%lf", alphak);
             // vector_print(alphas);
             vector_free(alphapk);
             vector_free(alphas);
             if (alphak < 1.) //若不满足某些约束
             {
-                log_i("case: update wk,and update wk");
+                // log_i("case: update wk,and update wk");
                 index_set_append(W_k, j); //将不满足的约束添加进工作集
-                log_i("Index set append%d", j);
-                log_i("alphak = %f", alphak);
+                // log_i("Index set append%d", j);
+                // log_i("alphak = %f", alphak);
             }
             else
             {
-                log_i("case: update xk and keep wk"); //约束集不变
-                log_i("alphak = %f", alphak);
+                // log_i("case: update xk and keep wk"); //约束集不变
+                // log_i("alphak = %f", alphak);
             }
         }
-        log_i("iter%d done;xk = ", k);
+        // log_i("iter%d done;xk = ", k);
         // vector_print(x_k_1);
         k++;
         if (k >= MAX_ITER)
@@ -355,4 +355,5 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const LinearConstra
         vector_free((Vector *)start_point);
 
     return 0;
+    
 }
