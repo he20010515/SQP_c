@@ -2,7 +2,7 @@
  * @Author: HeYuwei
  * @Date: 2022-03-13 09:13:40
  * @LastEditors: Heyuwei
- * @LastEditTime: 2022-04-26 18:21:10
+ * @LastEditTime: 2022-04-26 18:32:03
  * @FilePath: \SQP_c\include\util.h
  * @Description:一些常用工具函数
  *
@@ -27,7 +27,7 @@ void terminate(char *string);
  * @param {double} b
  * @return {*}
  */
-inline int double_equal(double a, double b);
+int double_equal(double a, double b);
 
 /**
  * @description: 判断向量中元素是否都大于一个常数a

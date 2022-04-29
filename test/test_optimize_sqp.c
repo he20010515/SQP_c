@@ -1,3 +1,13 @@
+/*
+ * @Author: HeYuwei
+ * @Date: 2022-04-22 15:47:42
+ * @LastEditors: Heyuwei
+ * @LastEditTime: 2022-04-29 18:21:30
+ * @FilePath: \SQP_c\test\test_optimize_sqp.c
+ * @Description:
+ *
+ * Copyright (c) 2022 by Heyuwei, All Rights Reserved.
+ */
 #include "sqp.h"
 #include "math.h"
 #include "elog.h"
@@ -23,31 +33,35 @@ int main(int argc, char const *argv[])
     sqp_init();
     int n = 3;
     int m = 4;
-    NdVectorfunction *c = ndVectorfunction_alloc(_c, 3, 4);
-    Nonlinearconstraints *con = nonlinearconstraints_alloc(3, 4, 1, 3, c);
-    NdsclaFunction *f = ndscla_function_alloc(_fun, 3);
-    Vector *x0 = vector_alloc(3);
 
-    x0->entry[0] = 0;
-    x0->entry[1] = 0;
-    x0->entry[2] = 0;
-    Vector *lambda0 = vector_alloc(4);
-    lambda0->entry[0] = 0;
-    lambda0->entry[1] = 0;
-    lambda0->entry[2] = 0;
-    lambda0->entry[3] = 0;
+    for (int num = 0; num < 10; num++)
+    {
+        NdVectorfunction *c = ndVectorfunction_alloc(_c, 3, 4);
+        Nonlinearconstraints *con = nonlinearconstraints_alloc(3, 4, 1, 3, c);
+        NdsclaFunction *f = ndscla_function_alloc(_fun, 3);
+        Vector *x0 = vector_alloc(3);
 
-    Vector *xstar = vector_alloc(3);
-    log_i("hello elog");
-    optimize_sqp(f, con, x0, lambda0, xstar);
-    vector_print(xstar);
+        x0->entry[0] = 0;
+        x0->entry[1] = 0;
+        x0->entry[2] = 0;
+        Vector *lambda0 = vector_alloc(4);
+        lambda0->entry[0] = 0;
+        lambda0->entry[1] = 0;
+        lambda0->entry[2] = 0;
+        lambda0->entry[3] = 0;
 
-    ndVectorfunction_free(c);
-    nonlinearconstraints_free(con);
-    ndscla_function_free(f);
-    vector_free(x0);
-    vector_free(lambda0);
-    vector_free(xstar);
+        Vector *xstar = vector_alloc(3);
+        log_i("hello elog");
+        optimize_sqp(f, con, x0, lambda0, xstar);
+        vector_print(xstar);
+
+        ndVectorfunction_free(c);
+        nonlinearconstraints_free(con);
+        ndscla_function_free(f);
+        vector_free(x0);
+        vector_free(lambda0);
+        vector_free(xstar);
+    }
 
     return 0;
 }

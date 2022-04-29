@@ -1,3 +1,13 @@
+/*
+ * @Author: HeYuwei
+ * @Date: 2022-03-13 09:13:40
+ * @LastEditors: Heyuwei
+ * @LastEditTime: 2022-04-26 18:28:58
+ * @FilePath: \SQP_c\src\util\util.c
+ * @Description: 
+ * 
+ * Copyright (c) 2022 by Heyuwei, All Rights Reserved. 
+ */
 #include <stdio.h>
 #include <math.h>
 #include "elog.h"
@@ -20,7 +30,7 @@ void terminate(char *string)
     exit(-1);
 }
 
-int double_equal(double a, double b)
+inline int double_equal(double a, double b)
 {
     if (fabs(a - b) < DOUBLE_ERROR)
     {
