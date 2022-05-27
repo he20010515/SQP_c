@@ -4,6 +4,7 @@
 #include "matrix.h"
 #include "elog.h"
 #include <math.h>
+#include <omp.h>
 double ndscla_function_call(const NdsclaFunction *function, Vector *x)
 {
     return function->function(x);
@@ -27,8 +28,10 @@ void ndscla_forward_grad(const NdsclaFunction *function, double h, const Vector 
 
     Vector *temp = vector_alloc(x0->size);
     vector_copy(x0, temp);
+    size_t i = 0;
     double f_add_h, f;
-    for (size_t i = 0; i < function->inputSize; i++)
+#pragma omp parallel for num_threads(10) default(none) shared(function, x0, grad, temp) private(i, h, f_add_h, f)
+    for (i = 0; i < function->inputSize; i++)
     {
         h = 2 * (1 + fabs(temp->entry[i])) * sqrtl(exp2l(log2l(fabs(temp->entry[i]) + 2e-20) - 55.0));
         temp->entry[i] += h;

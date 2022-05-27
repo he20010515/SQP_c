@@ -2,11 +2,11 @@
  * @Author: HeYuwei
  * @Date: 2022-03-13 09:13:40
  * @LastEditors: Heyuwei
- * @LastEditTime: 2022-04-26 18:28:58
+ * @LastEditTime: 2022-05-27 11:12:58
  * @FilePath: \SQP_c\src\util\util.c
- * @Description: 
- * 
- * Copyright (c) 2022 by Heyuwei, All Rights Reserved. 
+ * @Description:
+ *
+ * Copyright (c) 2022 by Heyuwei, All Rights Reserved.
  */
 #include <stdio.h>
 #include <math.h>
@@ -16,9 +16,9 @@
 #include "assert.h"
 #include "matrix.h"
 #include <stdlib.h>
+#include <omp.h>
 
 #define LOG_TAG "util"
-
 
 void terminate(char *string)
 {
@@ -50,4 +50,14 @@ int vector_any_bigger_equal_than_const(const Vector *v, double a)
             return 0;
     }
     return 1;
+}
+
+void opem_mp_test(void)
+{
+
+    omp_set_num_threads(4);
+#pragma omp parallel
+    {
+        printf("I'm thread %d\n", omp_get_thread_num());
+    }
 }

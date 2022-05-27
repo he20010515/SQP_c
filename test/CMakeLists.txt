@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 project(unitTest VERSION 0.0.1)
 
-
-
 file(GLOB_RECURSE TEST_SRC_LIST *.c)
 find_package(OpenMP REQUIRED)
 foreach(v ${TEST_SRC_LIST})
@@ -21,13 +19,3 @@ foreach(v ${TEST_SRC_LIST})
     endif()
 endforeach()
 
-
-
-# add_executable(${PROJECT_NAME}_matrix test_matrix.c)
-# add_test(NAME ${PROJECT_NAME}_matrix COMMAND ${PROJECT_NAME}_matrix)
-# TARGET_LINK_LIBRARIES(${PROJECT_NAME}_matrix sqp)
-
-
-# add_executable(${PROJECT_NAME}_matrix2 test_matrix2.c ${DIRSRCS})
-# add_test(NAME ${PROJECT_NAME}_matrix2 COMMAND ${PROJECT_NAME}_matrix2)
-# TARGET_LINK_LIBRARIES(${PROJECT_NAME}_matrix2 sqp)

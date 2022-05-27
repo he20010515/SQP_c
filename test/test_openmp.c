@@ -2,7 +2,7 @@
  * @Author: HeYuwei
  * @Date: 2022-05-20 18:36:52
  * @LastEditors: Heyuwei
- * @LastEditTime: 2022-05-27 10:44:03
+ * @LastEditTime: 2022-05-27 11:10:09
  * @FilePath: \SQP_c\test\test_openmp.c
  * @Description:
  *
@@ -10,7 +10,7 @@
  */
 
 #include <stdio.h>
-
+#include "util.h"
 #include "omp.h"
 
 int main(int argc, char const *argv[])
@@ -28,5 +28,7 @@ int main(int argc, char const *argv[])
             printf("number of threads = %d\n", nthreads);
         }
     }
+
+    opem_mp_test();
     return 0;
 }

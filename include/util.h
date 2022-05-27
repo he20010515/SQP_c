@@ -2,7 +2,7 @@
  * @Author: HeYuwei
  * @Date: 2022-03-13 09:13:40
  * @LastEditors: Heyuwei
- * @LastEditTime: 2022-04-26 18:32:03
+ * @LastEditTime: 2022-05-27 11:07:06
  * @FilePath: \SQP_c\include\util.h
  * @Description:一些常用工具函数
  *
@@ -36,6 +36,9 @@ int double_equal(double a, double b);
  * @return {*}
  */
 int vector_any_bigger_equal_than_const(const Vector *v, double a);
+
+
+void opem_mp_test(void);
 
 /**
  * @description: 初始化函数,用于初始化日志系统
