@@ -42,7 +42,7 @@ double ndscla_function_call(const NdsclaFunction *function, Vector *x);
  * @param {Vector} *grad 求出梯度的存储空间
  * @return {*}
  */
-void ndscla_central_grad(const NdsclaFunction *function, double h, const Vector *x0, Vector *grad);
+void ndscla_forward_grad(const NdsclaFunction *function, double h, const Vector *x0, Vector *grad);
 
 /**
  * @description:  利用中心梯度法求解function的Hession矩阵

@@ -2,7 +2,7 @@
  * @Author: HeYuwei
  * @Date: 2022-04-26 18:44:11
  * @LastEditors: Heyuwei
- * @LastEditTime: 2022-04-26 18:54:31
+ * @LastEditTime: 2022-04-29 19:24:57
  * @FilePath: \SQP_c\test\test_optimize_sqp3.c
  * @Description:
  *
@@ -26,7 +26,7 @@ void _c(const Vector *x, Vector *y)
     double xx = x->entry[0];
     double yy = x->entry[1];
     double zz = x->entry[2];
-    y->entry[0] = xx + yy + zz - 4.0;
+    y->entry[0] = xx + yy + zz - 2.0;
     y->entry[1] = -(xx * xx + yy * yy + zz * zz) - 9.0;
 }
 

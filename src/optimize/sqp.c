@@ -82,7 +82,7 @@ void optimize_sqp(const NdsclaFunction *fun,
     vector_copy(x0, xk);
     vector_copy(x0, xk_1);
 
-    ndscla_central_grad(fun, NUMERICAL_DIFF_STEP, x0, gradf0);
+    ndscla_forward_grad(fun, NUMERICAL_DIFF_STEP, x0, gradf0);
     vector_copy(gradf0, gradfk);
     vector_copy(gradf0, gradfk_1);
 
@@ -184,7 +184,7 @@ void optimize_sqp(const NdsclaFunction *fun,
         log_i("lambdak_1");
         vector_log(lambdak_1);
 
-        ndscla_central_grad(fun, NUMERICAL_DIFF_STEP, xk_1, gradfk_1);
+        ndscla_forward_grad(fun, NUMERICAL_DIFF_STEP, xk_1, gradfk_1);
         ndVectorfunction_call(con->c, xk_1, ck_1);
         ndVectorfunction_jacobian(con->c, xk_1, NUMERICAL_DIFF_STEP, Ak_1);
         __BFGS_update(Bk, _lambdak, xk, xk_1, Bk_1, lagrange_function);
@@ -256,9 +256,9 @@ void __BFGS_update(const Matrix *Bk, const Vector *lambdak_1, const Vector *xk, 
     vector_add_vector(xk_1, _xk, sk); // sk = xK+1-xk;
 
     Vector *gradxk_1 = vector_alloc(xk->size);
-    ndscla_central_grad(lagrange, NUMERICAL_DIFF_STEP, xk_1, gradxk_1);
+    ndscla_forward_grad(lagrange, NUMERICAL_DIFF_STEP, xk_1, gradxk_1);
     Vector *gradxk = vector_alloc(xk->size);
-    ndscla_central_grad(lagrange, NUMERICAL_DIFF_STEP, xk, gradxk);
+    ndscla_forward_grad(lagrange, NUMERICAL_DIFF_STEP, xk, gradxk);
     Vector *yk = vector_alloc(xk->size);
     Vector *_gradxk = vector_multiply_const(gradxk, -1., 1);
     vector_add_vector(gradxk_1, _gradxk, yk);
@@ -365,7 +365,7 @@ double __phi_1(const Vector *x, const double miu, const Nonlinearconstraints *co
 double __D(const Vector *xk, const Vector *pk, const double miu, const NdsclaFunction *fun, const Nonlinearconstraints *con)
 {
     Vector *gradfk = vector_alloc(fun->inputSize);
-    ndscla_central_grad(fun, NUMERICAL_DIFF_STEP, xk, gradfk);
+    ndscla_forward_grad(fun, NUMERICAL_DIFF_STEP, xk, gradfk);
     Vector *ck = vector_alloc(con->c->outputdim);
     ndVectorfunction_call(con->c, xk, ck);
     double temp = vector_inner_product(gradfk, pk) - miu * vector_1norm(ck);

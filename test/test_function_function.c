@@ -20,7 +20,7 @@ int main(void)
     x0->entry[1] = 2.0;
     x0->entry[2] = 3.0;
     Vector *grad = vector_alloc(3);
-    ndscla_central_grad(f, 0.01, x0, grad);
+    ndscla_forward_grad(f, 0.01, x0, grad);
     vector_print(grad);
     Matrix *hession = matrix_alloc(f->inputSize, f->inputSize);
     ndscla_central_hession(f, 0.01, x0, hession);

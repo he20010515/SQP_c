@@ -3,6 +3,7 @@
 #include "function.h"
 #include "matrix.h"
 #include "elog.h"
+#include <math.h>
 double ndscla_function_call(const NdsclaFunction *function, Vector *x)
 {
     return function->function(x);
@@ -21,20 +22,20 @@ void ndscla_function_free(NdsclaFunction *function)
     free(function);
 }
 
-void ndscla_central_grad(const NdsclaFunction *function, double h, const Vector *x0, Vector *grad)
+void ndscla_forward_grad(const NdsclaFunction *function, double h, const Vector *x0, Vector *grad)
 {
 
     Vector *temp = vector_alloc(x0->size);
     vector_copy(x0, temp);
-    double f_add_h, f_sub_h;
+    double f_add_h, f;
     for (size_t i = 0; i < function->inputSize; i++)
     {
+        h = 2 * (1 + fabs(temp->entry[i])) * sqrtl(exp2l(log2l(fabs(temp->entry[i]) + 2e-20) - 55.0));
         temp->entry[i] += h;
         f_add_h = ndscla_function_call(function, temp);
-        temp->entry[i] -= 2 * h;
-        f_sub_h = ndscla_function_call(function, temp);
-        temp->entry[i] += h;
-        grad->entry[i] = (f_add_h - f_sub_h) / (2. * h);
+        temp->entry[i] -= h;
+        f = ndscla_function_call(function, temp);
+        grad->entry[i] = (f_add_h - f) / (h);
     }
     vector_free(temp);
 }
