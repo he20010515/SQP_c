@@ -33,12 +33,13 @@ void ndscla_forward_grad(const NdsclaFunction *function, double h, const Vector 
 #pragma omp parallel for num_threads(10) default(none) shared(function, x0, grad, temp) private(i, h, f_add_h, f)
     for (i = 0; i < function->inputSize; i++)
     {
-        h = 2 * (1 + fabs(temp->entry[i])) * sqrtl(exp2l(log2l(fabs(temp->entry[i]) + 2e-20) - 55.0));
+        h = 2 * (1 + fabs(temp->entry[i])) * sqrtl(exp2l(log2l(fabs(temp->entry[i]) + 2e-10) - 55.0));
         temp->entry[i] += h;
         f_add_h = ndscla_function_call(function, temp);
         temp->entry[i] -= h;
         f = ndscla_function_call(function, temp);
         grad->entry[i] = (f_add_h - f) / (h);
+        // printf("compute from thread %3d \n", omp_get_thread_num());
     }
     vector_free(temp);
 }

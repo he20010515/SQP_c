@@ -2,7 +2,7 @@
  * @Author: HeYuwei
  * @Date: 2022-05-27 10:54:07
  * @LastEditors: Heyuwei
- * @LastEditTime: 2022-05-27 10:57:27
+ * @LastEditTime: 2022-05-27 19:41:50
  * @FilePath: \SQP_c\test\test_function_function_with_openmp.c
  * @Description:
  *
@@ -30,10 +30,9 @@ int main(void)
     sqp_init();
     NdsclaFunction *f = ndscla_function_alloc(target_function, 100);
     Vector *x0 = vector_alloc(100);
-    vector_fill_const(x0, 1.0);
+    vector_fill_const(x0, 100.0);
     Vector *grad = vector_alloc(100);
     ndscla_forward_grad(f, 0.01, x0, grad);
-    vector_print(grad);
     // Matrix *hession = matrix_alloc(f->inputSize, f->inputSize);
     // ndscla_central_hession(f, 0.01, x0, hession);
     // matrix_print(hession);

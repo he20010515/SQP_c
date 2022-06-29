@@ -2,7 +2,7 @@
  * @Author: HeYuwei
  * @Date: 2022-04-22 15:47:42
  * @LastEditors: Heyuwei
- * @LastEditTime: 2022-04-29 18:21:30
+ * @LastEditTime: 2022-06-29 11:52:46
  * @FilePath: \SQP_c\test\test_optimize_sqp.c
  * @Description:
  *
@@ -34,7 +34,7 @@ int main(int argc, char const *argv[])
     int n = 3;
     int m = 4;
 
-    for (int num = 0; num < 10; num++)
+    for (int num = 0; num < 3; num++)
     {
         NdVectorfunction *c = ndVectorfunction_alloc(_c, 3, 4);
         Nonlinearconstraints *con = nonlinearconstraints_alloc(3, 4, 1, 3, c);
