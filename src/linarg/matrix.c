@@ -8,6 +8,16 @@
 
 #define LOG_TAG "matrix"
 
+double matrix_get_value(Matrix *mat, int row, int col)
+{
+	return mat->matrix_entry[row][col];
+}
+
+double matrix_set_value(Matrix *mat, int row, int col, double value)
+{
+	mat->matrix_entry[row][col] = value;
+}
+
 void matrix_print(const Matrix *matrix)
 {
 	int i, j;

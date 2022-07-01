@@ -2,7 +2,7 @@
  * @Author: HeYuwei
  * @Date: 2022-03-27 19:10:22
  * @LastEditors: Heyuwei
- * @LastEditTime: 2022-04-26 18:09:02
+ * @LastEditTime: 2022-07-01 16:06:27
  * @FilePath: \SQP_c\include\matrix.h
  * @Description: 矩阵/向量联合运算头文件
  *
@@ -63,7 +63,24 @@ void matrix_print_part(Matrix *matrix, int start_index);
  * @return {*}
  */
 void matrix_fill(Matrix *matrix);
+/**
+ * @description: 获取矩阵mat第row行第col列的值
+ * @param {Matrix} *mat
+ * @param {int} row
+ * @param {int} col
+ * @return {*}
+ */
+double matrix_get_value(Matrix *mat, int row, int col);
 
+/**
+ * @description:设定矩阵mat第row行第col列的值
+ * @param {Matrix} *mat
+ * @param {int} row
+ * @param {int} col
+ * @param {double} value
+ * @return {*}
+ */
+void matrix_set_value(Matrix *mat, int row, int col, double value);
 /**
  * @description: 申请一个单位阵
  * @param {int} matrix_size
@@ -183,29 +200,100 @@ void terminate(char *string);
  *  @return double    F2norm of a matrix
  */
 double matrix_F2norm(Matrix *matrix);
-
+/**
+ * @description:矩阵求逆
+ * @param {Matrix} *mat
+ * @param {Matrix} *inv
+ * @return {*}
+ */
 void matrix_inverse(Matrix *mat, Matrix *inv);
-
+/**
+ * @description: 一维数组转换为矩阵对象
+ * @param {double} *array 数组指针
+ * @param {int} rowsize 行数
+ * @param {int} colsize 列数
+ * @param {Matrix} *mat 指向Matrix的指针
+ * @return {*}
+ */
 void array_2_matrix(double *array, const int rowsize, const int colsize, Matrix *mat);
 
+/**
+ * @description: 使用一个常数填充一个矩阵
+ * @param {Matrix} *mat
+ * @param {double} a
+ * @return {*}
+ */
 void matrix_fill_const(Matrix *mat, double a);
 
+/**
+ * @description: 矩阵Lu分解
+ * @param {Matrix} *mat
+ * @param {Matrix} *L
+ * @param {Matrix} *U
+ * @return {*}
+ */
 void matrix_lu_depose(Matrix *mat, Matrix *L, Matrix *U);
 
+/**
+ * @description:矩阵乘向量
+ * @param {Matrix} *mat
+ * @param {Vector} *a
+ * @param {Vector} *mat_a
+ * @return {*}
+ */
 void matrix_mutiply_vector(const Matrix *mat, const Vector *a, Vector *mat_a);
 
+/**
+ * @description: 向量乘矩阵
+ * @param {Vector} *a
+ * @param {Matrix} *mat
+ * @param {Vector} *mat_a
+ * @return {*}
+ */
 void vector_mutiply_matrix(const Vector *a, const Matrix *mat, Vector *mat_a);
-
+/**
+ * @description: 通过索引集Index_set取子矩阵
+ * @param {Matrix} *A
+ * @param {Index_set} *index_set
+ * @param {Matrix} *subA
+ * @return {*}
+ */
 void matrix_submatrix_by_rowindex_set(const Matrix *A, const Index_set *index_set, Matrix *subA);
-
+/**
+ * @description:矩阵转置
+ * @param {Matrix} *mat
+ * @param {Matrix} *matT
+ * @return {*}
+ */
 void matrix_transpose(const Matrix *mat, Matrix *matT);
-
+/**
+ * @description: 列向量乘列向量的转置
+ * @param {Vector} *V
+ * @param {Vector} *W
+ * @param {Matrix} *VWT
+ * @return {*}
+ */
 void vector_mutiply_vectorT(const Vector *V, const Vector *W, Matrix *VWT);
-
+/**
+ * @description: 矩阵乘一个常数
+ * @param {Matrix} *A
+ * @param {double} k
+ * @param {Matrix} *kA
+ * @return {*}
+ */
 void matrix_mutiply_const(const Matrix *A, double k, Matrix *kA);
 
 void vector_log(const Vector *v);
 void matrix_log(const Matrix *mat);
-
+/**
+ * @description: 判断矩阵是否具有Nan
+ * @param {Matrix} *mat
+ * @return {*}
+ */
 int matrix_have_na(const Matrix *mat);
+/**
+ * @description: 判断向量中是否含有nan
+ * @param {Vector} *v
+ * @return {*}
+ */
 int vector_have_na(const Vector *v);

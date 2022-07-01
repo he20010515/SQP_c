@@ -5,6 +5,7 @@
 #include "elog.h"
 #include <math.h>
 #include <omp.h>
+#include "sparse_matrix.h"
 double ndscla_function_call(const NdsclaFunction *function, Vector *x)
 {
     return function->function(x);
