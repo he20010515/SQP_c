@@ -13,7 +13,7 @@ double matrix_get_value(Matrix *mat, int row, int col)
 	return mat->matrix_entry[row][col];
 }
 
-double matrix_set_value(Matrix *mat, int row, int col, double value)
+void matrix_set_value(Matrix *mat, int row, int col, double value)
 {
 	mat->matrix_entry[row][col] = value;
 }
@@ -424,6 +424,7 @@ void error_zeros(Matrix *matrix, int control_index)
 		}
 	}
 }
+
 double matrix_F2norm(Matrix *matrix)
 {
 	double norm = 0.;
