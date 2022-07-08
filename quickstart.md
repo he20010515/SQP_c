@@ -1,33 +1,10 @@
-<!--
- * @Author: HeYuwei
- * @Date: 2022-07-06 16:04:27
- * @LastEditors: Heyuwei
- * @LastEditTime: 2022-07-06 16:22:49
- * @FilePath: \SQP_c\quickstart.md
- * @Description: 
- * 
- * Copyright (c) 2022 by Heyuwei, All Rights Reserved. 
--->
-
 # 快速使用指南
 
-
-## 环境搭建
-
-### windows
-1. vscode
-   1. c/c++ 
-   2. cmake_tools 
-   3. cmake 
-2. Mingw-64 编译器
-3. CMake
-### linux
-1. CMake
 ## 编译
 
 ```bash
 git clone https://github.com/he20010515/SQP_c.git # 克隆项目代码
-cd SQP_C        # 进入到项目目录
+cd SQP_c        # 进入到项目目录
 mkdir build     # 建立build目录
 cd build        # 进入build目录
 cmake ..        # 配置项目
@@ -300,13 +277,12 @@ Use "--rerun-failed --output-on-failure" to re-run the failed cases verbosely.
 ```bash
 cd build
 cd test
-.\\test_optimize_simplex6.exe
+.\test_optimize_simplex6.exe
 ```
 
 参考输出
 
 ```bash
-PS D:\\Workspace\\HIT\\SQP_c\\build\\test> ."D:/Workspace/HIT/SQP_c/build/test/test_optimize_simplex6.exe" 
 I/elog            (D:/Workspace/HIT/SQP_c/src/log/elog.c:244 elog_start)EasyLogger V2.2.99 is initialize success.
 I/simplex         (D:/Workspace/HIT/SQP_c/src/optimize/simplex.c:555 _linprog_simplex)simplex optimize complete
 I/simplex         (D:/Workspace/HIT/SQP_c/src/optimize/simplex.c:556 _linprog_simplex)Optimization terminated successfully.

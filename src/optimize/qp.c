@@ -29,10 +29,6 @@ void __qp_compute_subproblem(const Index_set *W_k, const LinearConstraints *cons
     vector_fill_const(sub_b, 0);
     //计算子问题得到p
     optimize_qp_linear_constraints(G, Gxk_c, sub_A, sub_b, p, y);
-    // matrix_print(G);
-    // vector_print(Gxk_c);
-    // matrix_print(sub_A);
-    // vector_print(sub_b);
 
     vector_free(Gxk);
     vector_free(Gxk_c);
@@ -263,9 +259,9 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const LinearConstra
             else
                 index_set_append(W_k, i);
 
-        log_i("========iter k = %d=========", k);
-        log_i("xk =");
-        vector_log(x_k);
+        // log_i("========iter k = %d=========", k);
+        // log_i("xk =");
+        // vector_log(x_k);
 
         if (vector_have_na(x_k))
         {
@@ -279,11 +275,11 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const LinearConstra
             //*计算lambda
             Vector *lambda = vector_alloc(cons->size);
             Vector *subsublambda = __qp_compute_lambda(W_k, cons, G, c, x_k, index_set_I, lambda);
-            log_i("lambda:");
+            // log_i("lambda:");
             // vector_print(lambda);
             if (vector_any_bigger_equal_than_const(subsublambda, 0)) //若lambda i >0 (激活不等式约束集) (\any i \in Wk)
             {
-                log_i("case: iter done");
+                // log_i("case: iter done");
                 vector_copy(x_k, x_star);
                 // vector_print(x_star);
                 vector_copy(lambda, lam);
@@ -355,5 +351,4 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const LinearConstra
         vector_free((Vector *)start_point);
 
     return 0;
-    
 }

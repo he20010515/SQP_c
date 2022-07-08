@@ -2,7 +2,7 @@
  * @Author: HeYuwei
  * @Date: 2022-03-13 09:13:40
  * @LastEditors: Heyuwei
- * @LastEditTime: 2022-05-27 11:12:58
+ * @LastEditTime: 2022-07-08 11:22:36
  * @FilePath: \SQP_c\src\util\util.c
  * @Description:
  *
@@ -30,7 +30,7 @@ void terminate(char *string)
     exit(-1);
 }
 
-inline int double_equal(double a, double b)
+int double_equal(double a, double b)
 {
     if (fabs(a - b) < DOUBLE_ERROR)
     {

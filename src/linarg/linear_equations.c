@@ -9,7 +9,7 @@ void __one_line(const Matrix *mat, const Vector *b, Vector *x)
     Vector *alpha = vector_alloc(mat->row_size);
     for (int i = 0; i < b->size; i++)
     {
-        alpha->entry[i] = mat->matrix_entry[i][0];
+        alpha->entry[i] = matrix_get_value(mat, i, 0);
     }
     double temp = vector_inner_product(alpha, b) / (vector_inner_product(alpha, alpha));
     vector_free(alpha);
@@ -42,9 +42,9 @@ void linear_equation_jacobi(const Matrix *mat, const Vector *b, const double eps
                 {
                     continue;
                 }
-                s += mat->matrix_entry[i][j] * tempx->entry[j];
+                s += matrix_get_value(mat, i, j) * tempx->entry[j];
             }
-            x->entry[i] = (b->entry[i] - s) / mat->matrix_entry[i][i];
+            x->entry[i] = (b->entry[i] - s) / matrix_get_value(mat, i, i);
         }
         iter++;
         // check iter stop
@@ -219,9 +219,11 @@ void linear_equation_gaussian_elimination(const Matrix *mat, const Vector *b, Ve
         for (int j = 0; j < tempA->col_size; j++)
         {
             if (j < tempA->col_size - 1)
-                tempA->matrix_entry[i][j] = mat->matrix_entry[i][j];
+                // tempA->matrix_entry[i][j] = mat->matrix_entry[i][j];
+                matrix_set_value(tempA, i, j, matrix_get_value(mat, i, j));
             else
-                tempA->matrix_entry[i][j] = b->entry[i];
+                // tempA->matrix_entry[i][j] = b->entry[i];
+                matrix_set_value(tempA, i, j, b->entry[i]);
         }
     }
     for (int k = 0; k < mat->row_size; k++)
@@ -234,11 +236,15 @@ void linear_equation_gaussian_elimination(const Matrix *mat, const Vector *b, Ve
 
         for (int i = k + 1; i < mat->row_size; i++)
         {
-            if (tempA->matrix_entry[k][k] == 0.0)
+            // if (tempA->matrix_entry[k][k] == 0.0)
+            if (matrix_get_value(tempA, k, k) == 0.0)
                 break;
-            temp = tempA->matrix_entry[i][k] / tempA->matrix_entry[k][k];
+            // temp = tempA->matrix_entry[i][k] / tempA->matrix_entry[k][k];
+            temp = matrix_get_value(tempA, i, k) / matrix_get_value(tempA, k, k);
             for (int j = k; j < tempA->col_size; j++)
-                tempA->matrix_entry[i][j] = tempA->matrix_entry[k][j] * temp - tempA->matrix_entry[i][j];
+                // tempA->matrix_entry[i][j] = tempA->matrix_entry[k][j] * temp - tempA->matrix_entry[i][j];
+                matrix_set_value(tempA, i, j,
+                                 matrix_get_value(tempA, k, j) * temp - matrix_get_value(tempA, i, j));
         }
     }
     for (int i = tempA->row_size - 1; i >= 0; i--)

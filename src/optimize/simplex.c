@@ -331,7 +331,7 @@ int _solve_simplex(Matrix *T, int n, int *basis, int basis_size, int maxiter, do
         }
         int a = T->col_size - 1;
         int b = maxbasis_m + 1;
-        solution = vector_alloc(MAX(a, b));
+        solution = vector_alloc(a > b ? a : b);
     }
     int pivcol = 0;
     int pivrow = 0;

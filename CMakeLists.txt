@@ -10,7 +10,7 @@ aux_source_directory("src/optimize" DIR_SRCS)
 
 add_library(sqp STATIC ${DIR_SRCS})
 
-LINK_LIBRARIES(m)
+#LINK_LIBRARIES(m)
 
 find_package(OpenMP REQUIRED)
 if(OpenMP_FOUND)

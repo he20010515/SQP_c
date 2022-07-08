@@ -166,10 +166,11 @@ void optimize_sqp(const NdsclaFunction *fun,
         while (__check_inner_loop(xk, p, aita, miu, alphak, con, fun))
         {
             // update alphak
-            if (innerloop >= 100)
+            if (innerloop >= 10)
             {
                 log_e("iter overflow");
-                terminate("iter overflow");
+                // terminate("iter overflow");
+                break;
             }
             innerloop++;
             alphak = alphak * tao;
