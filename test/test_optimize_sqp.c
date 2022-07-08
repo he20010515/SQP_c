@@ -2,7 +2,7 @@
  * @Author: HeYuwei
  * @Date: 2022-04-22 15:47:42
  * @LastEditors: Heyuwei
- * @LastEditTime: 2022-06-29 11:52:46
+ * @LastEditTime: 2022-07-08 11:40:06
  * @FilePath: \SQP_c\test\test_optimize_sqp.c
  * @Description:
  *
@@ -41,9 +41,9 @@ int main(int argc, char const *argv[])
         NdsclaFunction *f = ndscla_function_alloc(_fun, 3);
         Vector *x0 = vector_alloc(3);
 
-        x0->entry[0] = 0;
-        x0->entry[1] = 0;
-        x0->entry[2] = 0;
+        x0->entry[0] = 3;
+        x0->entry[1] = 1;
+        x0->entry[2] = 8;
         Vector *lambda0 = vector_alloc(4);
         lambda0->entry[0] = 0;
         lambda0->entry[1] = 0;
@@ -51,7 +51,6 @@ int main(int argc, char const *argv[])
         lambda0->entry[3] = 0;
 
         Vector *xstar = vector_alloc(3);
-        log_i("hello elog");
         optimize_sqp(f, con, x0, lambda0, xstar);
         vector_print(xstar);
 

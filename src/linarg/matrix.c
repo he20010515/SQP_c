@@ -8,7 +8,7 @@
 
 #define LOG_TAG "matrix"
 
-double matrix_get_value(Matrix *mat, int row, int col)
+double matrix_get_value(const Matrix *mat, int row, int col)
 {
 	return mat->matrix_entry[row][col];
 }

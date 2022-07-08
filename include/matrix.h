@@ -2,7 +2,7 @@
  * @Author: HeYuwei
  * @Date: 2022-03-27 19:10:22
  * @LastEditors: Heyuwei
- * @LastEditTime: 2022-07-01 16:06:27
+ * @LastEditTime: 2022-07-08 11:24:34
  * @FilePath: \SQP_c\include\matrix.h
  * @Description: 矩阵/向量联合运算头文件
  *
@@ -70,7 +70,7 @@ void matrix_fill(Matrix *matrix);
  * @param {int} col
  * @return {*}
  */
-double matrix_get_value(Matrix *mat, int row, int col);
+double matrix_get_value(const Matrix *mat, int row, int col);
 
 /**
  * @description:设定矩阵mat第row行第col列的值

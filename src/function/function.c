@@ -29,7 +29,7 @@ void ndscla_forward_grad(const NdsclaFunction *function, double h, const Vector 
 
     Vector *temp = vector_alloc(x0->size);
     vector_copy(x0, temp);
-    size_t i = 0;
+    int i = 0;
     double f_add_h, f;
 #pragma omp parallel for num_threads(10) default(none) shared(function, x0, grad, temp) private(i, h, f_add_h, f)
     for (i = 0; i < function->inputSize; i++)
@@ -91,6 +91,7 @@ NdVectorfunction *ndVectorfunction_alloc(void (*function)(const Vector *, Vector
     f->function = function;
     f->inputdim = intputdim;
     f->outputdim = outputdim;
+    return f;
 }
 
 void ndVectorfunction_free(NdVectorfunction *function)
