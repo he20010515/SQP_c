@@ -123,7 +123,7 @@ void optimize_sqp(const NdsclaFunction *fun,
         // 计算子问题
         Vector *_ck = vector_multiply_const(ck, -1., 1);
         LinearConstraints *subcon = linearconstraints_alloc(n, m, con->e, con->i, Ak, _ck);
-        log_w("SQP=============================iter k = %d ============================", k);
+        log_d("SQP=============================iter k = %d ============================", k);
         log_i("Xk = ");
         vector_log(xk);
         log_i("subproblem :");
@@ -168,7 +168,7 @@ void optimize_sqp(const NdsclaFunction *fun,
             // update alphak
             if (innerloop >= 10)
             {
-                log_e("iter overflow");
+                log_w("inner loop iter overflow");
                 // terminate("iter overflow");
                 break;
             }

@@ -383,16 +383,12 @@ int _linprog_simplex(const Vector *c, const Matrix *A, const Vector *b, int maxi
     // Linear programming is intended to solve problems of the following form:
 
     // Minimize::
-
     //     c @ x
-
     // Subject to::
-
     //     A @ x == b
     //         x >= 0
 
     // User-facing documentation is in _linprog_doc.py.
-
     // Parameters
     // ----------
     // c : 1-D array
@@ -455,22 +451,18 @@ int _linprog_simplex(const Vector *c, const Matrix *A, const Vector *b, int maxi
     // problem in standard form:
 
     // Minimize::
-
     //     c @ x
-
     // Subject to::
-
     //     A @ x == b
     //         x >= 0
-
     // Whereas the top level ``linprog`` module expects a problem of form:
 
     const char *messages[] = {
-        "Optimization terminated successfully.",
-        "Iteration limit reached.",
-        "Optimization failed. Unable to find a feasible starting point",
-        "Optimization failed. The problem appears to be unbounded."
-        "Optimization failed. Singular matrix encountered."};
+        "Optimization terminated successfully.\0",
+        "Iteration limit reached.\0",
+        "Optimization failed. Unable to find a feasible starting point\0",
+        "Optimization failed. The problem appears to be unbounded.\0"
+        "Optimization failed. Singular matrix encountered.\0"};
     int n = A->row_size;
     int m = A->col_size;
     int *av = malloc(sizeof(int) * n);
@@ -541,7 +533,6 @@ int _linprog_simplex(const Vector *c, const Matrix *A, const Vector *b, int maxi
     {
         status = 2;
         log_e("Phase 1 of the simplex method failed to find a fesible solution");
-        log_e(messages[2]);
     }
 
     if (status == 0)
@@ -552,8 +543,20 @@ int _linprog_simplex(const Vector *c, const Matrix *A, const Vector *b, int maxi
         solution->entry[basis[i]] = T->matrix_entry[i][T->col_size - 1];
     for (int j = 0; j < m; j++)
         x->entry[j] = solution->entry[j];
-    log_i("simplex optimize complete");
-    log_i(messages[status]);
+
+    if (status != 0)
+    {
+        log_e(messages[status]);
+        printf("error problem:\n");
+        vector_print(c);
+        matrix_print(A);
+        vector_print(b);
+        terminate((char *)messages[status]);
+    }
+    else
+    {
+        log_i(messages[status]);
+    }
 
     free(av);
     free(basis);

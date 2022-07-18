@@ -291,6 +291,8 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const LinearConstra
             else
             {
                 // log_i("case: remove con");
+                for (int i = 0; i < cons->e; i++) //确保等式约束集不会被移除
+                    lambda->entry[i] = NAN;
                 int j = vector_argmin(lambda);
                 // log_i("remove cons %d", j);
                 index_set_remove(W_k, j);
@@ -335,6 +337,7 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const LinearConstra
         if (k >= MAX_ITER)
         {
             log_e("Iteration overflow ,Please check inputs. qp is Break");
+            terminate("Iteration overflow ,Please check inputs. qp is Break");
             break;
         }
         vector_copy(x_k_1, x_k);
