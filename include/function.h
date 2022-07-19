@@ -13,7 +13,7 @@
 #pragma once
 struct NdsclaFunction
 {
-    unsigned int inputSize;
+    int inputSize;
     double (*function)(Vector *);
 };
 typedef struct NdsclaFunction NdsclaFunction;

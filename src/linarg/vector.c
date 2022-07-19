@@ -19,6 +19,7 @@ Vector *vector_free(Vector *v)
 {
     free(v->entry);
     free(v);
+    return (Vector *)0;
 }
 
 void vector_copy(const Vector *v, Vector *w)
@@ -58,7 +59,7 @@ Vector *vector_add_const(Vector *v, double a, int copy)
     return v;
 }
 
-void *vector_add_vector(const Vector *v, const Vector *w, Vector *v_w)
+void vector_add_vector(const Vector *v, const Vector *w, Vector *v_w)
 {
     if (v->size != w->size)
     {
@@ -89,12 +90,12 @@ Vector *vector_multiply_const(const Vector *v, double a, int copy)
         {
             v->entry[i] *= a;
         }
-        // return v;
         terminate("must copy");
+        return (Vector *)v;
     }
 }
 
-void *vector_print(const Vector *v)
+void vector_print(const Vector *v)
 {
     printf("[");
     for (size_t i = 0; i < v->size; i++)
@@ -194,28 +195,25 @@ int vector_argmax(const Vector *v)
 
 double vector_max(const Vector *v)
 {
-    double min = NAN;
-    int flag = 0;
+    double max = NAN;
     int iswaitfirstnumber = 1;
     for (int i = 0; i < v->size; i++)
     {
         if (!(isnan(v->entry[i]))AND iswaitfirstnumber) // 遇到的第一个非NAN的数设置0
         {
-            min = v->entry[i];
-            flag = i;
+            max = v->entry[i];
             iswaitfirstnumber = 0;
         }
 
         if (isnan(v->entry[i]))
             continue;
 
-        if (v->entry[i] > min)
+        if (v->entry[i] > max)
         {
-            flag = i;
-            min = v->entry[i];
+            max = v->entry[i];
         }
     }
-    return min;
+    return max;
 }
 double vector_inner_product(const Vector *u, const Vector *v)
 {
@@ -234,7 +232,6 @@ double vector_inner_product(const Vector *u, const Vector *v)
 double vector_min(const Vector *v)
 {
     double min = NAN;
-    int flag = 0;
     int iswaitfirstnumber = 1;
     for (int i = 0; i < v->size; i++)
     {
@@ -249,7 +246,6 @@ double vector_min(const Vector *v)
 
         if (v->entry[i] < min)
         {
-            flag = i;
             min = v->entry[i];
         }
     }

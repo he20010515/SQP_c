@@ -8,9 +8,20 @@ aux_source_directory("src/util" DIR_SRCS)
 aux_source_directory("src/log" DIR_SRCS)
 aux_source_directory("src/optimize" DIR_SRCS)
 
+MESSAGE(STATUS "operation system is ${CMAKE_SYSTEM}")
+ 
+IF (CMAKE_SYSTEM_NAME MATCHES "Linux")
+	MESSAGE(STATUS "current platform: Linux ")
+    LINK_LIBRARIES(m)
+ELSEIF (CMAKE_SYSTEM_NAME MATCHES "Windows")
+	MESSAGE(STATUS "current platform: Windows")
+ELSEIF (CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
+	MESSAGE(STATUS "current platform: FreeBSD")
+ELSE ()
+	MESSAGE(STATUS "other platform: ${CMAKE_SYSTEM_NAME}")
+ENDIF (CMAKE_SYSTEM_NAME MATCHES "Linux")
 add_library(sqp STATIC ${DIR_SRCS})
-
-#LINK_LIBRARIES(m)
+target_compile_options(sqp PRIVATE -Wall)
 
 find_package(OpenMP REQUIRED)
 if(OpenMP_FOUND)

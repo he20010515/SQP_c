@@ -47,7 +47,6 @@ void optimize_sqp(const NdsclaFunction *fun,
     int m = con->c->outputdim; // 约束数量
 
     // alloc workspace
-    double f0;
     const double rho = 0.5;
     const double aita = 0.25;
     const double tao = 0.5;
@@ -166,7 +165,7 @@ void optimize_sqp(const NdsclaFunction *fun,
         while (__check_inner_loop(xk, p, aita, miu, alphak, con, fun))
         {
             // update alphak
-            if (innerloop >= 10)
+            if (innerloop >= 30)
             {
                 log_w("inner loop iter overflow");
                 // terminate("iter overflow");

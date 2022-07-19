@@ -22,4 +22,5 @@ double rand_double(double start, double end)
         terminate("ERROR rand_int,start must less than < end");
     }
     double x = (double)rand() / RAND_MAX * (end - start) + start;
+    return x;
 }

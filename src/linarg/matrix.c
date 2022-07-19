@@ -27,7 +27,7 @@ void matrix_print(const Matrix *matrix)
 		printf("\t\t");
 		for (j = 0; j < matrix->col_size; j++)
 		{
-			printf("%9.2g", matrix->matrix_entry[i][j]);
+			printf("%9.3f", matrix->matrix_entry[i][j]);
 		}
 		printf("\n");
 	}
@@ -102,7 +102,7 @@ Matrix *matrix_alloc(int row_size, int col_size)
 	{
 		for (int j = 0; j < col_size; j++)
 		{
-			new_matrix->matrix_entry[i][j] == 0.0;
+			new_matrix->matrix_entry[i][j] = 0.0;
 		}
 	}
 

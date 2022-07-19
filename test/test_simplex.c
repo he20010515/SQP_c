@@ -27,7 +27,8 @@ int main(int argc, char const *argv[])
     b->entry[1] = 672.333;
     Vector *x = vector_alloc(7);
 
-    _linprog_simplex(c, A_mat, b, 10, 1e-10, 0, x);
+    _linprog_simplex(c, A_mat, b, 10, 1e-9, 0, x);
+    vector_print(x);
 
     return 0;
 }

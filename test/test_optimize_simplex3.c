@@ -27,13 +27,13 @@ int main(int argc, char const *argv[])
             {
                 A->matrix_entry[i][j] = rand_int(0, 20);
             }
-            c->entry[i] = rand_int(-10, 20);
+            c->entry[i] = rand_int(1, 2);
         }
         for (int j = 0; j < b->size; j++)
         {
             b->entry[i] = rand_int(0, 50);
         }
-        optimize_lp(con, c, x0,100,1e-7,FALSE);
+        optimize_lp(con, c, x0,100,1e-9,FALSE);
         // vector_print(x0);
         matrix_free(A);
         vector_free(c);

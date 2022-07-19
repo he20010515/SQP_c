@@ -264,7 +264,6 @@ int _solve_simplex(Matrix *T, int n, int *basis, int basis_size, int maxiter, do
 {
     int nit = nit0;
     int status = 0;
-    char *message = "";
     int complete = false;
     int m = 0;
     if (phase == 1)
@@ -338,7 +337,7 @@ int _solve_simplex(Matrix *T, int n, int *basis, int basis_size, int maxiter, do
 
     while (!complete)
     {
-        pivcol = _pivot_col(T, tol, bland);
+        pivcol = _pivot_col(T, bland, tol);
         if (pivcol == -1)
         {
             pivcol = -1;
@@ -370,6 +369,7 @@ int _solve_simplex(Matrix *T, int n, int *basis, int basis_size, int maxiter, do
                 nit++;
             }
         }
+        // printf("pivcol %d,pivrow %d\n", pivcol, pivrow);
     }
     *out_nit = nit;
     vector_free(solution);
@@ -481,17 +481,21 @@ int _linprog_simplex(const Vector *c, const Matrix *A, const Vector *b, int maxi
             if (i < n AND j < m) // A
                 T->matrix_entry[i][j] = A->matrix_entry[i][j];
             if (i < n AND m <= j AND j < 2 * m) // E
+            {
                 if (i == j - m)
                     T->matrix_entry[i][j] = 1.0;
                 else
                     T->matrix_entry[i][j] = 0.0;
+            }
             if (j == T->col_size - 1 AND i < T->row_size - 1) // b
                 T->matrix_entry[i][j] = b->entry[i];
             if (i == n)
+            {
                 if (j < c->size)
                     T->matrix_entry[i][j] = c->entry[j];
                 else
                     T->matrix_entry[i][j] = 0.0;
+            }
             if (i == n + 1)
             {
                 if (j >= m AND j != T->col_size - 1)
@@ -547,10 +551,6 @@ int _linprog_simplex(const Vector *c, const Matrix *A, const Vector *b, int maxi
     if (status != 0)
     {
         log_e(messages[status]);
-        printf("error problem:\n");
-        vector_print(c);
-        matrix_print(A);
-        vector_print(b);
         terminate((char *)messages[status]);
     }
     else

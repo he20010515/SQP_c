@@ -31,7 +31,7 @@ void ndscla_forward_grad(const NdsclaFunction *function, double h, const Vector 
     vector_copy(x0, temp);
     int i = 0;
     double f_add_h, f;
-#pragma omp parallel for num_threads(10) default(none) shared(function, x0, grad, temp) private(i, h, f_add_h, f)
+    //#pragma omp parallel for num_threads(10) default(none) shared(function, x0, grad, temp) private(i, h, f_add_h, f)
     for (i = 0; i < function->inputSize; i++)
     {
         h = 2 * (1 + fabs(temp->entry[i])) * sqrtl(exp2l(log2l(fabs(temp->entry[i]) + 2e-10) - 55.0));
