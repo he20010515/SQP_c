@@ -9,7 +9,7 @@ aux_source_directory("src/log" DIR_SRCS)
 aux_source_directory("src/optimize" DIR_SRCS)
 
 add_library(sqp STATIC ${DIR_SRCS})
-
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wextra")
 #LINK_LIBRARIES(m)
 
 find_package(OpenMP REQUIRED)

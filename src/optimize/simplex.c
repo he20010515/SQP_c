@@ -264,7 +264,6 @@ int _solve_simplex(Matrix *T, int n, int *basis, int basis_size, int maxiter, do
 {
     int nit = nit0;
     int status = 0;
-    char *message = "";
     int complete = false;
     int m = 0;
     if (phase == 1)
@@ -338,7 +337,7 @@ int _solve_simplex(Matrix *T, int n, int *basis, int basis_size, int maxiter, do
 
     while (!complete)
     {
-        pivcol = _pivot_col(T, tol, bland);
+        pivcol = _pivot_col(T, bland, tol);
         if (pivcol == -1)
         {
             pivcol = -1;
