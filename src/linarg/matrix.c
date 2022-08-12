@@ -7,6 +7,7 @@
 #include "elog.h"
 
 #define LOG_TAG "matrix"
+#define SQP_LOG_BUF_SIZE 2048
 
 double matrix_get_value(const Matrix *mat, int row, int col)
 {
@@ -630,7 +631,7 @@ void matrix_mutiply_const(const Matrix *A, double k, Matrix *kA)
 
 void vector_log(const Vector *v)
 {
-	char buf[BUFSIZ];
+	char buf[SQP_LOG_BUF_SIZE];
 	char *bufp = buf;
 	int l = 0;
 	*bufp = '[';
@@ -649,7 +650,7 @@ void vector_log(const Vector *v)
 
 void matrix_log(const Matrix *mat)
 {
-	char buf[BUFSIZ];
+	char buf[SQP_LOG_BUF_SIZE];
 	char *bufp = buf;
 	int l = 0;
 	for (int i = 0; i < mat->row_size; i++)
