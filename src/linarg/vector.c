@@ -71,6 +71,7 @@ void vector_add_vector(const Vector *v, const Vector *w, Vector *v_w)
     {
         v_w->entry[i] = v->entry[i] + w->entry[i];
     }
+    return NULL;
 }
 
 Vector *vector_multiply_const(const Vector *v, double a, int copy)
@@ -93,6 +94,7 @@ Vector *vector_multiply_const(const Vector *v, double a, int copy)
         terminate("must copy");
         return (Vector *)v;
     }
+    return NULL;
 }
 
 void vector_print(const Vector *v)
@@ -103,6 +105,7 @@ void vector_print(const Vector *v)
         printf("%g, ", v->entry[i]);
     }
     printf("]\n");
+    return NULL;
 }
 
 double vector_2norm(const Vector *v)

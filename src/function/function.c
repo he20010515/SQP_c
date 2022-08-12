@@ -105,6 +105,7 @@ void ndVectorfunction_call(const NdVectorfunction *function, const Vector *input
     {
         terminate("shape not fit");
     }
+
     function->function(input, output);
     return;
 }
