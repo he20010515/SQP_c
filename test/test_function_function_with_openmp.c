@@ -2,7 +2,7 @@
  * @Author: HeYuwei
  * @Date: 2022-05-27 10:54:07
  * @LastEditors: Heyuwei
- * @LastEditTime: 2022-05-27 19:41:50
+ * @LastEditTime: 2022-08-18 17:52:56
  * @FilePath: \SQP_c\test\test_function_function_with_openmp.c
  * @Description:
  *
@@ -18,7 +18,7 @@
 double target_function(Vector *mat)
 {
     float f = 0.0;
-    for (size_t i = 0; i < mat->size; i++)
+    for (int i = 0; i < mat->size; i++)
     {
         f += mat->entry[i] * mat->entry[i];
     }

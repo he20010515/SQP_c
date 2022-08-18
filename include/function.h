@@ -2,7 +2,7 @@
  * @Author: HeYuwei
  * @Date: 2022-04-22 15:47:42
  * @LastEditors: Heyuwei
- * @LastEditTime: 2022-04-25 10:52:01
+ * @LastEditTime: 2022-08-18 12:06:57
  * @FilePath: \SQP_c\include\function.h
  * @Description: 函数相关操作头文件
  *
@@ -14,6 +14,7 @@
 struct NdsclaFunction
 {
     int inputSize;
+    long long int call_num; // 函数运算次数计数
     double (*function)(Vector *);
 };
 typedef struct NdsclaFunction NdsclaFunction;

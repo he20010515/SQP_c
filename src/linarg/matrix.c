@@ -446,9 +446,9 @@ void array_2_matrix(double *array, const int rowsize, const int colsize, Matrix 
 		terminate("ERROR array_2_matrix");
 	}
 
-	for (size_t i = 0; i < rowsize; i++)
+	for (int i = 0; i < rowsize; i++)
 	{
-		for (size_t j = 0; j < colsize; j++)
+		for (int j = 0; j < colsize; j++)
 		{
 			mat->matrix_entry[i][j] = array[colsize * i + j];
 		}
@@ -458,9 +458,9 @@ void array_2_matrix(double *array, const int rowsize, const int colsize, Matrix 
 
 void matrix_fill_const(Matrix *mat, double a)
 {
-	for (size_t i = 0; i < mat->row_size; i++)
+	for (int i = 0; i < mat->row_size; i++)
 	{
-		for (size_t j = 0; j < mat->col_size; j++)
+		for (int j = 0; j < mat->col_size; j++)
 		{
 			mat->matrix_entry[i][j] = a;
 		}
@@ -528,10 +528,10 @@ void matrix_mutiply_vector(const Matrix *mat, const Vector *a, Vector *mat_a)
 	}
 
 	double s = 0.0;
-	for (size_t i = 0; i < mat_a->size; i++)
+	for (int i = 0; i < mat_a->size; i++)
 	{
 		s = 0.0;
-		for (size_t j = 0; j < mat->col_size; j++)
+		for (int j = 0; j < mat->col_size; j++)
 		{
 			s = s + mat->matrix_entry[i][j] * a->entry[j];
 		}
@@ -551,10 +551,10 @@ void vector_mutiply_matrix(const Vector *a, const Matrix *mat, Vector *mat_a)
 	}
 
 	double s = 0.0;
-	for (size_t j = 0; j < a->size; j++)
+	for (int j = 0; j < a->size; j++)
 	{
 		s = 0.0;
-		for (size_t i = 0; i < mat->col_size; i++)
+		for (int i = 0; i < mat->col_size; i++)
 		{
 			s = s + mat->matrix_entry[i][j] * a->entry[i];
 		}

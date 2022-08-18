@@ -31,7 +31,7 @@ void vector_copy(const Vector *v, Vector *w)
         exit(-1);
     }
 
-    for (size_t i = 0; i < v->size; i++)
+    for (int i = 0; i < v->size; i++)
     {
         w->entry[i] = v->entry[i];
     }
@@ -45,14 +45,14 @@ Vector *vector_add_const(Vector *v, double a, int copy)
     {
         Vector *w = vector_alloc(v->size);
         vector_copy(v, w);
-        for (size_t i = 0; i < v->size; i++)
+        for (int i = 0; i < v->size; i++)
         {
             w->entry[i] += a;
         }
         return w;
     }
 
-    for (size_t i = 0; i < v->size; i++)
+    for (int i = 0; i < v->size; i++)
     {
         v->entry[i] += a;
     }
@@ -67,11 +67,11 @@ void vector_add_vector(const Vector *v, const Vector *w, Vector *v_w)
         exit(-1);
     }
 
-    for (size_t i = 0; i < v->size; i++)
+    for (int i = 0; i < v->size; i++)
     {
         v_w->entry[i] = v->entry[i] + w->entry[i];
     }
-    return NULL;
+    return;
 }
 
 Vector *vector_multiply_const(const Vector *v, double a, int copy)
@@ -79,7 +79,7 @@ Vector *vector_multiply_const(const Vector *v, double a, int copy)
     if (copy == 1)
     {
         Vector *w = vector_alloc(v->size);
-        for (size_t i = 0; i < v->size; i++)
+        for (int i = 0; i < v->size; i++)
         {
             w->entry[i] = v->entry[i] * a;
         }
@@ -87,7 +87,7 @@ Vector *vector_multiply_const(const Vector *v, double a, int copy)
     }
     else
     {
-        for (size_t i = 0; i < v->size; i++)
+        for (int i = 0; i < v->size; i++)
         {
             v->entry[i] *= a;
         }
@@ -100,18 +100,18 @@ Vector *vector_multiply_const(const Vector *v, double a, int copy)
 void vector_print(const Vector *v)
 {
     printf("[");
-    for (size_t i = 0; i < v->size; i++)
+    for (int i = 0; i < v->size; i++)
     {
         printf("%g, ", v->entry[i]);
     }
     printf("]\n");
-    return NULL;
+    return;
 }
 
 double vector_2norm(const Vector *v)
 {
     double s = 0.0;
-    for (size_t i = 0; i < v->size; i++)
+    for (int i = 0; i < v->size; i++)
     {
         s += pow(v->entry[i], 2);
     }
@@ -126,7 +126,7 @@ double vector_2metric(const Vector *v, const Vector *u)
     }
 
     Vector *temp = vector_alloc(v->size);
-    for (size_t i = 0; i < v->size; i++)
+    for (int i = 0; i < v->size; i++)
     {
         temp->entry[i] = v->entry[i] - u->entry[i];
     }
@@ -137,7 +137,7 @@ double vector_2metric(const Vector *v, const Vector *u)
 
 void vector_fill_const(Vector *v, double a)
 {
-    for (size_t i = 0; i < v->size; i++)
+    for (int i = 0; i < v->size; i++)
     {
         v->entry[i] = a;
     }

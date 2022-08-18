@@ -195,7 +195,7 @@ int optimize_qp_linear_constraints(const Matrix *H, const Vector *c, const Matri
     // matrix_free(inv);
 
     //* split solution
-    for (size_t i = 0; i < n; i++)
+    for (int i = 0; i < n; i++)
     {
         x_star->entry[i] = xlambda->entry[i];
     }

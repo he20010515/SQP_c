@@ -6,14 +6,18 @@
 #include <math.h>
 #include <omp.h>
 #include "sparse_matrix.h"
+
 double ndscla_function_call(const NdsclaFunction *function, Vector *x)
 {
+    NdsclaFunction *f = (NdsclaFunction *)function;
+    f->call_num++;
     return function->function(x);
 }
 
 NdsclaFunction *ndscla_function_alloc(double (*function)(Vector *), int inputsize)
 {
     NdsclaFunction *f = (NdsclaFunction *)malloc(sizeof(NdsclaFunction));
+    f->call_num = 0;
     f->function = function;
     f->inputSize = inputsize;
     return f;
@@ -57,9 +61,9 @@ void ndscla_central_hession(const NdsclaFunction *function, double h, const Vect
     double f_ai_aj, f_mi_aj, f_ai_mj, f_mi_mj;
     Vector *tempv = vector_alloc(function->inputSize);
     vector_copy(x0, tempv);
-    for (size_t i = 0; i < hession->row_size; i++)
+    for (int i = 0; i < hession->row_size; i++)
     {
-        for (size_t j = 0; j < hession->row_size; j++)
+        for (int j = 0; j < hession->row_size; j++)
         {
             tempv->entry[i] += h; // x+hi
             tempv->entry[j] += h; // x+hi+hj

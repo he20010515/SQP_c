@@ -2,11 +2,11 @@
  * @Author: HeYuwei
  * @Date: 2022-04-01 18:30:23
  * @LastEditors: Heyuwei
- * @LastEditTime: 2022-04-26 18:34:11
+ * @LastEditTime: 2022-08-18 12:10:17
  * @FilePath: \SQP_c\test\test_optimize_sqp2.c
- * @Description: 
- * 
- * Copyright (c) 2022 by Heyuwei, All Rights Reserved. 
+ * @Description:
+ *
+ * Copyright (c) 2022 by Heyuwei, All Rights Reserved.
  */
 #include "sqp.h"
 #include "math.h"
@@ -54,6 +54,7 @@ int main(int argc, char const *argv[])
     Vector *xstar = vector_alloc(3);
     optimize_sqp(f, con, x0, lambda0, xstar);
     vector_print(xstar);
+    log_i("number of targetfunction call %ld times", f->call_num);
 
     return 0;
 }
