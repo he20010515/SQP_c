@@ -10,12 +10,21 @@
  */
 #include "vector.h"
 #include "matrix.h"
+#include "hash_table.h"
+#include "pointer_buffer.h"
+
+#define FUNCTION_RECORED
+
 #pragma once
 struct NdsclaFunction
 {
     int inputSize;
-    long long int call_num; // 函数运算次数计数
+    long real_call_num; // 函数运算次数计数
+    long record_call_num;
     double (*function)(Vector *);
+    HashTable *table;
+    Pointer_buffer *x_buffer;
+    Pointer_buffer *y_buffer;
 };
 typedef struct NdsclaFunction NdsclaFunction;
 

@@ -27,12 +27,12 @@ typedef struct hash_table
 {
     long long _buffer_size;
     long long elem_num;
-    long long (*hash_function)(void *);
+    unsigned int (*hash_function)(void *);
     int (*compare_function)(void *, void *); //比较函数,若相等返回1
     HashNode **table;
 } HashTable;
 
-HashTable *HashTable_alloc(long long (*hash_function)(void *),
+HashTable *HashTable_alloc(unsigned int (*hash_function)(void *),
                            int (*compare_function)(void *, void *));
 
 int HashTable_insert(HashTable *hs_table, void *key, void *value);

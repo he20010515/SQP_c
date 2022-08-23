@@ -17,7 +17,7 @@ typedef struct commodity
     float price;
 } Com;
 
-long long hash(void *key)
+unsigned int hash(void *key)
 {
     int key_len = 32;
     unsigned int hash = 114514;

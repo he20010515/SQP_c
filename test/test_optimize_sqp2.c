@@ -54,7 +54,8 @@ int main(int argc, char const *argv[])
     Vector *xstar = vector_alloc(3);
     optimize_sqp(f, con, x0, lambda0, xstar);
     vector_print(xstar);
-    log_i("number of targetfunction call %ld times", f->call_num);
+    log_i("number of targetfunction call %ld times", f->real_call_num);
+    log_i("number of targetfunction call %ld times", f->record_call_num);
 
     return 0;
 }

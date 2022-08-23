@@ -9,23 +9,86 @@
 
 double ndscla_function_call(const NdsclaFunction *function, Vector *x)
 {
+#ifndef FUNCTION_RECORED
     NdsclaFunction *f = (NdsclaFunction *)function;
-    f->call_num++;
+    f->real_call_num++;
     return function->function(x);
+#else
+    NdsclaFunction *f = (NdsclaFunction *)function;
+    double *y = (double *)HashTable_get(f->table, x);
+    if (y != NULL)
+    {
+        f->record_call_num++;
+        return *y;
+    }
+    else
+    {
+        f->real_call_num++;
+        y = (double *)malloc(sizeof(double));
+        *y = function->function(x);
+        Vector *copy_x = vector_alloc(x->size);
+        vector_copy(x, copy_x);
+        Pointer_buffer_insert(function->x_buffer, copy_x);
+        Pointer_buffer_insert(function->y_buffer, y);
+        HashTable_insert(function->table, copy_x, y);
+        return *y;
+    }
+
+#endif
 }
+
+#ifdef FUNCTION_RECORED
+unsigned int vector_hash(void *vector)
+{
+    Vector *v = (Vector *)vector;
+    unsigned int hash = 114514;
+    char *key = (char *)v->entry;
+    for (int i = 0; i < v->size * sizeof(double); key++, i++)
+    {
+        hash ^= ((hash << 5) + (*key) + (hash >> 2));
+    }
+    return hash;
+}
+int vector_compare(void *_v1, void *_v2)
+{
+    Vector *v1 = (Vector *)_v1, *v2 = (Vector *)_v2;
+    double t = 0.0;
+    for (int i = 0; i < v1->size; i++)
+    {
+        t += (v1->entry[i] - v2->entry[i]) * (v1->entry[i] - v2->entry[i]);
+    }
+    t = sqrt(t);
+    return t <= 1e-12;
+}
+
+#endif
 
 NdsclaFunction *ndscla_function_alloc(double (*function)(Vector *), int inputsize)
 {
     NdsclaFunction *f = (NdsclaFunction *)malloc(sizeof(NdsclaFunction));
-    f->call_num = 0;
+    f->real_call_num = 0;
+    f->record_call_num = 0;
     f->function = function;
     f->inputSize = inputsize;
+    f->table = NULL;
+    f->x_buffer = NULL;
+    f->y_buffer = NULL;
+#ifdef FUNCTION_RECORED
+    f->table = HashTable_alloc(vector_hash, vector_compare);
+    f->x_buffer = Pointer_buffer_alloc();
+    f->y_buffer = Pointer_buffer_alloc();
+#endif
     return f;
 }
 
-void ndscla_function_free(NdsclaFunction *function)
+void ndscla_function_free(NdsclaFunction *f)
 {
-    free(function);
+    free(f);
+#ifdef FUNCTION_RECORED
+    HashTable_free(f->table);
+    Pointer_buffer_free(f->x_buffer);
+    Pointer_buffer_free(f->y_buffer);
+#endif
 }
 
 void ndscla_forward_grad(const NdsclaFunction *function, double h, const Vector *x0, Vector *grad)

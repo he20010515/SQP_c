@@ -68,5 +68,6 @@ int main(int argc, char const *argv[])
         vector_free(xstar);
     }
 
+
     return 0;
 }

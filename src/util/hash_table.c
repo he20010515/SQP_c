@@ -23,7 +23,7 @@
  * @param {function} compare_function 比较函数
  * @return {*}
  */
-HashTable *HashTable_alloc(long long (*hash_function)(void *),
+HashTable *HashTable_alloc(unsigned int (*hash_function)(void *),
                            int (*compare_function)(void *, void *))
 {
 
