@@ -150,13 +150,13 @@ void HashTable_free(HashTable *hs_table)
         {
             for (int i = 0; i < hs_table->_buffer_size; i++)
             {
-                HashNode *p = hs_table->table[i];
+                HashNode **head = &(hs_table->table[i]);
                 HashNode *q = NULL;
-                while (p)
+                while (*head != NULL)
                 {
-                    q = p->next;
-                    p->status = VOID;
-                    p = q;
+                    q = *head;
+                    *head = q->next;
+                    free(q);
                 }
             }
             free(hs_table->table);

@@ -10,8 +10,7 @@
  */
 
 #include "sqp.h"
-#include "blzd_test.h"
-
+#ifndef __linux__
 #include "windows.h"
 typedef double(__stdcall *Fun)(double[]);
 Fun fun = NULL;
@@ -75,3 +74,12 @@ int main(int argc, char const *argv[])
 
     return 0;
 }
+#else
+
+int main(int argc, char const *argv[])
+{
+    printf("test_optimize_sqp_with_blzd must run in windows!");
+    return 1;
+}
+
+#endif

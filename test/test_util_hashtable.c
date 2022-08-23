@@ -20,7 +20,7 @@ typedef struct commodity
 long long hash(void *key)
 {
     int key_len = 32;
-    unsigned int hash = 1315423911;
+    unsigned int hash = 114514;
     int i = 0;
     char *str_key = (char *)key;
 
