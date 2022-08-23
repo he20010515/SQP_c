@@ -83,12 +83,12 @@ NdsclaFunction *ndscla_function_alloc(double (*function)(Vector *), int inputsiz
 
 void ndscla_function_free(NdsclaFunction *f)
 {
-    free(f);
 #ifdef FUNCTION_RECORED
     HashTable_free(f->table);
     Pointer_buffer_free(f->x_buffer);
     Pointer_buffer_free(f->y_buffer);
 #endif
+    free(f);
 }
 
 void ndscla_forward_grad(const NdsclaFunction *function, double h, const Vector *x0, Vector *grad)
