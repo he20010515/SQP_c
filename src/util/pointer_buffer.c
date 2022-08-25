@@ -8,6 +8,7 @@ Pointer_buffer *Pointer_buffer_alloc()
     buffer->len = 0;
     buffer->_buffer_size = INIT_BUFFER_SIZE;
     buffer->buffer = malloc(INIT_BUFFER_SIZE * sizeof(void *));
+    return buffer;
 }
 
 int Pointer_buffer_insert(Pointer_buffer *self, void *item)

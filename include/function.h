@@ -21,10 +21,10 @@ struct NdsclaFunction
     int inputSize;
     long real_call_num; // 函数运算次数计数
     long record_call_num;
-    double (*function)(Vector *);
     HashTable *table;
     Pointer_buffer *x_buffer;
     Pointer_buffer *y_buffer;
+    double (*function)(Vector *);
 };
 typedef struct NdsclaFunction NdsclaFunction;
 
