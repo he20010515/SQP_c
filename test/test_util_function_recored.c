@@ -7,7 +7,7 @@ double test_function(Vector *x)
     {
         y += x->entry[i];
     }
-    
+
     return y;
 }
 
@@ -39,6 +39,8 @@ int main(int argc, char const *argv[])
         temp = ndscla_function_call(fun, x0);
         printf("times2 =x[%d],f(x[i]) = %lf\n", i, temp);
     }
+    ndscla_function_free(fun);
+    vector_free(x0);
     printf("function->real_call_num:%ld\nfunction->recored_num:%ld\n", fun->real_call_num, fun->record_call_num);
 
     return 0;

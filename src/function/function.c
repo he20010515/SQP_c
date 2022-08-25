@@ -43,7 +43,7 @@ unsigned int vector_hash(void *vector)
     Vector *v = (Vector *)vector;
     unsigned int hash = 114514;
     char *key = (char *)v->entry;
-    for (int i = 0; i < v->size * sizeof(double); key++, i++)
+    for (unsigned int i = 0; i < v->size * sizeof(double); key++, i++)
     {
         hash ^= ((hash << 5) + (*key) + (hash >> 2));
     }
@@ -86,6 +86,10 @@ void ndscla_function_free(NdsclaFunction *f)
     free(f);
 #ifdef FUNCTION_RECORED
     HashTable_free(f->table);
+    for (int i = 0; i < f->x_buffer->len; i++)
+        vector_free(f->x_buffer->buffer[i]);
+    for (int i = 0; i < f->y_buffer->len; i++)
+        free((double *)f->y_buffer->buffer[i]);
     Pointer_buffer_free(f->x_buffer);
     Pointer_buffer_free(f->y_buffer);
 #endif

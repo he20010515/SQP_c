@@ -57,5 +57,13 @@ int main(int argc, char const *argv[])
     log_i("number of targetfunction call %ld times", f->real_call_num);
     log_i("number of targetfunction call %ld times", f->record_call_num);
 
+    ndVectorfunction_free(c);
+    nonlinearconstraints_free(con);
+    ndscla_function_free(f);
+    vector_free(x0);
+    vector_free(xstar);
+    vector_free(lambda0);
+
+
     return 0;
 }
