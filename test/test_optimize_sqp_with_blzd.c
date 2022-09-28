@@ -10,7 +10,7 @@
  */
 
 #include "sqp.h"
-#ifndef __linux__
+#ifdef _WIN32
 #include "windows.h"
 typedef double(__stdcall *Fun)(double[]);
 Fun fun = NULL;

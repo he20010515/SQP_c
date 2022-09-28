@@ -9,7 +9,6 @@
  * Copyright (c) 2022 by Heyuwei, All Rights Reserved.
  */
 #include <stdio.h>
-#include <malloc.h>
 #include <stdlib.h>
 #include "vector.h"
 #include "index_set.h"
