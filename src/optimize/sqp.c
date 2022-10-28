@@ -50,28 +50,32 @@ void optimize_sqp(const NdsclaFunction *fun,
     const double rho = 0.5;
     const double aita = 0.25;
     const double tao = 0.5;
-
+    // 当前迭代点x_k
     Vector *xk = vector_alloc(n);
     Vector *xk_1 = vector_alloc(n);
-
+    // 二次规划子问题的解
     Vector *p = vector_alloc(n);
-
+    // 目标函数的梯度
     Vector *gradf0 = vector_alloc(n);
     Vector *gradfk = vector_alloc(n);
     Vector *gradfk_1 = vector_alloc(n);
 
+    //雅克比矩阵
     Matrix *A0 = matrix_alloc(m, n);
     Matrix *Ak = matrix_alloc(m, n);
     Matrix *Ak_1 = matrix_alloc(m, n);
 
+    //约束函数的值
     Vector *c0 = vector_alloc(m);
     Vector *ck = vector_alloc(m);
     Vector *ck_1 = vector_alloc(m);
 
+    //拟牛顿法迭代矩阵
     Matrix *B0 = matrix_alloc(n, n);
     Matrix *Bk = matrix_alloc(n, n);
     Matrix *Bk_1 = matrix_alloc(n, n);
 
+    // lambda
     Vector *lambdak = vector_alloc(m); //*传给拉格朗日函数的lambda
     Vector *lambdak_1 = vector_alloc(m);
     Vector *plambda = vector_alloc(m); //* lambda 步长
@@ -133,12 +137,14 @@ void optimize_sqp(const NdsclaFunction *fun,
         log_i("subcon:");
         matrix_log(subcon->A);
         vector_log(subcon->b);
+
+        //! 求解子问题
         optimize_qp_active_set(Bk, gradfk, subcon, NULL, p, lambdahat);
+        
         linearconstraints_free(subcon, 0);
         vector_free(_ck);
         log_i("subproblem ans P:");
         vector_log(p);
-        log_i("subproblem lambdahat");
         if (vector_2norm(p) <= 1e-14)
         {
             log_d("compute successfully ,return");
@@ -160,7 +166,9 @@ void optimize_sqp(const NdsclaFunction *fun,
         vector_mutiply_matrix(p, Bk, temp);
         double miu = (vector_inner_product(gradfk, p) + 0.5 * vector_inner_product(temp, p)) / ((1 - rho) * vector_1norm(ck));
         vector_free(temp);
+        // 步长的初始值
         double alphak = 1;
+        // 内循环计数器
         int innerloop = 0;
         while (__check_inner_loop(xk, p, aita, miu, alphak, con, fun))
         {
@@ -338,6 +346,7 @@ int __check_input(const NdsclaFunction *fun, const Nonlinearconstraints *con, co
 
 int __check_inner_loop(const Vector *xk, const Vector *pk, double aita, double miu, double alphak, const Nonlinearconstraints *con, const NdsclaFunction *fun)
 {
+    // 罚函数具体信息查找书里P562
     Vector *xk_add_alphapk = vector_alloc(xk->size);
     Vector *alphapk = vector_multiply_const(pk, alphak, 1);
     vector_add_vector(alphapk, xk, xk_add_alphapk);

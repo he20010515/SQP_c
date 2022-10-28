@@ -29,8 +29,8 @@ struct NdsclaFunction
 typedef struct NdsclaFunction NdsclaFunction;
 
 /**
- * @description: 申请一个n维常量值函数
- * @param {double (*)(Vector *)} 指向一个输入Vector指针,输出Double类型的函数
+ * @description: 申请一个n维常量值函数 在本程序里面基本用来当做目标函数
+ * @param {double (*)(Vector *)} 指向 一个输入Vector指针,输出Double类型的函数
  * @param {int} inputsize 函数的输入大小
  * @return {NdsclaFunction*} 指向一个NdsclaFunction对象的指针
  */
@@ -45,7 +45,7 @@ NdsclaFunction *ndscla_function_alloc(double (*function)(Vector *), int inputsiz
 double ndscla_function_call(const NdsclaFunction *function, Vector *x);
 
 /**
- * @description: 用中心梯度法求解Ndsclafunction在x0点的梯度
+ * @description: 用前向差分法求解Ndsclafunction在x0点的梯度
  * @param {NdsclaFunction} *function
  * @param {double} h 步长
  * @param {Vector} *x0 x0点坐标
@@ -73,7 +73,7 @@ struct vectorfunction
 typedef struct vectorfunction NdVectorfunction;
 
 /**
- * @description: 申请一个n维向量值函数
+ * @description: 申请一个n维向量值函数 主要用于约束函数
  * @param {void (*function)(const Vector *, Vector *)} 一个指向 具有两个Vector指针输入的函数的函数指针,其中左侧vector.size = inputdim,右侧vector.size = outputdim
  * @param {int} intputdim 输入维度
  * @param {int} outputdim 输出维度
