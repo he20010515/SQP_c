@@ -1,8 +1,8 @@
 /*
  * @Author: HeYuwei
  * @Date: 2022-03-13 09:13:40
- * @LastEditors: Heyuwei
- * @LastEditTime: 2022-07-08 11:22:36
+ * @LastEditors: heyuwei he20010515@163.com
+ * @LastEditTime: 2022-11-01 23:46:32
  * @FilePath: \SQP_c\src\util\util.c
  * @Description:
  *
@@ -26,7 +26,6 @@ void terminate(char *string)
     log_a("The program is exiting now. . . .");
     fprintf(stdout, "The program is exiting now. . . .\n\n");
     Vector *v = vector_alloc(4);
-    v->entry[4200] = 42.0;
     exit(-1);
 }
 

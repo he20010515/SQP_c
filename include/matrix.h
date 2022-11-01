@@ -1,8 +1,8 @@
 /*
  * @Author: HeYuwei
  * @Date: 2022-03-27 19:10:22
- * @LastEditors: Heyuwei
- * @LastEditTime: 2022-07-08 11:24:34
+ * @LastEditors: heyuwei he20010515@163.com
+ * @LastEditTime: 2022-11-01 23:37:19
  * @FilePath: \SQP_c\include\matrix.h
  * @Description: 矩阵/向量联合运算头文件
  *
@@ -296,3 +296,14 @@ int matrix_have_na(const Matrix *mat);
  * @return {*}
  */
 int vector_have_na(const Vector *v);
+
+/**
+ * @description: 矩阵的奇异值分解,将矩阵进行奇异值分解使得 A = U*W*V_T
+ * @param {Matrix} *A 待分解矩阵
+ * @param {Matrix} *U 左奇异矩阵
+ * @param {Matrix} *W 奇异值矩阵
+ * @param {Matrix} *V_T 右奇异矩阵
+ * @return {*}
+ */
+void matrix_singluar(const Matrix *A, Matrix *U, Matrix *W, Matrix *V_T);
+void matrix_pinv(const Matrix *A, Matrix *A_plus, double tol);

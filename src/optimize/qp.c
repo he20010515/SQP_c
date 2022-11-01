@@ -216,7 +216,7 @@ int optimize_qp_active_set(const Matrix *G, const Vector *c, const LinearConstra
     // mainproblem:
     // min \frac12 x^{T}Hx + c^{T}x
     // s.t. Ax =(>=) b A (when i = 0,1,..,m  is '=' )
-    //                   (when i = m+1,m+2,...,m+k is '<=')
+    //                   (when i = m+1,m+2,...,m+k is '>=')
 
     // alloc workspace
     Vector *start_point = NULL;
