@@ -1,8 +1,8 @@
 /*
  * @Author: HeYuwei
  * @Date: 2022-03-25 10:15:12
- * @LastEditors: Heyuwei
- * @LastEditTime: 2022-04-26 18:19:11
+ * @LastEditors: heyuwei he20010515@163.com
+ * @LastEditTime: 2022-11-02 01:15:45
  * @FilePath: \SQP_c\include\sqp.h
  * @Description: sqp主要头文件
  *
@@ -15,10 +15,10 @@
 
 struct nonlinearconstraints
 {
-    int dim;  //问题维度
-    int size; //约束数量
-    int e;    //等式约束数量
-    int i;    //不等式约束数量
+    int dim;  // 问题维度
+    int size; // 约束数量
+    int e;    // 等式约束数量
+    int i;    // 不等式约束数量
     NdVectorfunction *c;
 };
 typedef struct nonlinearconstraints Nonlinearconstraints;
@@ -50,3 +50,10 @@ Nonlinearconstraints *nonlinearconstraints_alloc(int dim, int size, int e, int i
  * @return {*}
  */
 void nonlinearconstraints_free(Nonlinearconstraints *con);
+
+void optimize_sqpm(const NdsclaFunction *Objective_Fun,
+                   const Nonlinearconstraints *con,
+                   const Vector *x_init,
+                   const Vector *mu_init,
+                   const Vector *lam_init,
+                   Vector *xstar);
