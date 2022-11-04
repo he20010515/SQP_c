@@ -1,8 +1,8 @@
 /*
  * @Author: HeYuwei
  * @Date: 2022-04-26 18:44:11
- * @LastEditors: Heyuwei
- * @LastEditTime: 2022-04-29 19:24:57
+ * @LastEditors: heyuwei he20010515@163.com
+ * @LastEditTime: 2022-11-04 19:29:12
  * @FilePath: \SQP_c\test\test_optimize_sqp3.c
  * @Description:
  *
@@ -27,7 +27,7 @@ void _c(const Vector *x, Vector *y)
     double yy = x->entry[1];
     double zz = x->entry[2];
     y->entry[0] = xx + yy + zz - 2.0;
-    y->entry[1] = -(xx * xx + yy * yy + zz * zz) - 9.0;
+    y->entry[1] = -(xx * xx + yy * yy + zz * zz) + 9.0;
 }
 
 int main(int argc, char const *argv[])
@@ -45,8 +45,8 @@ int main(int argc, char const *argv[])
     Vector *x0 = vector_alloc(3);
 
     x0->entry[0] = 1;
-    x0->entry[1] = 2;
-    x0->entry[2] = 1;
+    x0->entry[1] = 0;
+    x0->entry[2] = 0;
     Vector *lambda0 = vector_alloc(2);
     lambda0->entry[0] = 0;
     lambda0->entry[1] = 0;

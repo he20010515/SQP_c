@@ -1,8 +1,8 @@
 /*
  * @Author: HeYuwei
  * @Date: 2022-04-26 18:44:11
- * @LastEditors: Heyuwei
- * @LastEditTime: 2022-06-29 12:24:21
+ * @LastEditors: heyuwei he20010515@163.com
+ * @LastEditTime: 2022-11-04 22:59:14
  * @FilePath: \SQP_c\test\test_optimize_sqp4.c
  * @Description:
  *
@@ -52,10 +52,10 @@ int main(int argc, char const *argv[])
     Nonlinearconstraints *con = nonlinearconstraints_alloc(4, 8, 0, 8, c);
     NdsclaFunction *f = ndscla_function_alloc(_fun, 4);
     Vector *x0 = vector_alloc(4);
-    x0->entry[0] = 2;
-    x0->entry[1] = 2;
-    x0->entry[2] = 2;
-    x0->entry[3] = 2;
+    x0->entry[0] = 4;
+    x0->entry[1] = 4;
+    x0->entry[2] = 4;
+    x0->entry[3] = 4;
 
     Vector *lambda0 = vector_alloc(8);
     vector_fill_const(lambda0, 0.0);

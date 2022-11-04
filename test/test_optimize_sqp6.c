@@ -1,8 +1,8 @@
 /*
  * @Author: HeYuwei
  * @Date: 2022-04-26 18:44:11
- * @LastEditors: Heyuwei
- * @LastEditTime: 2022-06-29 12:24:21
+ * @LastEditors: heyuwei he20010515@163.com
+ * @LastEditTime: 2022-11-04 22:53:14
  * @FilePath: \SQP_c\test\test_optimize_sqp4.c
  * @Description:
  *
@@ -17,14 +17,14 @@ double _fun(Vector *X)
     double x1 = X->entry[0];
     double x2 = X->entry[1];
 
-    return -x1 * x1 - x2 * x2 + x1 * x2 + 2 * x1 + 5 * x2;
+    return x1 * x1 + x2 * x2 + x1 * x2 + 2 * x1 + 5 * x2;
 }
 
 void _c(const Vector *x, Vector *y)
 {
     double x1 = x->entry[0];
     double x2 = x->entry[1];
-    y->entry[0] = -(x1 - 1) * (x1 - 1) + x2;
+    y->entry[0] = (x1 - 1) * (x1 - 1) + x2;
     y->entry[1] = 2 * x1 - 3 * x2 + 6;
 }
 
@@ -41,8 +41,8 @@ int main(int argc, char const *argv[])
     Nonlinearconstraints *con = nonlinearconstraints_alloc(2, 2, 0, 2, c);
     NdsclaFunction *f = ndscla_function_alloc(_fun, 2);
     Vector *x0 = vector_alloc(2);
-    x0->entry[0] = 1;
-    x0->entry[1] = 2;
+    x0->entry[0] = 0;
+    x0->entry[1] = 0;
 
     Vector *lambda0 = vector_alloc(2);
     lambda0->entry[0] = 0;

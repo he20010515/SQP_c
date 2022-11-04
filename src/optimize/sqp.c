@@ -60,17 +60,17 @@ void optimize_sqp(const NdsclaFunction *fun,
     Vector *gradfk = vector_alloc(n);
     Vector *gradfk_1 = vector_alloc(n);
 
-    //雅克比矩阵
+    // 雅克比矩阵
     Matrix *A0 = matrix_alloc(m, n);
     Matrix *Ak = matrix_alloc(m, n);
     Matrix *Ak_1 = matrix_alloc(m, n);
 
-    //约束函数的值
+    // 约束函数的值
     Vector *c0 = vector_alloc(m);
     Vector *ck = vector_alloc(m);
     Vector *ck_1 = vector_alloc(m);
 
-    //拟牛顿法迭代矩阵
+    // 拟牛顿法迭代矩阵
     Matrix *B0 = matrix_alloc(n, n);
     Matrix *Bk = matrix_alloc(n, n);
     Matrix *Bk_1 = matrix_alloc(n, n);
@@ -145,7 +145,7 @@ void optimize_sqp(const NdsclaFunction *fun,
         vector_free(_ck);
         log_i("subproblem ans P:");
         vector_log(p);
-        if (vector_2norm(p) <= 1e-14)
+        if (vector_2norm(p) <= 1e-8)
         {
             log_d("compute successfully ,return");
             // vector_print(xk);
@@ -386,7 +386,11 @@ double __lagrange_function(Vector *xk, const Vector *lambda, const NdsclaFunctio
 {
     Vector *cx = vector_alloc(con->c->outputdim);
     ndVectorfunction_call(con->c, xk, cx);
-    double temp = ndscla_function_call(fun, xk) - vector_inner_product(lambda, cx);
+    Vector *temp_lambda = vector_alloc(lambda->size);
+    vector_copy(lambda, temp_lambda);
+    vector_fillna(temp_lambda);
+    double temp = ndscla_function_call(fun, xk) - vector_inner_product(temp_lambda, cx);
+    vector_free(temp_lambda);
     vector_free(cx);
     return temp;
 }

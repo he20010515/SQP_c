@@ -1,8 +1,8 @@
 /*
  * @Author: HeYuwei
  * @Date: 2022-04-26 18:44:11
- * @LastEditors: Heyuwei
- * @LastEditTime: 2022-06-29 12:24:21
+ * @LastEditors: heyuwei he20010515@163.com
+ * @LastEditTime: 2022-11-04 19:31:56
  * @FilePath: \SQP_c\test\test_optimize_sqp4.c
  * @Description:
  *
@@ -47,7 +47,7 @@ int main(int argc, char const *argv[])
     x0->entry[1] = 0;
 
     Vector *lambda0 = vector_alloc(4);
-    lambda0->entry[0] = 0;
+    lambda0->entry[0] = 1;
     lambda0->entry[1] = 0;
     lambda0->entry[2] = 0;
 
