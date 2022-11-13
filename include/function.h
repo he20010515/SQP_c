@@ -1,8 +1,8 @@
 /*
  * @Author: HeYuwei
  * @Date: 2022-04-22 15:47:42
- * @LastEditors: Heyuwei
- * @LastEditTime: 2022-08-18 12:06:57
+ * @LastEditors: heyuwei he20010515@163.com
+ * @LastEditTime: 2022-11-13 23:28:08
  * @FilePath: \SQP_c\include\function.h
  * @Description: 函数相关操作头文件
  *
@@ -13,7 +13,8 @@
 #include "hash_table.h"
 #include "pointer_buffer.h"
 
-#define FUNCTION_RECORED
+// 取消注释下面这行代码开启函数缓存功能
+// #define FUNCTION_RECORED
 
 #pragma once
 struct NdsclaFunction
@@ -66,8 +67,8 @@ void ndscla_central_hession(const NdsclaFunction *function, double h, const Vect
 
 struct vectorfunction
 {
-    int inputdim;  //输入维度
-    int outputdim; //输出维度
+    int inputdim;  // 输入维度
+    int outputdim; // 输出维度
     void (*function)(const Vector *, Vector *);
 };
 typedef struct vectorfunction NdVectorfunction;

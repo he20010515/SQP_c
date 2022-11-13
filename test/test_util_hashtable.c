@@ -1,8 +1,8 @@
 /*
  * @Author: HeYuwei
  * @Date: 2022-08-19 09:10:39
- * @LastEditors: Heyuwei
- * @LastEditTime: 2022-08-19 09:57:28
+ * @LastEditors: heyuwei he20010515@163.com
+ * @LastEditTime: 2022-11-13 11:49:05
  * @FilePath: \SQP_c\test\test_util_hashtable.c
  * @Description:
  *
@@ -11,7 +11,7 @@
 #include "stdio.h"
 #include "hash_table.h"
 #include "string.h"
-typedef struct commodity
+typedef struct
 {
     char name[32];
     float price;

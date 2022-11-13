@@ -98,22 +98,23 @@ void ndscla_function_free(NdsclaFunction *f)
 void ndscla_forward_grad(const NdsclaFunction *function, double h, const Vector *x0, Vector *grad)
 {
 
-    Vector *temp = vector_alloc(x0->size);
-    vector_copy(x0, temp);
+    Vector *temp;
     int i = 0;
     double f_add_h, f;
-    // #pragma omp parallel for num_threads(10) default(none) shared(function, x0, grad, temp) private(i, h, f_add_h, f)
+#pragma omp parallel for num_threads(20) default(none) shared(function, x0, grad) private(i, h, f_add_h, f, temp)
     for (i = 0; i < function->inputSize; i++)
     {
+        temp = vector_alloc(x0->size);
+        vector_copy(x0, temp);
         h = 2 * (1 + fabs(temp->entry[i])) * sqrtl(exp2l(log2l(fabs(temp->entry[i]) + 2e-10) - 55.0));
         temp->entry[i] += h;
         f_add_h = ndscla_function_call(function, temp);
         temp->entry[i] -= h;
         f = ndscla_function_call(function, temp);
         grad->entry[i] = (f_add_h - f) / (h);
-        // printf("compute from thread %3d \n", omp_get_thread_num());
+        printf("compute from thread %3d \n", omp_get_thread_num());
+        vector_free(temp);
     }
-    vector_free(temp);
     if (vector_have_na(grad))
     {
         terminate("ERROT have na when grad");
@@ -187,20 +188,23 @@ void ndVectorfunction_call(const NdVectorfunction *function, const Vector *input
 
 void ndVectorfunction_jacobian(const NdVectorfunction *function, const Vector *x0, double h, Matrix *jacobian)
 {
-    Vector *y = vector_alloc(function->outputdim);
-    Vector *x = vector_alloc(function->inputdim);
+    Vector *y;
+    Vector *x;
     double yi_add_h, yi_sub_h;
-    vector_copy(x0, x);
+    int j;
     if (!(jacobian->col_size == function->inputdim AND jacobian->row_size == function->outputdim AND x0->size == function->inputdim))
     {
         terminate("ndVectorfunction_jacobian size don't fit");
     }
     for (int i = 0; i < jacobian->row_size; i++)
     {
-        for (int j = 0; j < jacobian->col_size; j++)
+#pragma omp parallel for num_threads(48) default(none) shared(h, i, x0, function, jacobian) private(y, x, j, yi_sub_h, yi_add_h)
+        for (j = 0; j < jacobian->col_size; j++)
         {
             // \partical yi/ \partical xj;
-            ;
+            y = vector_alloc(function->outputdim);
+            x = vector_alloc(function->inputdim);
+            vector_copy(x0, x);
             x->entry[j] += h;
             ndVectorfunction_call(function, x, y);
             yi_add_h = y->entry[i];
@@ -208,10 +212,10 @@ void ndVectorfunction_jacobian(const NdVectorfunction *function, const Vector *x
             ndVectorfunction_call(function, x, y);
             yi_sub_h = y->entry[i];
             x->entry[j] += h;
-
             jacobian->matrix_entry[i][j] = (yi_add_h - yi_sub_h) / (2. * h);
+            printf("compute from thread %3d \n", omp_get_thread_num());
+            vector_free(y);
+            vector_free(x);
         }
     }
-    vector_free(y);
-    vector_free(x);
 }
