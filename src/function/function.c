@@ -112,7 +112,7 @@ void ndscla_forward_grad(const NdsclaFunction *function, double h, const Vector 
         temp->entry[i] -= h;
         f = ndscla_function_call(function, temp);
         grad->entry[i] = (f_add_h - f) / (h);
-        printf("compute from thread %3d \n", omp_get_thread_num());
+        //printf("compute from thread %3d \n", omp_get_thread_num());
         vector_free(temp);
     }
     if (vector_have_na(grad))
@@ -213,7 +213,7 @@ void ndVectorfunction_jacobian(const NdVectorfunction *function, const Vector *x
             yi_sub_h = y->entry[i];
             x->entry[j] += h;
             jacobian->matrix_entry[i][j] = (yi_add_h - yi_sub_h) / (2. * h);
-            printf("compute from thread %3d \n", omp_get_thread_num());
+            //printf("compute from thread %3d \n", omp_get_thread_num());
             vector_free(y);
             vector_free(x);
         }

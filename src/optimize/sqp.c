@@ -4,6 +4,7 @@
 #include "function.h"
 #include "sqp.h"
 #include "elog.h"
+#include "random.h"
 #include <math.h>
 
 #define LOG_TAG "SQP"
@@ -45,6 +46,11 @@ void optimize_sqp(const NdsclaFunction *fun,
     // basic problem info:
     int n = x0->size;
     int m = con->c->outputdim; // 约束数量
+    // 随机初始点:
+#ifdef SQP_RANDOM_INIT
+    for (int i = 0; i < x0->size; i++)
+        x0->entry[i] = x0->entry[i] + 0.2 * x0->entry[i] * rand_gauss();
+#endif
 
     // alloc workspace
     const double rho = 0.5;
@@ -140,7 +146,7 @@ void optimize_sqp(const NdsclaFunction *fun,
 
         //! 求解子问题
         optimize_qp_active_set(Bk, gradfk, subcon, NULL, p, lambdahat);
-        
+
         linearconstraints_free(subcon, 0);
         vector_free(_ck);
         log_i("subproblem ans P:");
@@ -206,6 +212,7 @@ void optimize_sqp(const NdsclaFunction *fun,
         if (iternum >= 100)
         {
             log_e("iter overflow");
+            vector_copy(xk, xstar);
             break;
         }
     }

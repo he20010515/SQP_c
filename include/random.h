@@ -1,8 +1,8 @@
 /*
  * @Author: HeYuwei
  * @Date: 2022-03-13 09:13:40
- * @LastEditors: Heyuwei
- * @LastEditTime: 2022-04-26 18:15:34
+ * @LastEditors: heyuwei he20010515@163.com
+ * @LastEditTime: 2022-11-15 12:39:07
  * @FilePath: \SQP_c\include\random.h
  * @Description:一些用于生成随机数的函数
  *
@@ -23,3 +23,9 @@ int rand_int(int start, int end);
  * @return {*}
  */
 double rand_double(double start, double end);
+
+/**
+ * @description: 产生标准正态分布
+ * @return {*}
+ */
+double rand_gauss();
