@@ -31,12 +31,11 @@ void __BFGS_update(const Matrix *Bk, const Vector *lambdak_1, const Vector *xk, 
 //*1. BFGS 修正 // Hession矩阵计算
 // 2. lambda 到底应该是多少
 // 3. 子问题初始可行解
-
-void optimize_sqp(const NdsclaFunction *fun,
-                  const Nonlinearconstraints *con,
-                  const Vector *x0,
-                  const Vector *lambda0,
-                  Vector *xstar)
+void _optimize_sqp(const NdsclaFunction *fun,
+                   const Nonlinearconstraints *con,
+                   const Vector *x0,
+                   const Vector *lambda0,
+                   Vector *xstar)
 {
     int iternum = 0;
     if (__check_input(fun, con, x0, xstar))
@@ -46,12 +45,6 @@ void optimize_sqp(const NdsclaFunction *fun,
     // basic problem info:
     int n = x0->size;
     int m = con->c->outputdim; // 约束数量
-    // 随机初始点:
-#ifdef SQP_RANDOM_INIT
-    for (int i = 0; i < x0->size; i++)
-        x0->entry[i] = x0->entry[i] + 0.2 * x0->entry[i] * rand_gauss();
-#endif
-
     // alloc workspace
     const double rho = 0.5;
     const double aita = 0.25;
@@ -256,6 +249,64 @@ Nonlinearconstraints *nonlinearconstraints_alloc(int dim, int size, int e, int i
     con->i = i;
     con->c = c;
     return con;
+}
+
+void optimize_sqp(const NdsclaFunction *fun,
+                  const Nonlinearconstraints *con,
+                  const Vector *x0,
+                  const Vector *lambda0,
+                  Vector *xstar)
+{
+
+#ifdef SQP_RANDOM_INIT
+    log_i("随机从%d个初始点出发", SQP_RANDOM_INIT);
+    Vector *x0_list[SQP_RANDOM_INIT] = {0};
+    Vector *xstar_list[SQP_RANDOM_INIT] = {0};
+    Vector *f_list = vector_alloc(SQP_RANDOM_INIT);
+
+    for (int i = 0; i < SQP_RANDOM_INIT; i++)
+    {
+        x0_list[i] = vector_alloc(fun->inputSize);
+        xstar_list[i] = vector_alloc(fun->inputSize);
+    }
+
+    for (int j = 0; j < SQP_RANDOM_INIT; j++)
+    {
+        for (int i = 0; i < x0->size; i++)
+            x0_list[j]->entry[i] = x0->entry[i] + 0.2 * x0->entry[i] * rand_gauss();
+    }
+    log_i("初始点为:");
+    vector_log(x0);
+    log_i("随机初始化完毕,初始化后的初始点分别为:");
+    for (int i = 0; i < SQP_RANDOM_INIT; i++)
+    {
+        vector_log(x0_list[i]);
+    }
+    for (int i = 0; i < SQP_RANDOM_INIT; i++)
+    {
+        _optimize_sqp(fun, con, x0_list[i], lambda0, xstar_list[i]);
+        f_list->entry[i] = ndscla_function_call(fun, xstar_list[i]);
+    }
+    log_i("%d个初始点优化后的值分别为:", SQP_RANDOM_INIT);
+    vector_log(f_list);
+    log_i("最优点为:");
+    vector_log(xstar_list[vector_argmax(f_list)]);
+    vector_copy(xstar_list[vector_argmax(f_list)], xstar);
+    return;
+
+#else
+    return _optimize_sqp(fun, con, x0, lambda0, xstar);
+#endif
+}
+
+void optimize_sqp_real_time(const NdsclaFunction *fun,
+                            const Nonlinearconstraints *con,
+                            const Vector *x0,
+                            const Vector *lambda0,
+                            Vector *xstar,
+                            double *x_real_time_buffer,
+                            double *f_real_time_buffer)
+{
 }
 
 void nonlinearconstraints_free(Nonlinearconstraints *con)

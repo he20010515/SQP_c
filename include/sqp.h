@@ -2,7 +2,7 @@
  * @Author: HeYuwei
  * @Date: 2022-03-25 10:15:12
  * @LastEditors: heyuwei he20010515@163.com
- * @LastEditTime: 2022-11-15 12:27:34
+ * @LastEditTime: 2022-11-29 17:29:04
  * @FilePath: \SQP_c\include\sqp.h
  * @Description: sqp主要头文件
  *
@@ -13,7 +13,7 @@
 #include "vector.h"
 #include "qp.h"
 
-#define SQP_RANDOM_INIT
+#define SQP_RANDOM_INIT 10
 
 struct nonlinearconstraints
 {
