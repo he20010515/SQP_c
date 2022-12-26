@@ -146,7 +146,7 @@ void _optimize_sqp(const NdsclaFunction *fun,
         vector_free(_ck);
         log_i("subproblem ans P:");
         vector_log(p);
-        if (vector_2norm(p) <= 1e-8)
+        if (vector_2norm(p) <= 1e-4 * p->size)
         {
             log_d("compute successfully ,return");
             // vector_print(xk);
